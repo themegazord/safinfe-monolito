@@ -44,4 +44,8 @@ class Cadastro extends Component
     Session::flash('sucesso', 'Contabilidade cadastrada com sucesso.');
     redirect('/contabilidades');
   }
+
+  public function voltar(): void {
+    redirect('/contabilidades');
+  }
 }

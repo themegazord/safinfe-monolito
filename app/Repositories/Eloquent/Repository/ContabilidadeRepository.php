@@ -9,14 +9,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ContabilidadeRepository implements IContabilidade
 {
-  public function paginacaoContabilidades(int $perPage = 10, string $consulta): LengthAwarePaginator
+  public function paginacaoContabilidades(int $perPage = 10, ?string $consulta): LengthAwarePaginator
   {
     return Contabilidade::query()
-      ->orWhere('fantasia', 'like', '%' . $consulta . '%')
       ->orWhere('social', 'like', '%' . $consulta . '%')
       ->orWhere('cnpj', 'like', '%' . $consulta . '%')
-      ->orWhere('ie', 'like', '%' . $consulta . '%')
-      ->orWhere('email_contato', 'like', '%' . $consulta . '%')
+      ->orWhere('telefone_corporativo', 'like', '%' . $consulta . '%')
+      ->orWhere('email_corporativo', 'like', '%' . $consulta . '%')
       ->paginate(10, [
         'contabilidade_id',
         'social',
