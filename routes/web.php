@@ -21,4 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::get('cadastro', \App\Livewire\Views\Contabilidades\Cadastro::class);
     Route::get('edicao/{contabilidade_id}', \App\Livewire\Views\Contabilidades\Edicao::class);
   });
+  Route::prefix('clientes')->group(function () {
+    Route::get('/', \App\Livewire\Views\Contabilidades\Listagem::class);
+    Route::get('cadastro', \App\Livewire\Views\Contabilidades\Cadastro::class);
+  });
 });
