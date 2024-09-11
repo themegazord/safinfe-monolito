@@ -34,6 +34,12 @@
           </a>
         </li>
         <li class="navbar-link">
+          <a href="/clientes">
+          <i class="fa-solid fa-mug-hot icon"></i>
+            <span class="text nav-text">Clientes</span>
+          </a>
+        </li>
+        <li class="navbar-link">
           <a href="/empresas">
             <i class="fa-solid fa-city icon"></i>
             <span class="text nav-text">Empresas</span>

@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent\Repository;
 
 use App\Models\Empresa;
 use App\Repositories\Interface\IEmpresa;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -24,6 +25,14 @@ class EmpresaRepository implements IEmpresa
         'cnpj',
         'ie',
         'email_contato'
+      ]);
+  }
+
+  public function listagemEmpresas(): Collection {
+    return Empresa::query()
+      ->get([
+        'empresa_id',
+        'fantasia',
       ]);
   }
 

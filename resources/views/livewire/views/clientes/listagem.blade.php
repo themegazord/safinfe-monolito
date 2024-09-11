@@ -4,8 +4,12 @@
   <div class="container-tabela-clientes">
     <div class="container-consulta-clientes">
       <div>
-        <label for="pesquisa" class="form-label">Razão social, nome fantasia, CNPJ, IE, email de contato...</label>
-        <input type="text" class="form-control" id="pesquisa" wire:model="pesquisa">
+        <label for="pesquisa" class="form-label">Insira o dado a ser pesquisado</label>
+        <input type="text" class="form-control" id="pesquisa" wire:model.blur="pesquisa" placeholder="Nome, email, empresa...">
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="ativo_inativo" wire:model.live="estaAtivo">
+        <label class="form-check-label" for="ativo_inativo">Inativo / Ativo</label>
       </div>
       <button wire:click="irCadastrar">Cadastrar</button>
     </div>
@@ -13,26 +17,22 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Razão Social</th>
-          <th>Nome Fantasia</th>
-          <th>CNPJ</th>
-          <th>IE</th>
-          <th>Email de Contato</th>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Empresa</th>
           <th>Acoes</th>
         </tr>
       </thead>
       <tbody>
         @foreach ($listagem['clientes'] as $cliente)
-        <tr wire:key="{{ $cliente->getAttribute('cliente_id') }}">
-          <td>{{ $cliente->getAttribute('cliente_id') }}</td>
-          <td>{{ $cliente->getAttribute('social') }}</td>
-          <td>{{ $cliente->getAttribute('fantasia') }}</td>
-          <td>{{ $cliente->getAttribute('cnpj') }}</td>
-          <td>{{ $cliente->getAttribute('ie') }}</td>
-          <td>{{ $cliente->getAttribute('email_contato') }}</td>
+        <tr wire:key="{{ $cliente->cliente_id }}">
+          <td>{{ $cliente->cliente_id }}</td>
+          <td>{{ $cliente->nome }}</td>
+          <td>{{ $cliente->email }}</td>
+          <td>{{ $cliente->fantasia }}</td>
           <td>
-            <i class="fa-solid fa-pen-to-square text-primary" wire:click="irEdicaocliente({{ $cliente->getAttribute('cliente_id') }})" style="cursor: pointer;"></i>
-            <i class="fa-solid fa-trash text-danger" style="cursor: pointer;" onclick="emiteEventoExclusaocliente(<?= $cliente->getAttribute('cliente_id') ?>)"></i>
+            <i class="fa-solid fa-pen-to-square text-primary" wire:click="irEdicaoCliente({{ $cliente->cliente_id }})" style="cursor: pointer;"></i>
+            <i class="fa-solid fa-rotate text-danger" style="cursor: pointer;" onclick="emiteEventoExclusaocliente(<?= $cliente->cliente_id ?>)"></i>
           </td>
         </tr>
         @endforeach
@@ -41,9 +41,11 @@
   </div>
   <script>
     function emiteEventoExclusaocliente(cliente_id) {
-      var resposta = confirm("Caso exclua a cliente, se não tiver XML no banco de dados, será apagada, junto com os dados do endereço, deseja realmente apagar a cliente?");
+      var resposta = confirm("Deseja realmente alterar o status desse cliente?");
       if (resposta) {
-        Livewire.dispatch('excluir-cliente', {cliente_id})
+        Livewire.dispatch('inativar-cliente', {
+          cliente_id
+        })
       }
     }
   </script>
@@ -82,11 +84,11 @@
       background-color: var(--primary-color-hover);
     }
 
-    .container-tabela-clientes .container-consulta-clientes div {
-      width: 100%;
+    .container-tabela-clientes .container-consulta-clientes div:first-child {
+      width: 70%;
     }
 
-    .container-tabela-clientes .container-consulta-clientes div input {
+    .container-tabela-clientes .container-consulta-clientes div:first-child input {
       height: 2rem;
     }
   </style>

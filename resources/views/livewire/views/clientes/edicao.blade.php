@@ -1,35 +1,31 @@
 <div class="main">
-  <h1>Cadastro de Clientes</h1>
+  <h1>Edição de Clientes</h1>
   <livewire:componentes.utils.notificacao.flash />
-  <form wire:submit="cadastrar">
+  <form wire:submit="editar">
     <h5>Dados da cliente:</h5>
     <div>
       <label for="nome" class="form-label">Insira o nome do cliente</label>
-      <input type="text" wire:model="cliente.nome" id="nome" class="form-control">
+      <input type="text" wire:model.fill="cliente.nome" value="{{ $clienteAtual['nome'] }}" id="nome" class="form-control">
       @error('cliente.nome') <span class="form-error">{{ $message }}</span> @enderror
     </div>
     <div class="subinput-form-clientes">
       <div>
         <label for="email" class="form-label">Insira o email do cliente</label>
-        <input type="email" wire:model="cliente.email" id="email" class="form-control">
+        <input type="email" wire:model.fill="cliente.email" value="{{ $clienteAtual['email'] }}" id="email" class="form-control">
         @error('cliente.email') <span class="form-error">{{ $message }}</span> @enderror
       </div>
-      <div>
-        <label for="senha" class="form-label">Insira a senha do cliente</label>
-        <input type="password" wire:model="usuario.password" id="senha" class="form-control">
-        @error('usuario.password') <span class="form-error">{{ $message }}</span> @enderror
-      </div>
+      <button wire:click="enviaEmailTrocaSenha" class="envia-troca-senha">Enviar email para troca de senha...</button>
     </div>
     <hr>
     <h5>Insira a empresa do cliente</h5>
-    <select class="form-select" aria-label="Seleciona a empresa que o cliente pertence..." wire:model="cliente.empresa_id">
-      <option value="{{ null }}" selected>Seleciona a empresa que o cliente pertence...</option>
+    <select class="form-select" aria-label="Seleciona a empresa que o cliente pertence..." wire:model.fill="cliente.empresa_id">
+      <option>Seleciona a empresa que o cliente pertence...</option>
       @foreach ($empresas as $empresa)
-      <option value="{{ $empresa->getAttribute('empresa_id') }}">{{ $empresa->getAttribute('fantasia') }}</option>
+      <option value="{{ $empresa->getAttribute('empresa_id') }}" {{ $clienteAtual['empresa_id'] === $empresa->getAttribute('empresa_id') ? 'selected' : '' }}>{{ $empresa->getAttribute('fantasia') }}</option>
       @endforeach
     </select>
     <div class="form-endereco-acoes">
-      <button type="submit" class="cadastrar">Cadastrar</button>
+      <button type="submit" class="cadastrar">Editar</button>
       <button class="botao-voltar" wire:click="voltar">Voltar</button>
     </div>
   </form>
@@ -64,7 +60,8 @@
       flex-direction: row-reverse;
     }
 
-    .form-endereco-acoes button {
+    .form-endereco-acoes button,
+    .envia-troca-senha {
       padding: .5rem 1rem;
       border: none;
       border-radius: 5px;
@@ -74,7 +71,8 @@
       transition: var(--tran-04);
     }
 
-    .form-endereco-acoes button:hover {
+    .form-endereco-acoes button:hover,
+    .envia-troca-senha:hover {
       background-color: var(--primary-color-hover);
     }
 
@@ -97,7 +95,8 @@
         padding: 1.5rem 0 0 2.5rem;
       }
 
-      .form-endereco-acoes button {
+      .form-endereco-acoes button,
+      .envia-troca-senha {
         padding: .25rem .5rem;
         border: none;
         border-radius: 5px;
