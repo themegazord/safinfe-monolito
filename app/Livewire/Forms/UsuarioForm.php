@@ -13,6 +13,7 @@ use Livewire\Form;
 ])]
 class UsuarioForm extends Form
 {
+  public string $role = '';
   public string $name = '';
   public string $email = '';
   public string $password = '';

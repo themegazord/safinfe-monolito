@@ -43,6 +43,7 @@ class Cadastro extends Component
 
     $this->usuario->name = $this->contador->nome;
     $this->usuario->email = $this->contador->email;
+    $this->usuario->role = 'CONTADOR';
 
     $usuario = $usuarioRepository->cadastraUsuario($this->usuario->all());
 

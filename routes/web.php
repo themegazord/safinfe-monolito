@@ -31,4 +31,5 @@ Route::middleware('auth')->group(function () {
     Route::get('cadastro', \App\Livewire\Views\Contadores\Cadastro::class);
     Route::get('edicao/{contador_id}', \App\Livewire\Views\Contadores\Edicao::class);
   });
+  Route::prefix('');
 });
