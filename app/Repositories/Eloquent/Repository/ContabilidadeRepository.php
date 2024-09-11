@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent\Repository;
 
 use App\Models\Contabilidade;
 use App\Repositories\Interface\IContabilidade;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -17,6 +18,17 @@ class ContabilidadeRepository implements IContabilidade
       ->orWhere('telefone_corporativo', 'like', '%' . $consulta . '%')
       ->orWhere('email_corporativo', 'like', '%' . $consulta . '%')
       ->paginate(10, [
+        'contabilidade_id',
+        'social',
+        'cnpj',
+        'telefone_corporativo',
+        'email_corporativo',
+      ]);
+  }
+
+  public function listagemContabilidades(): Collection {
+    return Contabilidade::query()
+      ->get([
         'contabilidade_id',
         'social',
         'cnpj',
