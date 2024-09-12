@@ -35,7 +35,7 @@ class Cadastro extends Component
 
     if (!is_null($clienteRepository->consultaClientePorEmail($this->cliente->email))) return $this->addError('cliente.email', 'O email já existe no sistema');
 
-    $this->usuario->validate();
+    $this->usuario->validateOnly('password');
     $this->usuario->encriptaSenha();
 
     $this->usuario->name = $this->cliente->nome;

@@ -46,9 +46,9 @@
           </a>
         </li>
         <li class="navbar-link">
-          <a href="/usuarios">
+          <a href="/administradores">
             <i class="fa-solid fa-users icon"></i>
-            <span class="text nav-text">Usuarios</span>
+            <span class="text nav-text">Administradores</span>
           </a>
         </li>
       </ul>

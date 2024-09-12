@@ -38,7 +38,7 @@ class Cadastro extends Component
     if (!is_null($contadorRepository->consultaContadorPorEmail($this->contador->email))) return $this->addError('contador.email', 'O email já existe no sistema');
     if (!is_null($contadorRepository->consultaContadorPorCPF($this->contador->cpf))) return $this->addError('contador.cpf', 'O CPF já existe no sistema');
 
-    $this->usuario->validate();
+    $this->usuario->validateOnly('password');
     $this->usuario->encriptaSenha();
 
     $this->usuario->name = $this->contador->nome;
