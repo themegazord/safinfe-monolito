@@ -16,42 +16,42 @@
     <div class="menu">
       <ul class="menu-links">
         @if ($usuario->role === 'ADMIN')
-          <li class="navbar-link">
-            <a href="/dashboard">
-              <i class="fa-solid fa-house icon"></i>
-              <span class="text nav-text">Dashboard</span>
-            </a>
-          </li>
-          <li class="navbar-link">
-            <a href="/contabilidades">
-              <i class="fa-solid fa-scale-unbalanced icon"></i>
-              <span class="text nav-text">Contabilidades</span>
-            </a>
-          </li>
-          <li class="navbar-link">
-            <a href="/contadores">
-              <i class="fa-solid fa-calculator icon"></i>
-              <span class="text nav-text">Contadores</span>
-            </a>
-          </li>
-          <li class="navbar-link">
-            <a href="/clientes">
-              <i class="fa-solid fa-mug-hot icon"></i>
-              <span class="text nav-text">Clientes</span>
-            </a>
-          </li>
-          <li class="navbar-link">
-            <a href="/empresas">
-              <i class="fa-solid fa-city icon"></i>
-              <span class="text nav-text">Empresas</span>
-            </a>
-          </li>
-          <li class="navbar-link">
-            <a href="/administradores">
-              <i class="fa-solid fa-users icon"></i>
-              <span class="text nav-text">Administradores</span>
-            </a>
-          </li>
+        <li class="navbar-link">
+          <a href="/dashboard">
+            <i class="fa-solid fa-house icon"></i>
+            <span class="text nav-text">Dashboard</span>
+          </a>
+        </li>
+        <li class="navbar-link">
+          <a href="/contabilidades">
+            <i class="fa-solid fa-scale-unbalanced icon"></i>
+            <span class="text nav-text">Contabilidades</span>
+          </a>
+        </li>
+        <li class="navbar-link">
+          <a href="/contadores">
+            <i class="fa-solid fa-calculator icon"></i>
+            <span class="text nav-text">Contadores</span>
+          </a>
+        </li>
+        <li class="navbar-link">
+          <a href="/clientes">
+            <i class="fa-solid fa-mug-hot icon"></i>
+            <span class="text nav-text">Clientes</span>
+          </a>
+        </li>
+        <li class="navbar-link">
+          <a href="/empresas">
+            <i class="fa-solid fa-city icon"></i>
+            <span class="text nav-text">Empresas</span>
+          </a>
+        </li>
+        <li class="navbar-link">
+          <a href="/administradores">
+            <i class="fa-solid fa-users icon"></i>
+            <span class="text nav-text">Administradores</span>
+          </a>
+        </li>
         @endif
         @if ($usuario->role === 'CLIENTE')
 
@@ -175,6 +175,10 @@
 
     .header-text .name {
       font-weight: 600;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      width: 130px;
+      white-space: nowrap;
     }
 
     .header-text .profession {
