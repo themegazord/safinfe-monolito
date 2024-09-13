@@ -11,7 +11,7 @@
     </select>
 
     <div class="mb-3">
-      <label for="arquivos" class="form-label">Default file input example</label>
+      <label for="arquivos" class="form-label">Seleciona o arquivo .rar com os XML's</label>
       <input class="form-control" type="file" id="arquivos" wire:model="arquivo">
     </div>
 
