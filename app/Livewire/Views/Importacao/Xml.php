@@ -43,11 +43,11 @@ class Xml extends Component
         Session::flash('erro', 'Aceitamos apenas .rar');
         return redirect('/importacaoxml');
       }
-      $this->recebeRARXMLS($xmlService, $dadosXMLService);
+      return $this->recebeRARXMLS($xmlService, $dadosXMLService);
     }
   }
 
-  private function recebeRARXMLS(XMLService $xmlService, DadosXMLService $dadosXMLService)
+  private function recebeRARXMLS(XMLService $xmlService, DadosXMLService $dadosXMLService): Redirector|RedirectResponse
   {
     DB::beginTransaction();
 
@@ -64,11 +64,11 @@ class Xml extends Component
       }
       DB::commit();
       Session::flash('sucesso', "XMLS importados com sucesso.");
-      redirect('/importacaoxml');
+      return redirect('/importacaoxml');
     } catch (\Exception $e) {
       DB::rollBack();
       Session::flash('erro', $e->getMessage() . " => XML com erro: " . $this->xmlNomeAtual);
-      redirect('/importacaoxml');
+      return redirect('/importacaoxml');
     } finally {
       rar_close($rar_file);
       unlink($realPath);
