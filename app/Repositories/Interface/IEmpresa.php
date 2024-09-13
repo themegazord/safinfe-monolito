@@ -11,6 +11,7 @@ interface IEmpresa {
   public function listagemEmpresas(): Collection;
   public function cadastroEmpresa(array $dados): Model;
   public function consultaEmpresa(int $empresa_id): ?Model;
+  public function consultaEmpresaPorCNPJ(string $cnpj): ?Model;
   public function editaEmpresa(array $dados): int;
   public function removeEmpresa(int $empresa_id): mixed;
 }

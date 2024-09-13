@@ -32,6 +32,7 @@ class EmpresaRepository implements IEmpresa
     return Empresa::query()
       ->get([
         'empresa_id',
+        'cnpj',
         'fantasia',
       ]);
   }
@@ -46,6 +47,23 @@ class EmpresaRepository implements IEmpresa
   {
     return Empresa::query()
       ->where('empresa_id', $empresa_id)
+      ->first([
+        'empresa_id',
+        'endereco_id',
+        'fantasia',
+        'social',
+        'cnpj',
+        'ie',
+        'email_contato',
+        'telefone_contato',
+        'telefone_reserva',
+      ]);
+  }
+
+  public function consultaEmpresaPorCNPJ(string $cnpj): ?Model
+  {
+    return Empresa::query()
+      ->where('cnpj', $cnpj)
       ->first([
         'empresa_id',
         'endereco_id',

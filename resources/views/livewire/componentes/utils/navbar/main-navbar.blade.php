@@ -15,13 +15,13 @@
   <div class="menu-bar">
     <div class="menu">
       <ul class="menu-links">
-        @if ($usuario->role === 'ADMIN')
         <li class="navbar-link">
           <a href="/dashboard">
             <i class="fa-solid fa-house icon"></i>
             <span class="text nav-text">Dashboard</span>
           </a>
         </li>
+        @if ($usuario->role === 'ADMIN')
         <li class="navbar-link">
           <a href="/contabilidades">
             <i class="fa-solid fa-scale-unbalanced icon"></i>
@@ -52,9 +52,20 @@
             <span class="text nav-text">Administradores</span>
           </a>
         </li>
+        <li class="navbar-link">
+          <a href="/importacaoxml">
+            <i class="fa-solid fa-file-import icon"></i>
+            <span class="text nav-text">Importe XML</span>
+          </a>
+        </li>
         @endif
         @if ($usuario->role === 'CLIENTE')
-
+        <li class="navbar-link">
+          <a href="/contabilidades">
+            <i class="fa-solid fa-magnifying-glass icon"></i>
+            <span class="text nav-text">Consulta XML</span>
+          </a>
+        </li>
         @endif
         @if ($usuario->role === 'CONTADOR')
 

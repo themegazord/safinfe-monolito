@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Empresa extends Model
 {
@@ -25,5 +26,9 @@ class Empresa extends Model
 
   public function endereco(): BelongsTo {
     return $this->belongsTo(Endereco::class, 'endereco_id', 'endereco_id');
+  }
+
+  public function dadosXML(): HasMany {
+    return $this->hasMany(DadosXML::class, 'dados_id', 'dados_id');
   }
 }
