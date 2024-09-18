@@ -36,6 +36,7 @@ class ContabilidadeForm extends Form
   public string $email_contato = '';
   public string $telefone_contato = '';
   public ?string $telefone_reserva = null;
+  public ?array $empresas = [];
 
   public function tratarCamposSujos(): void
   {
@@ -45,5 +46,9 @@ class ContabilidadeForm extends Form
     $this->telefone_reserva = trim(str_replace(['-', '.', '/', '(', ')'], '', $this->telefone_reserva));
     $this->email_contato = strtolower(trim($this->email_contato));
     $this->email_corporativo = strtolower(trim($this->email_corporativo));
+  }
+
+  public function filtraEmpresas(): void {
+    $this->empresas = array_filter($this->empresas, fn ($empresa) => $empresa);
   }
 }

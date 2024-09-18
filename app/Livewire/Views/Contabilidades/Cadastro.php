@@ -5,7 +5,10 @@ namespace App\Livewire\Views\Contabilidades;
 use App\Livewire\Forms\ContabilidadeForm;
 use App\Livewire\Forms\EnderecoForm;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
+use App\Repositories\Eloquent\Repository\EmpContRepository;
+use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
@@ -16,6 +19,11 @@ class Cadastro extends Component
 {
   public ContabilidadeForm $contabilidade;
   public EnderecoForm $endereco;
+  public Collection $empresas;
+
+  public function mount(EmpresaRepository $empresaRepository): void {
+    $this->empresas = $empresaRepository->listagemEmpresas()->sortBy('fantasia');
+  }
 
   #[Title("SAFI NFE - Cadastro de Contabilidades")]
   #[Layout("components.layouts.main")]
@@ -24,7 +32,8 @@ class Cadastro extends Component
     return view('livewire.views.contabilidades.cadastro');
   }
 
-  public function cadastrar(EnderecoRepository $enderecoRepository, ContabilidadeRepository $contabilidadeRepository) {
+  public function cadastrar(EnderecoRepository $enderecoRepository, ContabilidadeRepository $contabilidadeRepository, EmpContRepository $empContRepository) {
+    $this->contabilidade->filtraEmpresas();
     $this->contabilidade->tratarCamposSujos();
     $this->contabilidade->validate();
 
@@ -39,7 +48,18 @@ class Cadastro extends Component
 
     $this->contabilidade->endereco_id = $endereco->getAttribute('endereco_id');
 
-    $contabilidadeRepository->cadastroContabilidade($this->contabilidade->all());
+    $empresas = $this->contabilidade->empresas;
+
+    unset($this->contabilidade->empresas);
+
+    $contabilidade = $contabilidadeRepository->cadastroContabilidade($this->contabilidade->all());
+
+    foreach($empresas as $key => $empresa) {
+      $empContRepository->cadastrar([
+        'empresa_id' => $key,
+        'contabilidade_id' => $contabilidade->getAttribute('contabilidade_id')
+      ]);
+    }
 
     Session::flash('sucesso', 'Contabilidade cadastrada com sucesso.');
     redirect('/contabilidades');

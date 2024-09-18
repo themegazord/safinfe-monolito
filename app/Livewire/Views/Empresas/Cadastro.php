@@ -33,7 +33,6 @@ class Cadastro extends Component
 
     if (!is_null(DB::table('empresas')->where('cnpj', $this->empresa->cnpj)->first())) return $this->addError('empresa.cnpj', 'CNPJ já existente.');
     if (!is_null(DB::table('empresas')->where('ie', $this->empresa->ie)->first())) return $this->addError('empresa.ie', 'IE já existente.');
-    if (!is_null(DB::table('empresas')->where('email_contato', $this->empresa->email_contato)->first())) return $this->addError('empresa.email_contato', 'Email de contato já existente.');
 
     $this->endereco->validate();
 

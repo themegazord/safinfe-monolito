@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contabilidade extends Model
@@ -30,5 +31,9 @@ class Contabilidade extends Model
 
   public function contadores(): HasMany {
     return $this->hasMany(Contador::class, 'contabilidade_id', 'contabilidade_id');
+  }
+
+  public function empresas(): BelongsToMany {
+    return $this->belongsToMany(Empresa::class, 'empcont', 'contabilidade_id', 'empresa_id');
   }
 }

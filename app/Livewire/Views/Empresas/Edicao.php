@@ -8,6 +8,7 @@ use App\Models\Empresa;
 use App\Models\Endereco;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -32,17 +33,21 @@ class Edicao extends Component
     return view('livewire.views.empresas.edicao');
   }
 
-  public function editar(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository): void {
+  public function editar(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository) {
     $this->empresa->validate();
     $this->empresa->tratarCamposSujos();
     $this->endereco->validate();
     $this->endereco->tratarCamposSujos();
+
+    if (!is_null(DB::table('empresas')->where('cnpj', $this->empresa->cnpj)->whereNot('empresa_id', $this->empresaAtual->getAttribute('empresa_id'))->first())) return $this->addError('empresa.cnpj', 'CNPJ já existente.');
+    if (!is_null(DB::table('empresas')->where('ie', $this->empresa->ie)->whereNot('empresa_id', $this->empresaAtual->getAttribute('empresa_id'))->first())) return $this->addError('empresa.ie', 'IE já existente.');
 
 
     $enderecoAtualizado = array_diff($this->endereco->all(), $this->enderecoAtual->toArray());
     $empresaAtualizado = array_diff($this->empresa->all(), $this->empresaAtual->toArray());
 
     $enderecoAtualizado['endereco_id'] = $this->enderecoAtual->getAttribute('endereco_id');
+    $empresaAtualizado['endereco_id'] = $this->enderecoAtual->getAttribute('endereco_id');
     $empresaAtualizado['empresa_id'] = $this->empresaAtual->getAttribute('empresa_id');
 
     $empresaRepository->editaEmpresa($empresaAtualizado);
