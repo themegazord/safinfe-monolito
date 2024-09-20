@@ -12,5 +12,6 @@ interface IDadosXML {
   public function dadosXMLPorChave(string $chave): ?DadosXML;
   public function preConsultaDadosXML(array $dadosCliente, int $empresa_id): Builder;
   public function consultaPorChave(string $chave): ?DadosXML;
+  public function consultaPorID(int $dado_id): ?DadosXML;
   public function consultaVariosXML($xmls);
 }

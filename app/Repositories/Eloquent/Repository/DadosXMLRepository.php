@@ -101,6 +101,12 @@ class DadosXMLRepository implements IDadosXML
       ->first();
   }
 
+  public function consultaPorID(int $dado_id): ?DadosXML {
+    return DadosXML::query()
+      ->where('dados_id', $dado_id)
+      ->first();
+  }
+
   public function consultaVariosXML($xmls)
   {
     return DadosXML::query()
