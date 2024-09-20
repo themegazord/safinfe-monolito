@@ -42,4 +42,8 @@ Route::middleware('auth')->group(function () {
       Route::get('/', \App\Livewire\Views\Importacao\Xml::class);
     });
   });
+  Route::prefix('consultaxml')->group(function () {
+    Route::get('/', \App\Livewire\Views\Consultaxml\Consulta::class);
+    Route::get('/{hash}', \App\Livewire\Views\Consultaxml\Listagem::class);
+  });
 });

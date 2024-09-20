@@ -15,8 +15,6 @@ return [
 
     'class_namespace' => 'App\\Livewire',
 
-
-
     /*
     |---------------------------------------------------------------------------
     | View Path
@@ -158,5 +156,5 @@ return [
     |
     */
 
-    'pagination_theme' => 'tailwind',
+    'pagination_theme' => 'bootstrap',
 ];

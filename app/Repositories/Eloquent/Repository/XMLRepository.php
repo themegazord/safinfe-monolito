@@ -12,4 +12,14 @@ class XMLRepository implements IXML {
     return XML::query()
       ->create($dados);
   }
+
+  public function consultaPorId(int $xml_id): ?Model
+  {
+    return XML::query()
+      ->where('xml_id', $xml_id)
+      ->first([
+        'xml_id',
+        'xml'
+      ]);
+  }
 }
