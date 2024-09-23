@@ -5,6 +5,8 @@ namespace App\Livewire\Views\Consultaxml;
 use App\Actions\TrataDadosGeraisNotaFiscal;
 use App\Models\User;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
+use App\Trait\AnaliseXML\InformacaoAdicional\AnalisaInfAdicionalTrait;
+use App\Trait\AnaliseXML\Pagamento\AnalisaPagamentosTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaCOFINSSTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaCOFINSXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaICMSXMLTrait;
@@ -24,10 +26,10 @@ use SimpleXMLElement;
 
 class Listagem extends Component
 {
-  use WithPagination, AnalisaICMSXMLTrait, AnalisaIIXMLTrait, AnalisaIPIXMLTrait, AnalisaPISXMLTrait, AnalisaPISSTXMLTrait, AnalisaCOFINSXMLTrait, AnalisaISSQNTXMLTrait, AnalisaCOFINSSTXMLTrait;
+  use WithPagination, AnalisaICMSXMLTrait, AnalisaIIXMLTrait, AnalisaIPIXMLTrait, AnalisaPISXMLTrait, AnalisaPISSTXMLTrait, AnalisaCOFINSXMLTrait, AnalisaISSQNTXMLTrait, AnalisaCOFINSSTXMLTrait, AnalisaPagamentosTrait, AnalisaInfAdicionalTrait;
 
   public Authenticatable|User $usuario;
-  public array $dados, $tagImposto = [];
+  public array $dados, $tagImposto, $tagPagamento, $tagInfAdicional = [];
   public Collection $dados_xml;
   public ?array $dadosXMLAtual = null;
   public string $hash = '';
@@ -76,7 +78,9 @@ class Listagem extends Component
         'vCOFINS' => 0,
         'valorApxImpostosFederais' => 0,
       ],
-      'produtos' => []
+      'produtos' => [],
+      'pagamento' => [],
+      'infAdicional' => [],
     ];
 
     // dd($this->dadosXMLAtual);
@@ -133,6 +137,13 @@ class Listagem extends Component
       if ($this->dadosXMLAtual['produtos'][$key]['prod']) $this->dadosXMLAtual['produtos'][$key]['prod'] = (array)$this->dadosXMLAtual['produtos'][$key]['prod'];
       $this->dadosXMLAtual['produtos'][$key]['imposto'] = $this->trataDadosImpostoProduto($this->dadosXMLAtual['produtos'][$key]['imposto']);
     }
+
+    $this->dadosXMLAtual['pagamento'] = $this->trataDadosPagamentoNotaFiscal($informacoesBrutaNFE['pag']);
+
+    $this->dadosXMLAtual['infAdicional'] = $this->trataDadosInfAdicionalNotaFiscal($informacoesBrutaNFE['infAdic']);
+
+    // dd($informacoesBrutaNFE);
+    // dd($this->dadosXMLAtual);
   }
 
   private function trataDadosImpostoProduto(SimpleXMLElement $imposto): array
@@ -250,12 +261,27 @@ class Listagem extends Component
       }
     }
 
-    return $this->limparTagImposto($this->tagImposto);
+    return $this->limparTagSuja($this->tagImposto);
   }
 
-  private function limparTagImposto(array $tagImposto)
+  private function trataDadosPagamentoNotaFiscal(SimpleXMLElement $pagamento): array
   {
-    return array_filter($tagImposto, function ($item) {
+    $arrayPagamento = (array)$pagamento;
+    if (isset($arrayPagamento['detPag'])) {
+      $this->analisaCamposPagamento($arrayPagamento['detPag'], 'pag');
+    }
+
+    return $this->limparTagSuja($this->tagPagamento);
+  }
+
+  private function trataDadosInfAdicionalNotaFiscal(SimpleXMLElement $infAdicional): array {
+    $this->defineCamposInfAdicional($infAdicional, 'infAdic');
+    return $this->limparTagSuja($this->tagInfAdicional);
+  }
+
+  private function limparTagSuja(array $tag)
+  {
+    return array_filter($tag, function ($item) {
       // Verifica se o item é um array e se não contém chaves em branco
       return !empty($item) && !array_key_exists('', $item);
     });

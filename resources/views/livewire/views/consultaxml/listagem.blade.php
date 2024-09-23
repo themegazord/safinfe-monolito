@@ -223,10 +223,84 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                   </div>
                   @endif
                 </div>
+                <div class="informacoes-pagamento">
+                  @foreach ($dadosXMLAtual['pagamento']['pag']['pag'] as $key => $dadoPagamento)
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ $dadoPagamento['descricao'] }}: </h5>
+                      <p class="card-text">
+                        @if ($key === 'vPag')
+                        {{ numfmt_format_currency($fmt, floatval($dadoPagamento['valor']), 'BRL') }}
+                        @else
+                        {{$dadoPagamento['valor']}}
+                        @endif
+                      </p>
+                    </div>
+                  </div>
+                  @endforeach
+                </div>
               </div>
             </div>
-            <div class="tab-pane fade" id="produtos-nota" role="tabpanel" aria-labelledby="produtos-nota-tab"></div>
-            <div class="tab-pane fade" id="informacoes-nota" role="tabpanel" aria-labelledby="informacoes-nota-tab">...</div>
+            <div class="tab-pane fade table-responsive" id="produtos-nota" role="tabpanel" aria-labelledby="produtos-nota-tab">
+              <table class="table accordion">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Cod. Produto</th>
+                    <th>Nome</th>
+                    <th>NCM</th>
+                    <th>Un. Medida</th>
+                    <th>Qtde.</th>
+                    <th>Valor Un.</th>
+                    <th>Valor Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach ($dadosXMLAtual['produtos'] as $key => $detalheProduto)
+                  <tr data-bs-toggle="collapse" data-bs-target="#produto_cod{{ $key }}">
+                    <th>
+                      {{ $key + 1 }}
+                    </th>
+                    <td>{{ $detalheProduto['prod']['cProd'] }}</td>
+                    <td>{{ $detalheProduto['prod']['xProd'] }}</td>
+                    <td>{{ $detalheProduto['prod']['NCM'] }}</td>
+                    <td>{{ $detalheProduto['prod']['uCom'] }}</td>
+                    <td>{{ $detalheProduto['prod']['qCom'] }}</td>
+                    <td>{{ numfmt_format_currency($fmt, floatval($detalheProduto['prod']['vUnCom']), 'BRL') }}</td>
+                    <td>{{ numfmt_format_currency($fmt, floatval($detalheProduto['prod']['vProd']), 'BRL') }}</td>
+                  </tr>
+                  <tr class="collapse accordion-collapse" id="produto_cod{{ $key }}" data-bs-parent=".table">
+                    <td colspan="8">
+                      @foreach ($detalheProduto['imposto'] as $keyImposto => $imposto)
+                      <div class="card infoImpostoProduto">
+                        <div class="card-body">
+                          <h5 class="card-title">{{ $keyImposto }}:</h5>
+                          @foreach ($imposto as $tagImposto)
+                          @foreach ($tagImposto as $infoImposto)
+                          <p class="card-text">
+                            <b>{{ $infoImposto['descricao'] }}: </b> {{ $infoImposto['valor'] }}
+                          </p>
+                          @endforeach
+                          @endforeach
+                        </div>
+                      </div>
+                      @endforeach
+                    </td>
+                  </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+            <div class="tab-pane fade" id="informacoes-nota" role="tabpanel" aria-labelledby="informacoes-nota-tab">
+              @foreach ($dadosXMLAtual['infAdicional']['infAdic']['infAdic'] as $detalhesInfAdicional)
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ $detalhesInfAdicional['descricao'] }}: </h5>
+                    <p class="card-text">{{ $detalhesInfAdicional['valor'] }}</p>
+                  </div>
+                </div>
+              @endforeach
+            </div>
           </div>
           @else
           <div class="container-loading-dados">
@@ -295,7 +369,8 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
       gap: 1rem;
     }
 
-    .valores-nota {
+    .valores-nota,
+    .informacoes-pagamento {
       display: flex;
       gap: 1rem;
     }
@@ -315,5 +390,9 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
       display: grid;
       grid-template-columns: 1fr 1fr;
     } */
+
+    .infoImpostoProduto {
+      margin-bottom: .5rem;
+    }
   </style>
 </app>
