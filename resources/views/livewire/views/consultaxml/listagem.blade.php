@@ -33,8 +33,12 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
           <td>{{ $dado->status }}</td>
           <td>{{ date('d/m/Y', strtotime($dado->dh_emissao_evento)) }}</td>
           <td>
+            @if ($dado->status === 'INUTILIZADO')
+            <i class="fa-solid fa-info text-info pe-1" wire:click="selecionaXMLInutilizadoAtual({{ $dado->dados_id }})" data-bs-toggle="modal" data-bs-target="#modalDadosInutilizacao"></i>
+            @else
             <i class="fa-solid fa-info text-info pe-1" wire:click="selecionaXMLAtual({{ $dado->dados_id }})" data-bs-toggle="modal" data-bs-target="#informacaoNFeModal"></i>
-            <i class="fa-solid fa-download text-success"></i>
+            @endif
+            <i class="fa-solid fa-download text-success" wire:click="downloadXML({{ $dado->dados_id }})"></i>
           </td>
         </tr>
         @endforeach
@@ -50,7 +54,9 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="informacaoNFeModalLabel">Modal title</h5>
+          @if (!is_null($dadosXMLAtual))
+          <h5 class="modal-title" id="informacaoNFeModalLabel">Dados da nota fiscal: {{ $dadosXMLAtual['numero'] }}</h5>
+          @endif
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body bodyModalInformacaoNFe">
@@ -225,6 +231,7 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                 </div>
                 <div class="informacoes-pagamento">
                   @foreach ($dadosXMLAtual['pagamento']['pag']['pag'] as $key => $dadoPagamento)
+                  @if ($key !== 'card')
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">{{ $dadoPagamento['descricao'] }}: </h5>
@@ -237,6 +244,16 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                       </p>
                     </div>
                   </div>
+                  @else
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Dados do cartão:</h5>
+                      @foreach ($dadoPagamento as $dadoCartao)
+                        <p class="card-text"><b>{{ $dadoCartao['descricao'] }}</b>: {{ $dadoCartao['valor'] }}</p>
+                      @endforeach
+                    </div>
+                  </div>
+                  @endif
                   @endforeach
                 </div>
               </div>
@@ -292,14 +309,31 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
               </table>
             </div>
             <div class="tab-pane fade" id="informacoes-nota" role="tabpanel" aria-labelledby="informacoes-nota-tab">
-              @foreach ($dadosXMLAtual['infAdicional']['infAdic']['infAdic'] as $detalhesInfAdicional)
+              <div class="infoadc-notafiscal">
+                @foreach ($dadosXMLAtual['infAdicional']['infAdic']['infAdic'] as $detalhesInfAdicional)
                 <div class="card">
                   <div class="card-body">
                     <h5 class="card-title">{{ $detalhesInfAdicional['descricao'] }}: </h5>
                     <p class="card-text">{{ $detalhesInfAdicional['valor'] }}</p>
                   </div>
                 </div>
-              @endforeach
+                @endforeach
+                @if (!is_null($dadosXMLAtualCancelado))
+                <div class="card">
+                  <div class="card-body">
+                    <h3 class="card-title">Dados do cancelamento da nota fiscal</h3>
+                    <div class="card">
+                      <div class="card-body">
+                        <p class="card-text"><b>CNPJ emissor do evento:</b> {{ $dadosXMLAtualCancelado['cnpj'] }}</p>
+                        <p class="card-text"><b>Chave da nota cancelada:</b> {{ $dadosXMLAtualCancelado['chaveNFe'] }}</p>
+                        <p class="card-text"><b>Data e Hora do cancelamento:</b> {{ date('d/m/Y H:i:s', strtotime($dadosXMLAtualCancelado['dh_cancelamento'])) }}</p>
+                        <p class="card-text"><b>Motivo do cancelamento:</b> {{ $dadosXMLAtualCancelado['justificativa'] }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                @endif
+              </div>
             </div>
           </div>
           @else
@@ -312,14 +346,52 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
           @endif
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetarCampos">Fechar</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Fim do modal de visualização de dados da nota fiscal -->
+
+  <!-- Inicio modal de visualizacao dos dados da nota fiscal inutilizado -->
+
+  <div class="modal fade" id="modalDadosInutilizacao" tabindex="-1" aria-labelledby="modalDadosInutilizacaoLabel" aria-hidden="true" wire:ignore.self>
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          @if (!is_null($dadosXMLAtualInutilizado))
+          <h5 class="modal-title" id="informacaoNFeModalLabel">Dados da(s) nota(s) fiscal(is) inutilizada(s): {{ $dadosXMLAtualInutilizado['nfInicial'] }} - {{ $dadosXMLAtualInutilizado['nfFinal'] }}</h5>
+          @endif
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          @if (!is_null($dadosXMLAtualInutilizado))
+          <div class="card">
+            <div class="card-body">
+              <h4 class="card-title">Dados da inutilização</h4>
+              <div class="card">
+                <div class="card-body">
+                  <p class="card-text"><b>CNPJ do emissor do evento: </b> {{ $dadosXMLAtualInutilizado['cnpj'] }}</p>
+                  <p class="card-text"><b>Modelo: </b> {{ $dadosXMLAtualInutilizado['modelo'] }}</p>
+                  <p class="card-text"><b>Série: </b> {{ $dadosXMLAtualInutilizado['serie'] }}</p>
+                  <p class="card-text"><b>Nota inicial/Nota Final: </b> {{ $dadosXMLAtualInutilizado['nfInicial'] }} - {{ $dadosXMLAtualInutilizado['nfFinal'] }}</p>
+                  <p class="card-text"><b>Data e hora do evento: </b> {{ date('d/m/Y H:i:s', strtotime($dadosXMLAtualInutilizado['dh_inutilizado'])) }}</p>
+                  <p class="card-text"><b>Justificativa: </b> {{ $dadosXMLAtualInutilizado['justificativa'] }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          @endif
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fim modal de visualizacao dos dados da nota fiscal inutilizado -->
 
 
   <style>
@@ -362,7 +434,8 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
       gap: 2rem;
     }
 
-    .container-info-dados {
+    .container-info-dados,
+    .infoadc-notafiscal {
       display: flex;
       flex-direction: column;
       margin-top: 1rem;

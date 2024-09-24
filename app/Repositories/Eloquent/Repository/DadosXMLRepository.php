@@ -38,14 +38,14 @@ class DadosXMLRepository implements IDadosXML
   {
     $dados_xml = DB::table('dados_xml as dx1')
       ->where(function ($query) {
-        $query->whereIn('dx1.status', ['cancelado', 'denegado'])
+        $query->whereIn('dx1.status', ['cancelado', 'denegado', 'inutilizado'])
           ->orWhere(function ($subQuery) {
             $subQuery->where('dx1.status', 'autorizado')
               ->whereNotExists(function ($subSubQuery) {
                 $subSubQuery->select(DB::raw(1))
                   ->from('dados_xml as dx2')
                   ->whereRaw('dx2.numeronf = dx1.numeronf')
-                  ->whereIn('dx2.status', ['cancelado', 'denegado']);
+                  ->whereIn('dx2.status', ['cancelado', 'denegado', 'inutilizado']);
               });
           });
       })
@@ -57,7 +57,6 @@ class DadosXMLRepository implements IDadosXML
     ) {
       $dados_xml = $dados_xml->whereDate('dh_emissao_evento', '>=', date('Y/m/d', strtotime($dadosCliente['data_inicio'])))
         ->whereDate('dh_emissao_evento', '<=',  date('Y/m/d', strtotime($dadosCliente['data_fim'])));
-      // dd($dados_xml->toSql());
     }
     if (
       !is_null($dadosCliente['data_inicio']) &&
@@ -105,6 +104,13 @@ class DadosXMLRepository implements IDadosXML
     return DadosXML::query()
       ->where('dados_id', $dado_id)
       ->first();
+  }
+
+  public function consultaDadosNotaFiscalAutorizada(int $numeronf): ?DadosXML {
+    return DadosXML::query()
+    ->where('numeronf', $numeronf)
+    ->where('status', 'AUTORIZADO')
+    ->first();
   }
 
   public function consultaVariosXML($xmls)

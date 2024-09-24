@@ -18,6 +18,7 @@ use App\Trait\AnaliseXML\Tributacao\AnalisaPISXMLTrait;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -32,6 +33,8 @@ class Listagem extends Component
   public array $dados, $tagImposto, $tagPagamento, $tagInfAdicional = [];
   public Collection $dados_xml;
   public ?array $dadosXMLAtual = null;
+  public ?array $dadosXMLAtualCancelado = null;
+  public ?array $dadosXMLAtualInutilizado = null;
   public string $hash = '';
   public int $perPage = 50;
 
@@ -52,6 +55,8 @@ class Listagem extends Component
       'CONTADOR' => $dados_xml = $dadosXMLRepository->preConsultaDadosXML($this->dados, $this->dados['empresa_id']),
     };
 
+    $dados_xml = $dados_xml->orderBy('dh_emissao_evento', 'asc');
+
     $dados_xml = $dados_xml->paginate($this->perPage);
 
     return view('livewire.views.consultaxml.listagem', [
@@ -59,15 +64,22 @@ class Listagem extends Component
     ]);
   }
 
+  public function resetarCampos(): void
+  {
+    $this->dadosXMLAtualCancelado = null;
+  }
+
   public function selecionaXMLAtual(int $dado_id, DadosXMLRepository $dadosXMLRepository, TrataDadosGeraisNotaFiscal $dadosGeraisNotaFiscal): void
   {
-    $xml = $dadosXMLRepository->consultaPorID($dado_id)->xml->xml;
+    $dadosXML = $dadosXMLRepository->consultaPorID($dado_id);
+    // dd(simplexml_load_string($dadosXML->xml->xml));
+    $xml = $dadosXML->getAttribute('status') === 'AUTORIZADO' ?  $dadosXML->xml->xml : $dadosXMLRepository->consultaDadosNotaFiscalAutorizada($dadosXML->getAttribute('numeronf'))->xml->xml;
     $informacoesBrutaNFE = $dadosGeraisNotaFiscal->consultaDadosXML(simplexml_load_string($xml)->NFe[0]->infNFe[0]);
-
-    // dd($informacoesBrutaNFE);
+    if ($dadosXML->getAttribute('status') === 'CANCELADO') $this->dadosXMLAtualCancelado = $dadosGeraisNotaFiscal->formataDadosXMLEventoCancelamento(simplexml_load_string($dadosXML->xml->xml)->evento[0]->infEvento[0]);
 
     $this->dadosXMLAtual = [
       'modelo' => '',
+      'numero' => '',
       'detalhesEmissor' => [],
       'detalhesDestinatario' => [],
       'informacaoDeValoresDaNota' => [
@@ -86,6 +98,7 @@ class Listagem extends Component
     // dd($this->dadosXMLAtual);
 
     $this->dadosXMLAtual['modelo'] = $informacoesBrutaNFE['ide']->mod[0]->__toString();
+    $this->dadosXMLAtual['numero'] = $informacoesBrutaNFE['ide']->nNF[0]->__toString();
 
     $this->dadosXMLAtual['detalhesEmissor'] = [
       'cnpj' => $informacoesBrutaNFE['emit']->CNPJ[0]->__toString(),
@@ -142,8 +155,45 @@ class Listagem extends Component
 
     $this->dadosXMLAtual['infAdicional'] = $this->trataDadosInfAdicionalNotaFiscal($informacoesBrutaNFE['infAdic']);
 
+    // dd($dadosXMLService->)
+
     // dd($informacoesBrutaNFE);
     // dd($this->dadosXMLAtual);
+  }
+
+  public function selecionaXMLInutilizadoAtual(int $dado_id, DadosXMLRepository $dadosXMLRepository, TrataDadosGeraisNotaFiscal $dadosGeraisNotaFiscal): void
+  {
+    $this->dadosXMLAtualInutilizado = $dadosGeraisNotaFiscal->formataDadosXMLEventoInutilizado(simplexml_load_string($dadosXMLRepository->consultaPorID($dado_id)->xml->xml));
+  }
+
+  public function downloadXML(int $dado_id, DadosXMLRepository $dadosXMLRepository)
+  {
+    $diretorioUsuario = storage_path('app/tempXMLExportPorUsuario/' . $this->usuario->getAttribute('id'));
+    $dadosXML = $dadosXMLRepository->consultaPorID($dado_id);
+
+    if (!file_exists($diretorioUsuario)) {
+      mkdir($diretorioUsuario, 0755, true);
+    }
+
+    try {
+      $caminhoXML = $diretorioUsuario . '/' . $dadosXML->getAttribute('chave') . '.xml';
+
+      $xml = fopen($caminhoXML, "a+");
+
+      if ($xml === false) {
+        throw new \Exception("Não foi possível criar o arquivo XML: " . $caminhoXML);
+      }
+
+      fwrite($xml, $dadosXML->xml->xml);
+      fclose($xml);
+
+      return response()->download($caminhoXML, $dadosXML->getAttribute('chave') . '.xml',[
+        'Content-Type' => 'application/zip',
+      ])->deleteFileAfterSend(true);
+
+    } catch (\Exception $e) {
+      Log::error("Erro ao processar o XML ID: {$dadosXML->xml_id}, Erro: " . $e->getMessage());
+    }
   }
 
   private function trataDadosImpostoProduto(SimpleXMLElement $imposto): array
@@ -271,10 +321,13 @@ class Listagem extends Component
       $this->analisaCamposPagamento($arrayPagamento['detPag'], 'pag');
     }
 
-    return $this->limparTagSuja($this->tagPagamento);
+    $this->tagPagamento['pag']['pag'] = $this->limparTagSuja($this->tagPagamento['pag']['pag']);
+
+    return $this->tagPagamento;
   }
 
-  private function trataDadosInfAdicionalNotaFiscal(SimpleXMLElement $infAdicional): array {
+  private function trataDadosInfAdicionalNotaFiscal(SimpleXMLElement $infAdicional): array
+  {
     $this->defineCamposInfAdicional($infAdicional, 'infAdic');
     return $this->limparTagSuja($this->tagInfAdicional);
   }
@@ -287,5 +340,3 @@ class Listagem extends Component
     });
   }
 }
-
-//['descricao' => '', 'valor' =>  $valor[0]->__toString()]

@@ -2,6 +2,8 @@
 
 namespace App\Actions;
 
+use SimpleXMLElement;
+
 class TrataDadosGeraisNotaFiscal
 {
   public function consultaDadosXML(\SimpleXMLElement $xml): array
@@ -24,6 +26,29 @@ class TrataDadosGeraisNotaFiscal
       'compra' => is_null($xml->compra[0]) ? null : ($xml->compra[0]),
       'cana' => is_null($xml->cana[0]) ? null : ($xml->cana[0]),
     ]);
+  }
+
+  public function formataDadosXMLEventoCancelamento(SimpleXMLElement $xml): array {
+    return [
+      'cnpj' => $xml->CNPJ[0]->__toString(),
+      'chaveNFe' => $xml->chNFe[0]->__toString(),
+      'dh_cancelamento' => $xml->dhEvento[0]->__toString(),
+      'justificativa' => $xml->detEvento[0]->xJust[0]->__toString()
+    ];
+  }
+
+  public function formataDadosXMLEventoInutilizado(SimpleXMLElement $xml): array {
+    $infInut = $xml->inutNFe[0]->infInut[0];
+    $retInutNFe = $xml->retInutNFe[0]->infInut[0];
+    return [
+      'justificativa' => $infInut->xJust[0]->__toString(),
+      'cnpj' => $retInutNFe->CNPJ[0]->__toString(),
+      'modelo' => $retInutNFe->mod[0]->__toString(),
+      'serie' => $retInutNFe->serie[0]->__toString(),
+      'nfInicial' => $retInutNFe->nNFIni[0]->__toString(),
+      'nfFinal' => $retInutNFe->nNFFin[0]->__toString(),
+      'dh_inutilizado' => $retInutNFe->dhRecbto[0]->__toString(),
+    ];
   }
 
   private function trataDetalhesNota(\SimpleXMLElement $det): array
