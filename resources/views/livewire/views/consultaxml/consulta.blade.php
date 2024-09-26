@@ -107,7 +107,7 @@
         </div>
       </div>
       <select class="form-select" aria-label="Selecione a empresa que você quer consultar as notas fiscais." wire:model="consultaContador.empresa_id" autocomplete="off">
-        <option selected>Selecione a empresa que você quer consultar as notas fiscais.</option>
+        <option value="{{ null }}" selected>Selecione a empresa que você quer consultar as notas fiscais.</option>
         @foreach ($empresas as $empresa)
         <option value="{{ $empresa->getAttribute('empresa_id') }}">{{ $empresa->getAttribute('fantasia') }}</option>
         @endforeach
@@ -171,7 +171,7 @@
         </div>
       </div>
       <select class="form-select" aria-label="Selecione a empresa que você quer consultar as notas fiscais." wire:model="consultaAdmin.empresa_id" autocomplete="off">
-        <option selected>Selecione a empresa que você quer consultar as notas fiscais.</option>
+        <option value="{{ null }}" selected>Selecione a empresa que você quer consultar as notas fiscais.</option>
         @foreach ($empresas as $empresa)
         <option value="{{ $empresa->getAttribute('empresa_id') }}">{{ $empresa->getAttribute('fantasia') }}</option>
         @endforeach

@@ -22,5 +22,5 @@ class ConsultaAdminXMLForm extends Form
   public string $modelo = "TODAS";
   public ?int $numeroInicial = null;
   public ?int $numeroFinal = null;
-  public ?int $empresa_id = null;
+  public int|string|null $empresa_id = null;
 }
