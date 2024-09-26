@@ -51,4 +51,9 @@ class Cadastro extends Component
     Session::flash('sucesso', 'Cliente cadastrado com sucesso.');
     redirect('clientes/');
   }
+
+  public function voltar(): void
+  {
+    redirect('contadores/');
+  }
 }

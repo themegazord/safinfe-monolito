@@ -14,7 +14,6 @@ trait AnalisaCOFINSXMLTrait
         'vBC' => ['descricao' => 'Valor da Base de Cálculo da COFINS', 'valor' => $valor[0]->__toString()],
         'pCOFINS' => ['descricao' => 'Alíquota da COFINS (em percentual)', 'valor' => $valor[0]->__toString()],
         'vCOFINS' => ['descricao' => 'Valor da COFINS', 'valor' => $valor[0]->__toString()],
-        default => null,
       };
     }
   }
@@ -27,7 +26,6 @@ trait AnalisaCOFINSXMLTrait
         'qBCProd' => ['descricao' => 'Quantidade Vendida', 'valor' => $valor[0]->__toString()],
         'vAliqProd' => ['descricao' => 'Alíquota da COFINS (em reais)', 'valor' => $valor[0]->__toString()],
         'vCOFINS' => ['descricao' => 'Valor da COFINS', 'valor' => $valor[0]->__toString()],
-        default => null,
       };
     }
   }
@@ -37,7 +35,6 @@ trait AnalisaCOFINSXMLTrait
     foreach ($cofinsNT as $tag => $valor) {
       $this->tagImposto['COFINS'][$tagCOFINS][$tag] = match ($tag) {
         'CST' => ['descricao' => 'Código de Situação Tributária da COFINS', 'valor' => $valor[0]->__toString()],
-        default => null,
       };
     }
   }
@@ -52,7 +49,6 @@ trait AnalisaCOFINSXMLTrait
         'qBCProd' => ['descricao' => 'Quantidade Vendida', 'valor' => $valor[0]->__toString()],
         'vAliqProd' => ['descricao' => 'Alíquota da COFINS (em reais)', 'valor' => $valor[0]->__toString()],
         'vCOFINS' => ['descricao' => 'Valor da COFINS', 'valor' => $valor[0]->__toString()],
-        default => null,
       };
     }
   }

@@ -15,7 +15,7 @@ trait AnalisaPISSTXMLTrait
         'qBCProd' => ['descricao' => 'Quantidade Vendida', 'valor' => $valor[0]->__toString()],
         'vAliqProd' => ['descricao' => 'Alíquota do PIS (em reais)', 'valor' => $valor[0]->__toString()],
         'vPIS' => ['descricao' => 'Valor do PIS', 'valor' => $valor[0]->__toString()],
-        default => null,
+        'indSomaPISST' => ['descricao' => 'Indica se o valor do PISST compõe o valor total da NF-e', 'valor' => $valor[0]->__toString()],
       };
     }
   }

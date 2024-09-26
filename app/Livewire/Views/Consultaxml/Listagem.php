@@ -9,6 +9,7 @@ use App\Trait\AnaliseXML\InformacaoAdicional\AnalisaInfAdicionalTrait;
 use App\Trait\AnaliseXML\Pagamento\AnalisaPagamentosTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaCOFINSSTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaCOFINSXMLTrait;
+use App\Trait\AnaliseXML\Tributacao\AnalisaICMSUFDestXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaICMSXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaIIXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaIPIXMLTrait;
@@ -27,7 +28,7 @@ use SimpleXMLElement;
 
 class Listagem extends Component
 {
-  use WithPagination, AnalisaICMSXMLTrait, AnalisaIIXMLTrait, AnalisaIPIXMLTrait, AnalisaPISXMLTrait, AnalisaPISSTXMLTrait, AnalisaCOFINSXMLTrait, AnalisaISSQNTXMLTrait, AnalisaCOFINSSTXMLTrait, AnalisaPagamentosTrait, AnalisaInfAdicionalTrait;
+  use WithPagination, AnalisaICMSXMLTrait, AnalisaIIXMLTrait, AnalisaIPIXMLTrait, AnalisaPISXMLTrait, AnalisaPISSTXMLTrait, AnalisaCOFINSXMLTrait, AnalisaISSQNTXMLTrait, AnalisaCOFINSSTXMLTrait, AnalisaPagamentosTrait, AnalisaInfAdicionalTrait, AnalisaICMSUFDestXMLTrait;
 
   public Authenticatable|User $usuario;
   public array $dados, $tagImposto, $tagPagamento, $tagInfAdicional = [];
@@ -50,9 +51,11 @@ class Listagem extends Component
   {
     $this->dados = json_decode(base64_decode($this->hash), true);
 
+    // dd($this->dados);
+
     $dados_xml = match ($this->usuario->getAttribute('role')) {
       'CLIENTE' => $dados_xml = $dadosXMLRepository->preConsultaDadosXML($this->dados, $this->usuario->cliente->empresa->getAttribute('empresa_id')),
-      'CONTADOR' => $dados_xml = $dadosXMLRepository->preConsultaDadosXML($this->dados, $this->dados['empresa_id']),
+      default => $dados_xml = $dadosXMLRepository->preConsultaDadosXML($this->dados, $this->dados['empresa_id']),
     };
 
     $dados_xml = $dados_xml->orderBy('dh_emissao_evento', 'asc');
@@ -66,7 +69,13 @@ class Listagem extends Component
 
   public function resetarCampos(): void
   {
+    $this->dados = [];
+    $this->tagImposto = [];
+    $this->tagPagamento = [];
+    $this->tagInfAdicional = [];
+    $this->dadosXMLAtual = null;
     $this->dadosXMLAtualCancelado = null;
+    $this->dadosXMLAtualInutilizado = null;
   }
 
   public function selecionaXMLAtual(int $dado_id, DadosXMLRepository $dadosXMLRepository, TrataDadosGeraisNotaFiscal $dadosGeraisNotaFiscal): void
@@ -155,7 +164,6 @@ class Listagem extends Component
 
     $this->dadosXMLAtual['infAdicional'] = $this->trataDadosInfAdicionalNotaFiscal($informacoesBrutaNFE['infAdic']);
 
-    // dd($dadosXMLService->)
 
     // dd($informacoesBrutaNFE);
     // dd($this->dadosXMLAtual);
@@ -194,6 +202,10 @@ class Listagem extends Component
     } catch (\Exception $e) {
       Log::error("Erro ao processar o XML ID: {$dadosXML->xml_id}, Erro: " . $e->getMessage());
     }
+  }
+
+  public function voltar(): void {
+    redirect('/consultaxml');
   }
 
   private function trataDadosImpostoProduto(SimpleXMLElement $imposto): array
@@ -249,6 +261,10 @@ class Listagem extends Component
           'ICMSSN900' => $this->defineCamposICMSSN900($icms, 'ICMSSN900')
         };
       }
+    }
+
+    if (isset($arrayImposto['ICMSUFDest'])) {
+      $this->defineCamposICMSUFDest($arrayImposto['ICMSUFDest'], 'ICMSUFDest');
     }
 
     if (isset($arrayImposto['IPI'])) {
@@ -310,20 +326,25 @@ class Listagem extends Component
         };
       }
     }
-
-    return $this->limparTagSuja($this->tagImposto);
+    $this->tagImposto = $this->limparTagSuja($this->tagImposto);
+    return $this->tagImposto;
   }
 
   private function trataDadosPagamentoNotaFiscal(SimpleXMLElement $pagamento): array
   {
     $arrayPagamento = (array)$pagamento;
     if (isset($arrayPagamento['detPag'])) {
+      if (gettype($arrayPagamento['detPag']) === 'array') {
+        foreach($arrayPagamento['detPag'] as $key => $pag) {
+          $this->analisaCamposPagamentoMultiFormas($pag, 'pag', $key);
+          $this->tagPagamento[$key]['pag']['pag'] = $this->limparTagSuja($this->tagPagamento[$key]['pag']['pag']);
+        }
+        return $this->tagPagamento;
+      }
       $this->analisaCamposPagamento($arrayPagamento['detPag'], 'pag');
+      $this->tagPagamento['pag']['pag'] = $this->limparTagSuja($this->tagPagamento['pag']['pag']);
+      return $this->tagPagamento;
     }
-
-    $this->tagPagamento['pag']['pag'] = $this->limparTagSuja($this->tagPagamento['pag']['pag']);
-
-    return $this->tagPagamento;
   }
 
   private function trataDadosInfAdicionalNotaFiscal(SimpleXMLElement $infAdicional): array

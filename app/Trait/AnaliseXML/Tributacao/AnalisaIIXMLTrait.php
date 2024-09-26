@@ -14,7 +14,6 @@ trait AnalisaIIXMLTrait
         'vDespAdu' => ['descricao' => 'Valor despesas aduaneiras', 'valor' => $valor[0]->__toString()],
         'vII' => ['descricao' => 'Valor Imposto de Importação', 'valor' => $valor[0]->__toString()],
         'vIOF' => ['descricao' => 'Valor Imposto sobre Operações Financeiras', 'valor' => $valor[0]->__toString()],
-        default => null,
       };
     }
   }

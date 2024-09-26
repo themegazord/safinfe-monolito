@@ -15,7 +15,7 @@ trait AnalisaCOFINSSTXMLTrait
         'qBCProd' => ['descricao' => 'Quantidade Vendida', 'valor' => $valor[0]->__toString()],
         'vAliqProd' => ['descricao' => 'Alíquota da COFINS (em reais)', 'valor' => $valor[0]->__toString()],
         'vCOFINS' => ['descricao' => 'Valor da COFINS', 'valor' => $valor[0]->__toString()],
-        default => null,
+        'indSomaCOFINSST' => ['descricao' => 'Indica se o valor da COFINS ST compõe o valor total da NFe', 'valor' => $valor[0]->__toString()],
       };
     }
   }

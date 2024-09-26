@@ -59,22 +59,12 @@
           </a>
         </li>
         @endif
-        @if ($usuario->role === 'CLIENTE')
         <li class="navbar-link">
           <a href="/consultaxml">
             <i class="fa-solid fa-magnifying-glass icon"></i>
             <span class="text nav-text">Consulta XML</span>
           </a>
         </li>
-        @endif
-        @if ($usuario->role === 'CONTADOR')
-        <li class="navbar-link">
-          <a href="/consultaxml">
-            <i class="fa-solid fa-magnifying-glass icon"></i>
-            <span class="text nav-text">Consulta XML</span>
-          </a>
-        </li>
-        @endif
       </ul>
     </div>
     <div class="bottom-content">

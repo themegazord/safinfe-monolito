@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Views\Consultaxml;
 
+use App\Livewire\Forms\ConsultaAdminXMLForm;
 use App\Livewire\Forms\ConsultaClienteXMLForm;
 use App\Livewire\Forms\ConsultaContadorXMLForm;
 use App\Models\User;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
+use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\XMLRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
@@ -23,14 +25,19 @@ class Consulta extends Component
   public Authenticatable|User $usuario;
   public ConsultaContadorXMLForm $consultaContador;
   public ConsultaClienteXMLForm $consultaCliente;
+  public ConsultaAdminXMLForm $consultaAdmin;
   public ?Collection $empresas;
   public string $diretorioUsuario = '';
   public string $diretorioRARUsuario = '';
 
-  public function mount(): void
+  public function mount(EmpresaRepository $empresaRepository): void
   {
     $this->usuario = Auth::user();
-    $this->empresas = ($this->usuario->getAttribute('role') === 'CONTADOR') ? $this->usuario->contador->contabilidade->empresas : null;
+    $this->empresas = match($this->usuario->getAttribute('role')) {
+      'CONTADOR' => $this->usuario->contador->contabilidade->empresas,
+      'ADMIN' => $empresaRepository->listagemEmpresas(),
+      default => null
+    };
   }
 
   public function __destruct()
@@ -56,7 +63,13 @@ class Consulta extends Component
     }
 
     if ($this->usuario->getAttribute('role') === 'CONTADOR') {
+      $this->consultaContador->validate();
       return redirect('/consultaxml/' . base64_encode(json_encode($this->consultaContador)));
+    }
+
+    if ($this->usuario->getAttribute('role') === 'ADMIN') {
+      $this->consultaAdmin->validate();
+      return redirect('/consultaxml/' . base64_encode(json_encode($this->consultaAdmin)));
     }
   }
 
@@ -64,7 +77,8 @@ class Consulta extends Component
   {
     match ($this->usuario->getAttribute('role')) {
       'CLIENTE' => $this->consultaCliente->validate(),
-      'CONTADOR' => $this->consultaContador->validate()
+      'CONTADOR' => $this->consultaContador->validate(),
+      'ADMIN' => $this->consultaAdmin->validate()
     };
     $zip = new ZipArchive();
     $dados_xml = match ($this->usuario->getAttribute('role')) {
@@ -75,7 +89,11 @@ class Consulta extends Component
       'CONTADOR' => $dadosXMLRepository->preConsultaDadosXML(
         $this->consultaContador->all(),
         $this->consultaContador->empresa_id
-      )
+      ),
+      'ADMIN' => $dadosXMLRepository->preConsultaDadosXML(
+        $this->consultaAdmin->all(),
+        $this->consultaAdmin->empresa_id
+      ),
     };
 
     $this->diretorioUsuario = storage_path('app/tempXMLExportPorUsuario/' . $this->usuario->getAttribute('id'));
@@ -89,7 +107,8 @@ class Consulta extends Component
     }
     $nomeZIP = match($this->usuario->getAttribute('role')) {
       'CLIENTE' => $this->diretorioRARUsuario . '/' . $this->consultaCliente->data_inicio . '_' . $this->consultaCliente->data_fim . '.zip',
-      'CONTADOR' => $this->diretorioRARUsuario . '/' . $this->consultaContador->data_inicio . '_' . $this->consultaContador->data_fim . '.zip'
+      'CONTADOR' => $this->diretorioRARUsuario . '/' . $this->consultaContador->data_inicio . '_' . $this->consultaContador->data_fim . '.zip',
+      'ADMIN' => $this->diretorioRARUsuario . '/' . $this->consultaAdmin->data_inicio . '_' . $this->consultaAdmin->data_fim . '.zip',
     };
     if ($zip->open($nomeZIP, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
       throw new \Exception("Não foi possível criar o arquivo .zip: " . $nomeZIP);

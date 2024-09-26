@@ -19,6 +19,18 @@ trait AnalisaPagamentosTrait
     }
   }
 
+  public function analisaCamposPagamentoMultiFormas(SimpleXMLElement $pag, string $tagPag, int $indQtdePagamentos) {
+    foreach ($pag as $tag => $valor) {
+      $this->tagPagamento[$indQtdePagamentos]['pag'][$tagPag][$tag] = match ($tag) {
+        'indPag' => ['descricao' => 'Indicador da Forma de Pagamento', 'valor' => $this->defineIndicadorPagamento($valor[0]->__toString())],
+        'tPag' => ['descricao' => 'Forma de pagamento', 'valor' => $this->defineTipoFormaPagamento($valor[0]->__toString())],
+        'vPag' => ['descricao' => 'Valor do Pagamento', 'valor' => $valor[0]->__toString()],
+        'card' => $this->geraCamposCartao($valor[0]),
+        default => null,
+      };
+    }
+  }
+
   public function geraCamposCartao(SimpleXMLElement $card): array
   {
     return array_filter([

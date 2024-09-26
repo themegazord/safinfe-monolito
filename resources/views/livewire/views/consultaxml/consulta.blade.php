@@ -121,6 +121,70 @@
       </div>
     </form>
     @endif
+    @if ($usuario->getAttribute('role') === 'ADMIN')
+    <form wire:submit="consulta">
+      <div class="grupo-consulta-xml">
+        <div class="grupo-consulta-xml">
+          <div class="input-data">
+            <label for="data-inicio">Data inicio</label>
+            <input type="date" name="data-inicio" id="data-inicio" wire:model="consultaAdmin.data_inicio" autocomplete="off">
+            @error('consultaAdmin.data_inicio')
+            <span class="text-danger">{{ $message }}</span>
+            @enderror
+          </div>
+          <div class="input-data">
+            <label for="data-fim">Data fim</label>
+            <input type="date" name="data-fim" id="data-fim" wire:model="consultaAdmin.data_fim" autocomplete="off">
+            @error('consultaAdmin.data_fim')
+            <span class="text-danger">{{ $message }}</span>
+            @enderror
+          </div>
+        </div>
+        <div class="subgrupo-consulta-xml">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="serie" placeholder="Série" wire:model="consultaAdmin.serie" autocomplete="off">
+            <label for="serie">Série</label>
+          </div>
+          <select class="form-select" aria-label="Selecione o tipo da nota fiscal" wire:model="consultaAdmin.modelo" autocomplete="off">
+            <option value="TODAS" selected>Selecione o tipo da nota fiscal</option>
+            <option value="55">NF-e</option>
+            <option value="65">NFC-e</option>
+          </select>
+        </div>
+      </div>
+      <div class="grupo-consulta-xml">
+        <select class="form-select" aria-label="Selecione o status" wire:model="consultaAdmin.status" autocomplete="off">
+          <option value="TODAS" selected>Selecione o status da nota fiscal</option>
+          <option value="AUTORIZADO">Autorizadas</option>
+          <option value="CANCELADO">Canceladas</option>
+          <option value="INUTILIZADO">Inutilizadas</option>
+        </select>
+        <div class="grupo-consulta-xml">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="numeroInicial" placeholder="Série" wire:model="consultaAdmin.numeroInicial" autocomplete="off">
+            <label for="numeroInicial">Numero inicial:</label>
+          </div>
+          <div class="form-floating">
+            <input type="text" class="form-control" id="numeroFinal" placeholder="Série" wire:model="consultaAdmin.numeroFinal" autocomplete="off">
+            <label for="numeroFinal">Numero Final:</label>
+          </div>
+        </div>
+      </div>
+      <select class="form-select" aria-label="Selecione a empresa que você quer consultar as notas fiscais." wire:model="consultaAdmin.empresa_id" autocomplete="off">
+        <option selected>Selecione a empresa que você quer consultar as notas fiscais.</option>
+        @foreach ($empresas as $empresa)
+        <option value="{{ $empresa->getAttribute('empresa_id') }}">{{ $empresa->getAttribute('fantasia') }}</option>
+        @endforeach
+      </select>
+      @error('consultaAdmin.empresa_id')
+      <span class="text-danger">{{ $message }}</span>
+      @enderror
+      <div class="form-consulta-xml-acoes">
+        <button type="submit">Consultar</button>
+        <button type="button" wire:click="downloadDireto">Download Direto</button>
+      </div>
+    </form>
+    @endif
   </div>
 
   <style>

@@ -8,6 +8,7 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
     <livewire:componentes.utils.notificacao.flash />
     <table class="table table-sm table-striped table-hover tabela-xml">
       <div class="perpage">
+        <button wire:click="voltar">Voltar</button>
         <input type="number" name="perpage" id="perpage" wire:model.blur="perPage">
       </div>
       <thead>
@@ -57,7 +58,7 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
           @if (!is_null($dadosXMLAtual))
           <h5 class="modal-title" id="informacaoNFeModalLabel">Dados da nota fiscal: {{ $dadosXMLAtual['numero'] }}</h5>
           @endif
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="resetarCampos"></button>
         </div>
         <div class="modal-body bodyModalInformacaoNFe">
           @if (!is_null($dadosXMLAtual))
@@ -230,6 +231,7 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                   @endif
                 </div>
                 <div class="informacoes-pagamento">
+                  @if(count($dadosXMLAtual['pagamento']) === 1)
                   @foreach ($dadosXMLAtual['pagamento']['pag']['pag'] as $key => $dadoPagamento)
                   @if ($key !== 'card')
                   <div class="card">
@@ -244,17 +246,55 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                       </p>
                     </div>
                   </div>
-                  @else
+                  @endif
+                  @if ($key === 'card')
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">Dados do cartão:</h5>
                       @foreach ($dadoPagamento as $dadoCartao)
-                        <p class="card-text"><b>{{ $dadoCartao['descricao'] }}</b>: {{ $dadoCartao['valor'] }}</p>
+                      <p class="card-text"><b>{{ $dadoCartao['descricao'] }}</b>: {{ $dadoCartao['valor'] }}</p>
                       @endforeach
                     </div>
                   </div>
                   @endif
                   @endforeach
+                  @endif
+                  @if(count($dadosXMLAtual['pagamento']) > 1)
+                  <div class="card">
+                    <div class="card-body multiplasfp">
+                      @foreach($dadosXMLAtual['pagamento'] as $pag)
+                      <div>
+                        @foreach ($pag['pag']['pag'] as $key => $dadoPagamento)
+                        @if ($key !== 'card')
+                        <div class="card">
+                          <div class="card-body">
+                            <h5 class="card-title">{{ $dadoPagamento['descricao'] }}: </h5>
+                            <p class="card-text">
+                              @if ($key === 'vPag')
+                              {{ numfmt_format_currency($fmt, floatval($dadoPagamento['valor']), 'BRL') }}
+                              @else
+                              {{$dadoPagamento['valor']}}
+                              @endif
+                            </p>
+                          </div>
+                        </div>
+                        @endif
+                        @if ($key === 'card')
+                        <div class="card">
+                          <div class="card-body">
+                            <h5 class="card-title">Dados do cartão:</h5>
+                            @foreach ($dadoPagamento as $dadoCartao)
+                            <p class="card-text"><b>{{ $dadoCartao['descricao'] }}</b>: {{ $dadoCartao['valor'] }}</p>
+                            @endforeach
+                          </div>
+                        </div>
+                        @endif
+                        @endforeach
+                      </div>
+                      @endforeach
+                    </div>
+                  </div>
+                  @endif
                 </div>
               </div>
             </div>
@@ -363,7 +403,7 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
           @if (!is_null($dadosXMLAtualInutilizado))
           <h5 class="modal-title" id="informacaoNFeModalLabel">Dados da(s) nota(s) fiscal(is) inutilizada(s): {{ $dadosXMLAtualInutilizado['nfInicial'] }} - {{ $dadosXMLAtualInutilizado['nfFinal'] }}</h5>
           @endif
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" wire:click="resetarCampos"></button>
         </div>
         <div class="modal-body">
           @if (!is_null($dadosXMLAtualInutilizado))
@@ -385,7 +425,7 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
           @endif
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetarCampos">Fechar</button>
         </div>
       </div>
     </div>
@@ -413,7 +453,23 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
     .perpage {
       width: 90%;
       display: flex;
+      gap: 1rem;
       flex-direction: row-reverse;
+    }
+
+    .perpage>button {
+      padding: .5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 700;
+      transition: var(--tran-04);
+      width: 5%;
+    }
+
+    .perpage>button:hover {
+      background-color: var(--primary-color-hover);
     }
 
     .perpage>input {
@@ -466,6 +522,17 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
 
     .infoImpostoProduto {
       margin-bottom: .5rem;
+    }
+
+    .multiplasfp {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .multiplasfp > div {
+      display: flex;
+      gap: 1rem;
     }
   </style>
 </app>
