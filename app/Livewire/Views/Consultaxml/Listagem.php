@@ -20,10 +20,12 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
+use NumberFormatter;
 use SimpleXMLElement;
 
 class Listagem extends Component
@@ -204,6 +206,12 @@ class Listagem extends Component
     }
   }
 
+  #[Computed]
+  public function formataValoresMonetarios(float $valor, string $moeda):string {
+    $fmt = NumberFormatter::create('pt_BR', NumberFormatter::CURRENCY);
+    return $fmt->formatCurrency($valor, $moeda);
+  }
+
   public function voltar(): void {
     redirect('/consultaxml');
   }
@@ -326,7 +334,9 @@ class Listagem extends Component
         };
       }
     }
+    // $vTotTrib = $this->tagImposto['vTotTrib'];
     $this->tagImposto = $this->limparTagSuja($this->tagImposto);
+    // $this->tagImposto['vTotTrib'] = $vTotTrib;
     return $this->tagImposto;
   }
 
@@ -355,9 +365,9 @@ class Listagem extends Component
 
   private function limparTagSuja(array $tag)
   {
-    return array_filter($tag, function ($item) {
-      // Verifica se o item é um array e se não contém chaves em branco
-      return !empty($item) && !array_key_exists('', $item);
+    $tributosLimpos = array_filter($tag, function ($item) {
+      if (gettype($item) === 'array') return !empty($item) && !array_key_exists('', $item);
     });
+    return $tributosLimpos;
   }
 }

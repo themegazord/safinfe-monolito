@@ -1,7 +1,3 @@
-<?php
-$fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
-?>
-
 <app>
   <div class="main">
     <h1>Listagem dos XML</h1>
@@ -80,37 +76,37 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">Valor total da nota:</h5>
-                      <p class="card-text">{{ numfmt_format_currency($fmt, floatval($dadosXMLAtual['informacaoDeValoresDaNota']['totalNota']), 'BRL') }}</p>
+                      <p class="card-text">{{ $this->formataValoresMonetarios(floatval($dadosXMLAtual['informacaoDeValoresDaNota']['totalNota']), 'BRL') }}</p>
                     </div>
                   </div>
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">Valor total da ICMS da nota:</h5>
-                      <p class="card-text">{{ numfmt_format_currency($fmt, floatval($dadosXMLAtual['informacaoDeValoresDaNota']['totalICMS']), 'BRL') }}</p>
+                      <p class="card-text">{{ $this->formataValoresMonetarios(floatval($dadosXMLAtual['informacaoDeValoresDaNota']['totalICMS']), 'BRL') }}</p>
                     </div>
                   </div>
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">Valor total de ICMS ST da nota:</h5>
-                      <p class="card-text">{{ numfmt_format_currency($fmt, floatval($dadosXMLAtual['informacaoDeValoresDaNota']['totalST']), 'BRL') }}</p>
+                      <p class="card-text">{{ $this->formataValoresMonetarios(floatval($dadosXMLAtual['informacaoDeValoresDaNota']['totalST']), 'BRL') }}</p>
                     </div>
                   </div>
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">Valor total de PIS da nota:</h5>
-                      <p class="card-text">{{ numfmt_format_currency($fmt, floatval($dadosXMLAtual['informacaoDeValoresDaNota']['vPIS']), 'BRL') }}</p>
+                      <p class="card-text">{{ $this->formataValoresMonetarios(floatval($dadosXMLAtual['informacaoDeValoresDaNota']['vPIS']), 'BRL') }}</p>
                     </div>
                   </div>
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">Valor total de COFINS da nota:</h5>
-                      <p class="card-text">{{ numfmt_format_currency($fmt, floatval($dadosXMLAtual['informacaoDeValoresDaNota']['vCOFINS']), 'BRL') }}</p>
+                      <p class="card-text">{{ $this->formataValoresMonetarios(floatval($dadosXMLAtual['informacaoDeValoresDaNota']['vCOFINS']), 'BRL') }}</p>
                     </div>
                   </div>
                   <div class="card">
                     <div class="card-body">
                       <h5 class="card-title">Valor total aprox. de impostos federais da nota:</h5>
-                      <p class="card-text">{{ numfmt_format_currency($fmt, floatval($dadosXMLAtual['informacaoDeValoresDaNota']['valorApxImpostosFederais']), 'BRL') }}</p>
+                      <p class="card-text">{{ $this->formataValoresMonetarios(floatval($dadosXMLAtual['informacaoDeValoresDaNota']['valorApxImpostosFederais']), 'BRL') }}</p>
                     </div>
                   </div>
                 </div>
@@ -239,7 +235,7 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                       <h5 class="card-title">{{ $dadoPagamento['descricao'] }}: </h5>
                       <p class="card-text">
                         @if ($key === 'vPag')
-                        {{ numfmt_format_currency($fmt, floatval($dadoPagamento['valor']), 'BRL') }}
+                        {{ $this->formataValoresMonetarios(floatval($dadoPagamento['valor']), 'BRL') }}
                         @else
                         {{$dadoPagamento['valor']}}
                         @endif
@@ -271,7 +267,7 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                             <h5 class="card-title">{{ $dadoPagamento['descricao'] }}: </h5>
                             <p class="card-text">
                               @if ($key === 'vPag')
-                              {{ numfmt_format_currency($fmt, floatval($dadoPagamento['valor']), 'BRL') }}
+                              {{ $this->formataValoresMonetarios(floatval($dadoPagamento['valor']), 'BRL') }}
                               @else
                               {{$dadoPagamento['valor']}}
                               @endif
@@ -323,8 +319,8 @@ $fmt = numfmt_create('pt_BR', NumberFormatter::CURRENCY);
                     <td>{{ $detalheProduto['prod']['NCM'] }}</td>
                     <td>{{ $detalheProduto['prod']['uCom'] }}</td>
                     <td>{{ $detalheProduto['prod']['qCom'] }}</td>
-                    <td>{{ numfmt_format_currency($fmt, floatval($detalheProduto['prod']['vUnCom']), 'BRL') }}</td>
-                    <td>{{ numfmt_format_currency($fmt, floatval($detalheProduto['prod']['vProd']), 'BRL') }}</td>
+                    <td>{{ $this->formataValoresMonetarios(floatval($detalheProduto['prod']['vUnCom']), 'BRL') }}</td>
+                    <td>{{ $this->formataValoresMonetarios(floatval($detalheProduto['prod']['vProd']), 'BRL') }}</td>
                   </tr>
                   <tr class="collapse accordion-collapse" id="produto_cod{{ $key }}" data-bs-parent=".table">
                     <td colspan="8">
