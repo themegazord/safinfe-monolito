@@ -16,6 +16,10 @@ use App\Trait\AnaliseXML\Tributacao\AnalisaIPIXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaISSQNTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaPISSTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaPISXMLTrait;
+use CommerceGuys\Intl\Currency\CurrencyRepository;
+use CommerceGuys\Intl\Formatter\CurrencyFormatter;
+use CommerceGuys\Intl\Formatter\NumberFormatter;
+use CommerceGuys\Intl\NumberFormat\NumberFormatRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +29,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
-use NumberFormatter;
 use SimpleXMLElement;
 
 class Listagem extends Component
@@ -106,8 +109,6 @@ class Listagem extends Component
       'infAdicional' => [],
     ];
 
-    // dd($this->dadosXMLAtual);
-
     $this->dadosXMLAtual['modelo'] = $informacoesBrutaNFE['ide']->mod[0]->__toString();
     $this->dadosXMLAtual['numero'] = $informacoesBrutaNFE['ide']->nNF[0]->__toString();
 
@@ -165,10 +166,6 @@ class Listagem extends Component
     $this->dadosXMLAtual['pagamento'] = $this->trataDadosPagamentoNotaFiscal($informacoesBrutaNFE['pag']);
 
     $this->dadosXMLAtual['infAdicional'] = $this->trataDadosInfAdicionalNotaFiscal($informacoesBrutaNFE['infAdic']);
-
-
-    // dd($informacoesBrutaNFE);
-    // dd($this->dadosXMLAtual);
   }
 
   public function selecionaXMLInutilizadoAtual(int $dado_id, DadosXMLRepository $dadosXMLRepository, TrataDadosGeraisNotaFiscal $dadosGeraisNotaFiscal): void
@@ -208,8 +205,10 @@ class Listagem extends Component
 
   #[Computed]
   public function formataValoresMonetarios(float $valor, string $moeda):string {
-    $fmt = NumberFormatter::create('pt_BR', NumberFormatter::CURRENCY);
-    return $fmt->formatCurrency($valor, $moeda);
+    $fmtRepo = new NumberFormatRepository;
+    $moedaRepo = new CurrencyRepository;
+    $fmt = new CurrencyFormatter($fmtRepo, $moedaRepo);
+    return $fmt->format($valor, $moeda);
   }
 
   public function voltar(): void {
