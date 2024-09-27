@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ef74580fe7c57d3b74fd389536ba82bc",
+    "content-hash": "8ba8bc9fae9b65c28d66b550bdf08831",
     "packages": [
         {
             "name": "brick/math",
@@ -3184,6 +3184,53 @@
                 }
             ],
             "time": "2024-04-27T21:32:50+00:00"
+        },
+        {
+            "name": "selective/rar",
+            "version": "0.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/selective-php/rar.git",
+                "reference": "c4b043a3f1aa73af17bafb1d34b45b99c41a5c57"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/selective-php/rar/zipball/c4b043a3f1aa73af17bafb1d34b45b99c41a5c57",
+                "reference": "c4b043a3f1aa73af17bafb1d34b45b99c41a5c57",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3",
+                "phpstan/phpstan": "^1",
+                "phpunit/phpunit": "^10",
+                "squizlabs/php_codesniffer": "^3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Selective\\Rar\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "RAR file reader",
+            "homepage": "https://github.com/selective-php/rar",
+            "keywords": [
+                "archive",
+                "file",
+                "rar",
+                "reader"
+            ],
+            "support": {
+                "issues": "https://github.com/selective-php/rar/issues",
+                "source": "https://github.com/selective-php/rar/tree/0.4.0"
+            },
+            "time": "2023-09-09T21:06:48+00:00"
         },
         {
             "name": "symfony/clock",
