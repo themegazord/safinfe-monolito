@@ -120,4 +120,18 @@ class DadosXMLRepository implements IDadosXML
       ->whereIn('chave', $xmls)
       ->get();
   }
+
+  public function consultaXMLChaveStatus(string $chave, string $status): ?DadosXML {
+    return DadosXML::query()
+      ->where('chave', $chave)
+      ->where('status', $status)
+      ->first();
+  }
+
+  public function consultaUltimaNotaRecebidaEmpresa(int $empresa_id): ?DadosXML {
+    return DadosXML::query()
+      ->where('empresa_id', $empresa_id)
+      ->orderBy('dados_id', 'desc')
+      ->first();
+  }
 }

@@ -7,7 +7,6 @@ use App\Repositories\Interface\IDadosXML;
 use App\Repositories\Interface\IEmpresa;
 use DateTime;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\UploadedFile;
 
 class DadosXMLService
 {
