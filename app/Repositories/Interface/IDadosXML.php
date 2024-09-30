@@ -4,7 +4,6 @@ namespace App\Repositories\Interface;
 
 use App\Models\DadosXML;
 use Illuminate\Contracts\Database\Query\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 interface IDadosXML {
   public function cadastro(array $dadosXML): DadosXML;
@@ -15,4 +14,6 @@ interface IDadosXML {
   public function consultaPorID(int $dado_id): ?DadosXML;
   public function consultaDadosNotaFiscalAutorizada(int $numeronf): ?DadosXML;
   public function consultaVariosXML($xmls);
+  public function consultaXMLChaveStatus(string $chave, string $status): ?DadosXML;
+  public function consultaUltimaNotaRecebidaEmpresa(int $empresa_id): ?DadosXML;
 }
