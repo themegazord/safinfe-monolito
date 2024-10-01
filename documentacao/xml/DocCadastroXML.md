@@ -1,4 +1,4 @@
-# Cadastro de contador ![Static Badge](https://img.shields.io/badge/Rota_autenticada-49CC90)
+# Cadastro de XML ![Static Badge](https://img.shields.io/badge/Rota_autenticada-49CC90)
 
 ## Explicação de Rotas
 
