@@ -13,4 +13,5 @@
 - Autenticação
   - [Login de usuários](documentacao/autenticacao/DocLoginUsuario.md)
 - XML
-  
+  - [Cadastro de XML](documentacao/xml/DocCadastroXML.md)
+  - [Login de usuários](documentacao/xml/DocConsultaUltimoXML.md)
