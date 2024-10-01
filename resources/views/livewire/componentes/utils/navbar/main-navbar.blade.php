@@ -65,6 +65,12 @@
             <span class="text nav-text">Consulta XML</span>
           </a>
         </li>
+        <li class="navbar-link">
+          <a href="/versionamento">
+            <i class="fa-solid fa-code-pull-request icon"></i>
+            <span class="text nav-text">Versionamento</span>
+          </a>
+        </li>
       </ul>
     </div>
     <div class="bottom-content">
@@ -261,7 +267,6 @@
       margin-left: 0;
       transition: var(--tran-05);
       background-color: var(--body-color);
-      z-index: 50;
     }
 
     .sidebar.close~.main {
