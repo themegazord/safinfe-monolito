@@ -34,10 +34,10 @@ class XMLController extends Controller
       };
       unlink($realPath);
 
-      return response()->json('XML cadastrado com sucesso');
+      return response()->json(['mensagem' => 'XML cadastrado com sucesso']);
 
     } catch (XMLException $xmle) {
-      return response()->json($xmle->getMessage(), $xmle->getCode());
+      return response()->json(['mensagem' => $xmle->getMessage()], $xmle->getCode());
       unlink($realPath);
     }
   }
