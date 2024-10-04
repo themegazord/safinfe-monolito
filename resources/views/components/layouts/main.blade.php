@@ -103,6 +103,7 @@
       });
     });
   </script>
+  <script src="https://cdn.canvasjs.com/ga/canvasjs.min.js"></script>
 </body>
 
 </html>
