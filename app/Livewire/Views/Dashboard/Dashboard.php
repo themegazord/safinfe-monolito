@@ -48,7 +48,7 @@ class Dashboard extends Component
 
     if ($this->usuario->getAttribute('role') === 'ADMIN') {
       $this->empresasGeral = $empresaRepository->listagemEmpresas();
-      $this->consulta['empresa_id'] = $this->empresasGeral->first()->getAttribute('empresa_id');
+      $this->consulta['empresa_id'] = !is_null($this->empresasGeral->first()) ? $this->empresasGeral->first()->getAttribute('empresa_id') : null;
     }
 
     if ($this->usuario->getAttribute('role') === 'CLIENTE') {
