@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Http\Controllers\AutenticacaoController;
 use App\Http\Controllers\XMLController;
-use App\Livewire\Views\Importacao\Xml;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\UsuarioRepository;

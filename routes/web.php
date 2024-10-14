@@ -39,7 +39,7 @@ Route::middleware('auth')->group(function () {
       Route::get('edicao/{administrador_id}', \App\Livewire\Views\Administradores\Edicao::class);
     });
     Route::prefix('importacaoxml')->group(function () {
-      Route::get('/', \App\Livewire\Views\Importacao\Xml::class);
+      Route::get('/', \App\Livewire\Views\Importacao\Gerenciar::class);
     });
   });
   Route::prefix('versionamento')->group(function () {

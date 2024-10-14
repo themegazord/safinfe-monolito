@@ -60,6 +60,40 @@ class ContabilidadeRepository implements IContabilidade
       ]);
   }
 
+  public function consultaContabilidadePorEmailCorporativo(string $email): ?Model
+  {
+    return Contabilidade::query()
+      ->where('email_corporativo', $email)
+      ->first([
+        'contabilidade_id',
+        'endereco_id',
+        'social',
+        'cnpj',
+        'telefone_corporativo',
+        'email_corporativo',
+        'email_contato',
+        'telefone_contato',
+        'telefone_reserva',
+      ]);
+  }
+
+  public function consultaContabilidadePorCNPJ(string $cnpj): ?Model
+  {
+    return Contabilidade::query()
+      ->where('cnpj', $email)
+      ->first([
+        'contabilidade_id',
+        'endereco_id',
+        'social',
+        'cnpj',
+        'telefone_corporativo',
+        'email_corporativo',
+        'email_contato',
+        'telefone_contato',
+        'telefone_reserva',
+      ]);
+  }
+
   public function editaContabilidade(array $dados): int
   {
     return Contabilidade::query()
