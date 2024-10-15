@@ -38,8 +38,9 @@ Route::middleware('auth')->group(function () {
       Route::get('cadastro', \App\Livewire\Views\Administradores\Cadastro::class);
       Route::get('edicao/{administrador_id}', \App\Livewire\Views\Administradores\Edicao::class);
     });
-    Route::prefix('importacaoxml')->group(function () {
+    Route::prefix('importacao')->group(function () {
       Route::get('/', \App\Livewire\Views\Importacao\Gerenciar::class);
+      Route::get('/listagemerros/{hash}', \App\Livewire\Views\Importacao\ListagemErros::class);
     });
   });
   Route::prefix('versionamento')->group(function () {

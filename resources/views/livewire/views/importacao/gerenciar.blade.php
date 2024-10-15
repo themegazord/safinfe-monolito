@@ -4,13 +4,13 @@
 
   <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="importacaoXML-tab" data-bs-toggle="tab" wire:ignore.self  data-bs-target="#importacaoXML" type="button" role="tab" aria-controls="importacaoXML" aria-selected="true">Importacao de XML</button>
+      <button class="nav-link" id="importacaoXML-tab" data-bs-toggle="tab" wire:ignore.self data-bs-target="#importacaoXML" type="button" role="tab" aria-controls="importacaoXML" aria-selected="true">Importacao de XML</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="importacaoContabilidade-tab" data-bs-toggle="tab" wire:ignore.self  data-bs-target="#importacaoContabilidade" type="button" role="tab" aria-controls="importacaoContabilidade" aria-selected="false">Importacao de Contabilidades</button>
+      <button class="nav-link" id="importacaoContabilidade-tab" data-bs-toggle="tab" wire:ignore.self data-bs-target="#importacaoContabilidade" type="button" role="tab" aria-controls="importacaoContabilidade" aria-selected="false">Importacao de Contabilidades</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" wire:ignore.self  type="button" role="tab" aria-controls="contact" aria-selected="false">Contact</button>
+      <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" wire:ignore.self type="button" role="tab" aria-controls="contact" aria-selected="false">Contact</button>
     </li>
   </ul>
   <div class="tab-content" id="myTabContent">
@@ -19,7 +19,7 @@
         <select class="form-select" aria-label="Selecione a empresa que vai receber os XMLS" wire:model="importacaoXMLForm.empresa_id">
           <option value="{{ null }}" selected>Selecione a empresa que vai receber os XMLS</option>
           @foreach ($empresas as $empresa)
-            <option value="{{ $empresa->getAttribute('cnpj') }}">{{ $empresa->getAttribute('fantasia') }}</option>
+          <option value="{{ $empresa->getAttribute('cnpj') }}">{{ $empresa->getAttribute('fantasia') }}</option>
           @endforeach
         </select>
 
@@ -56,6 +56,11 @@
           <span class="text-danger">{{ $message }}</span>
           @enderror
         </div>
+        @if (!is_null($this->qtdeLinhasArquivo))
+        <div class="progress mb-3">
+          <div class="progress-bar" role="progressbar" aria-valuenow="{{($this->cont * 100) / $this->qtdeLinhasArquivo}}" style="width: {{($this->cont * 100) / $this->qtdeLinhasArquivo}}%;" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        @endif
         <div class="form-xml-acoes">
           <button type="submit" class="float-end me-1">Importar</button>
           <button type="button" class="float-end me-1" wire:click="downloadArquivoMolde('contabilidade')">Download Molde</button>

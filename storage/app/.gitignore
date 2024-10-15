@@ -1,3 +1,6 @@
-*
+livewire-tmp/
+importacaoTemp/
+moldes/*
+!moldes/molde_importacao_contabilidades.xlsx
 !public/
 !.gitignore

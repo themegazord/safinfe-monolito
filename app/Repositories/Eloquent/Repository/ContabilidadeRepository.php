@@ -80,7 +80,7 @@ class ContabilidadeRepository implements IContabilidade
   public function consultaContabilidadePorCNPJ(string $cnpj): ?Model
   {
     return Contabilidade::query()
-      ->where('cnpj', $email)
+      ->where('cnpj', $cnpj)
       ->first([
         'contabilidade_id',
         'endereco_id',

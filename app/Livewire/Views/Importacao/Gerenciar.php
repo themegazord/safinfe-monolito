@@ -20,12 +20,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\Features\SupportRedirects\Redirector;
 use Livewire\WithFileUploads;
-use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
 use ZipArchive;
 
 class Gerenciar extends Component
@@ -34,6 +34,8 @@ class Gerenciar extends Component
 
   public array $xmls = [];
   public string $xmlNomeAtual = '';
+  public int $cont = 0;
+  public ?int $qtdeLinhasArquivo = null;
   public User|Authenticatable $usuario;
   public Collection $empresas;
   public ImportacaoXMLForm $importacaoXMLForm;
@@ -68,7 +70,7 @@ class Gerenciar extends Component
   /**
    * @throws ValidationException
    */
-  public function importacaoContabilidade(ContabilidadeRepository $contabilidadeRepository, EnderecoRepository $enderecoRepository): void {
+  public function importacaoContabilidade(ContabilidadeRepository $contabilidadeRepository, EnderecoRepository $enderecoRepository): Redirector|RedirectResponse {
     $erros = array();
 
     $camposCabecalhoEsperados = [
@@ -92,15 +94,18 @@ class Gerenciar extends Component
     $path = $this->importacaoContabilidadeForm->arquivo->storeAs('importacaoTemp/impcontabilidade' . $this->usuario->getAttribute('id') . '.xlsx');
 
     $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/' . $path))->getActiveSheet();
-    $cabecalho = $planilha->toArray()[0];
+    $data = $planilha->toArray();
+    $cabecalho = $data[0];
+
+    $this->qtdeLinhasArquivo = count($data) - 1;
+
     // Valida integridade do modelo do Excel
 
     // Validacao de quantidades de colunas
-    if (count($cabecalho) !== 14) $erros[] = ['tipo' => 'Validacao de contagem de campos', 'mensagem' => 'A quantidade de colunas dos cabecalhos e diferente do que foi esperado.'];
+    if (count($cabecalho) !== 14) $erros[] = ['tipo' => EnumTiposValidacao::ValidacaoDeContagemDeCampos->value, 'mensagem' => 'A quantidade de colunas dos cabecalhos e diferente do que foi esperado.'];
     // Validacao de schema do cabecalho
     if (count(array_diff($camposCabecalhoEsperados, array_map(fn ($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
     // Validacao dos campos obrigatorios
-    $data = $planilha->toArray();
     for ($i = 1; $i < count($data); $i++) {
       foreach ($data[$i] as $key => $campo) {
         if ($key != 11) { // Complemento não é obrigatório
@@ -116,70 +121,110 @@ class Gerenciar extends Component
           }
         }
         if ($key === 0 /* Razao social */) {
-          if (strlen($campo) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "A razao social na linha {$this->retornaLinha($i + 1)} tem que ter 255 caracteres"];
+          if (strlen($campo) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A razao social na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 255 caracteres"];
         }
         if ($key === 1 /* CNPJ */) {
-          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) !== 14) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O CNPJ limpo da linha {$this->retornaLinha($i + 1)} deve conter 14 caracteres"];
-          if (!$this->validar_cnpj($campo)) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
-          if (is_null($contabilidadeRepository->consultaContabilidadePorCNPJ(preg_replace("/[^0-9]/", "", trim($campo))))) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} ja esta em uso"];
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) !== 14) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ limpo da linha {$this->retornaLinha($i + 1)} deve conter 14 caracteres"];
+          if (!$this->validar_cnpj($campo)) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
+          if (!is_null($contabilidadeRepository->consultaContabilidadePorCNPJ(preg_replace("/[^0-9]/", "", trim($campo))))) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} ja esta em uso"];
         }
         if ($key === 2 /* Telefone principal */) {
-          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O telefone na linha {$this->retornaLinha($i + 1)} tem que ter 20 caracteres"];
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O telefone na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
         }
         if ($key === 3 /* Email corporativo */) {
-          if (strlen($campo) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O email corporativo na linha {$this->retornaLinha($i + 1)} tem que ter 255 caracteres"];
-          if (is_null($contabilidadeRepository->consultaContabilidadePorEmailCorporativo(trim($campo)))) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O email corporativo na linha {$this->retornaLinha($i + 1)} ja esta em uso."];
+          if (strlen($campo) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O email corporativo na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 255 caracteres"];
+          if (!is_null($contabilidadeRepository->consultaContabilidadePorEmailCorporativo(trim($campo)))) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O email corporativo na linha {$this->retornaLinha($i + 1)} ja esta em uso."];
         }
         if ($key === 4 /* Email contato */) {
-          if (strlen($campo) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O email de contato na linha {$this->retornaLinha($i + 1)} tem que ter 255 caracteres"];
+          if (strlen($campo) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O email de contato na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 255 caracteres"];
         }
         if ($key === 5 /* Telefone contato */) {
-          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O telefone de contato na linha {$this->retornaLinha($i + 1)} tem que ter 20 caracteres"];
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O telefone de contato na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
         }
         if ($key === 6 /* Telefone reserva */) {
-          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "O telefone de reserva na linha {$this->retornaLinha($i + 1)} tem que ter 20 caracteres"];
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O telefone de reserva na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
         }
         if ($key === 7 /* Rua */ ) {
-          if (strlen($campo) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "A rua na linha {$this->retornaLinha($i + 1)} tem que ter 155 caracteres"];
+          if (strlen(trim($campo)) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A rua na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
+        }
+        if ($key === 8 /* Numero */ ) {
+          if (strlen(trim($campo)) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O numero na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
+        }
+        if ($key === 9 /* CEP */ ) {
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) !== 8) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CEP na linha {$this->retornaLinha($i + 1)} tem que ter 8 caracteres"];
+        }
+        if ($key === 10 /* Bairro */ ) {
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O Bairro na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
+        }
+        if ($key === 11 /* complemento */ ) {
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O complemento na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 255 caracteres"];
+        }
+        if ($key === 12 /* cidade */ ) {
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A cidade na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
         }
         if ($key === 13 /* UF */) {
-          if (strlen($campo) !== 2) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo, 'mensagem' => "A UF na linha {$this->retornaLinha($i + 1)} deve conter no maximo 2 caracteres"];
+          if (strlen(trim($campo)) !== 2) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A UF na linha {$this->retornaLinha($i + 1)} deve conter 2 caracteres"];
         }
       }
     }
 
-    dd($erros);
-
-    dd($planilha->toArray()[1]);
+    if (count($erros) > 0) {
+      $hash = base64_encode(json_encode($erros));
+      return redirect("/importacao/listagemerros/$hash");
+    }
 
     DB::beginTransaction();
 
-    try {
+    for($i = 1; $i < count($data); $i++) {
+      try {
+        $enderecoCadastrado = $enderecoRepository->cadastraEndereco([
+          'rua' => trim($data[$i][7]),
+          'numero' => trim($data[$i][8]),
+          'cep' => trim(str_replace(['.', '-'], '', $data[$i][9])),
+          'bairro' => trim($data[$i][10]),
+          'complemento' => trim($data[$i][11]),
+          'cidade' => trim($data[$i][12]),
+          'estado' => strtoupper(trim($data[$i][13])),
+        ]);
 
-      $enderecoRepository->cadastraEndereco([
-        'rua' => trim($planilha->toArray()[1][7]),
-        'numero' => trim($planilha->toArray()[1][8]),
-        'cep' => trim(str_replace(['.', '-'], '', $planilha->toArray()[1][9])),
-        'bairro' => trim($planilha->toArray()[1][10]),
-        'complemento' => trim($planilha->toArray()[1][11]),
-        'cidade' => trim($planilha->toArray()[1][12]),
-        'estado' => strtoupper(trim($planilha->toArray()[1][13])),
-      ]);
+        $contabilidadeRepository->cadastroContabilidade([
+          'endereco_id' => $enderecoCadastrado->getAttribute('endereco_id'),
+          'social' => trim($data[$i][0]),
+          'cnpj' => preg_replace("/[^0-9]/", "", trim($data[$i][1])),
+          'telefone_corporativo' => preg_replace("/[^0-9]/", "", trim($data[$i][2])),
+          'email_corporativo' => trim($data[$i][3]),
+          'email_contato' => trim($data[$i][4]),
+          'telefone_contato' => preg_replace("/[^0-9]/", "", trim($data[$i][5])),
+          'telefone_reserva' => preg_replace("/[^0-9]/", "", trim($data[$i][6])),
+        ]);
 
-      DB::commit();
-    } catch (\Exception $e) {
-      $erros[] = ['tipo' => 'Insercao no banco de dados', 'mensagem' => $e->getMessage()];
-    } finally {
-    DB::rollBack();
+        DB::commit();
+        $this->contador();
+      } catch (\Exception $e) {
+        $erros[] = ['tipo' => 'Insercao no banco de dados', 'mensagem' => $e->getMessage()];
+        DB::rollBack();
+      }
     }
 
-    if (count($erros) > 0) dd($erros);
+    if (count($erros) > 0) {
+      $hash = base64_encode(json_encode($erros));
+      return redirect("/importacao/listagemerros/$hash");
+    }
+
+    Session::flash('sucesso', 'Importação da(s) contabilidade(s) finalizada com sucesso.');
+    return redirect('/importacao');
   }
 
   public function downloadArquivoMolde(string $importacao) {
     return match($importacao) {
       'contabilidade' => Storage::download('moldes/molde_importacao_contabilidades.xlsx'),
     };
+  }
+
+  #[Computed()]
+  public function contador(): int {
+    $this->cont += 1;
+    return $this->cont;
   }
 
   private function recebeRARXMLS(XMLService $xmlService, DadosXMLService $dadosXMLService): Redirector|RedirectResponse
