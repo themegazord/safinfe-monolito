@@ -7,9 +7,12 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Listagem extends Component
 {
+  use WithPagination;
+
   public ?string $pesquisa = null;
 
   #[Title('SAFI NFE - Listagem de Usuarios')]

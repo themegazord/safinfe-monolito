@@ -9,9 +9,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Listagem extends Component
 {
+  use WithPagination;
+
   public ?string $pesquisa = null;
   public bool $estaAtivo = true;
 

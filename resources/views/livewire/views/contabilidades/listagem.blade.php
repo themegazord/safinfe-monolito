@@ -36,6 +36,8 @@
         @endforeach
       </tbody>
     </table>
+
+    {{ $listagem['contabilidades']->links()  }}
   </div>
   <script>
     function emiteEventoExclusaoContabilidade(contabilidade_id) {

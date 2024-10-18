@@ -32,6 +32,7 @@
         @endforeach
       </tbody>
     </table>
+    {{ $listagem['administradores']->links() }}
   </div>
   <script>
     function emiteEventoExclusaoadministrador(id) {
