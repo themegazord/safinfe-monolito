@@ -2,5 +2,6 @@ livewire-tmp/
 importacaoTemp/
 moldes/*
 !moldes/molde_importacao_contabilidades.xlsx
+!moldes/molde_importacao_empresas.xlsx
 !public/
 !.gitignore
