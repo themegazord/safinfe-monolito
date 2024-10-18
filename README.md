@@ -14,4 +14,4 @@
   - [Login de usuários](documentacao/autenticacao/DocLoginUsuario.md)
 - XML
   - [Cadastro de XML](documentacao/xml/DocCadastroXML.md)
-  - [Login de usuários](documentacao/xml/DocConsultaUltimoXML.md)
+  - [Consulta do ultimo XML recebido](documentacao/xml/DocConsultaUltimoXML.md)
