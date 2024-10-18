@@ -10,7 +10,7 @@
       <button class="nav-link" id="importacaoContabilidade-tab" data-bs-toggle="tab" wire:ignore.self data-bs-target="#importacaoContabilidade" type="button" role="tab" aria-controls="importacaoContabilidade" aria-selected="false">Importacao de Contabilidades</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" wire:ignore.self type="button" role="tab" aria-controls="contact" aria-selected="false">Contact</button>
+      <button class="nav-link" id="importacaoEmpresa-tab" data-bs-toggle="tab" data-bs-target="#importacaoEmpresa" wire:ignore.self type="button" role="tab" aria-controls="importacaoEmpresa" aria-selected="false">Importacao de Empresas</button>
     </li>
   </ul>
   <div class="tab-content" id="myTabContent">
@@ -56,11 +56,6 @@
           <span class="text-danger">{{ $message }}</span>
           @enderror
         </div>
-        @if (!is_null($this->qtdeLinhasArquivo))
-        <div class="progress mb-3">
-          <div class="progress-bar" role="progressbar" aria-valuenow="{{($this->cont * 100) / $this->qtdeLinhasArquivo}}" style="width: {{($this->cont * 100) / $this->qtdeLinhasArquivo}}%;" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-        @endif
         <div class="form-xml-acoes">
           <button type="submit" class="float-end me-1">Importar</button>
           <button type="button" class="float-end me-1" wire:click="downloadArquivoMolde('contabilidade')">Download Molde</button>
@@ -68,7 +63,22 @@
         </div>
       </form>
     </div>
-    <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">...</div>
+    <div class="tab-pane fade" id="importacaoEmpresa" role="tabpanel" wire:ignore.self aria-labelledby="importacaoEmpresa-tab">
+      <form wire:submit="importacaoEmpresa">
+        <div class="mb-3">
+          <label for="arquivos" class="form-label">Importe o Excel com os dados das empresas: </label>
+          <input class="form-control" type="file" id="arquivos" wire:model="importacaoEmpresaForm.arquivo">
+          @error('importacaoEmpresaForm.arquivo')
+          <span class="text-danger">{{ $message }}</span>
+          @enderror
+        </div>
+        <div class="form-xml-acoes">
+          <button type="submit" class="float-end me-1">Importar</button>
+          <button type="button" class="float-end me-1" wire:click="downloadArquivoMolde('empresa')">Download Molde</button>
+          <button type="button" class="float-end me-1" wire:click="voltar">Voltar</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <style>

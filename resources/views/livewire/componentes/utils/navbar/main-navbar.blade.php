@@ -55,7 +55,7 @@
         <li class="navbar-link">
           <a href="/importacao">
             <i class="fa-solid fa-file-import icon"></i>
-            <span class="text nav-text">Importe XML</span>
+            <span class="text nav-text">Importação</span>
           </a>
         </li>
         @endif

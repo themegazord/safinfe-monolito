@@ -11,9 +11,12 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\Features\SupportRedirects\Redirector;
+use Livewire\WithPagination;
 
 class Listagem extends Component
 {
+  use WithPagination;
+
   public LengthAwarePaginator $empresas;
   public string $consulta = '';
 

@@ -40,6 +40,7 @@
         @endforeach
       </tbody>
     </table>
+    {{ $listagem['contadores']->links() }}
   </div>
   <script>
     function emiteEventoAlteracaoStatus(contador_id) {

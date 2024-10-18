@@ -38,6 +38,7 @@
         @endforeach
       </tbody>
     </table>
+    {{ $listagem['clientes']->links() }}
   </div>
   <script>
     function emiteEventoExclusaocliente(cliente_id) {

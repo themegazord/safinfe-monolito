@@ -10,10 +10,11 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\Features\SupportRedirects\Redirector;
+use Livewire\WithPagination;
 
 class Listagem extends Component
 {
-
+  use WithPagination;
   public ?string $consulta = null;
 
   #[Title("SAFI NFE - Listagem de Contabilidades")]

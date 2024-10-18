@@ -33,6 +33,7 @@
         @endforeach
       </tbody>
     </table>
+    {{ $listagem['versoes']->links() }}
   </div>
 
   <!-- Inicia modal de visualização dos detalhes da atualização -->
