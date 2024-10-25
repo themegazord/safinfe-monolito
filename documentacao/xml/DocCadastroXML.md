@@ -14,7 +14,7 @@ Rota usada para enviar um XML.
 |-----------|--------|---------|------------------------------------|--------------|
 | cnpj      | string | 14      | O CNPJ da empresa que emitiu o XML | Sim          |
 | status    | string | 255     | Status da nota fiscal              | Sim          |
-| arquivo   | string | 255     | O arquivo .xml da nota fiscal      | Sim          |
+| arquivo   | file   | any     | O arquivo .xml da nota fiscal      | Sim          |
 
 ## Status permitidos
 
