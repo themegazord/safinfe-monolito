@@ -43,7 +43,7 @@ class Dashboard extends Component
 
     if ($this->usuario->getAttribute('role') === 'CONTADOR') {
       $this->empresasContador = $this->usuario->contador->contabilidade->empresas;
-      $this->consulta['empresa_id'] = $this->empresasContador->first()->getAttribute('empresa_id');
+      $this->consulta['empresa_id'] = !is_null($this->empresasContador->first()) ? $this->empresasContador->first()->getAttribute('empresa_id') : null;
     }
 
     if ($this->usuario->getAttribute('role') === 'ADMIN') {

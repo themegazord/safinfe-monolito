@@ -35,14 +35,36 @@ class XMLController extends Controller
       unlink($realPath);
 
       return response()->json(['mensagem' => 'XML cadastrado com sucesso']);
-
     } catch (XMLException $xmle) {
       return response()->json(['mensagem' => $xmle->getMessage()], $xmle->getCode());
       unlink($realPath);
     }
   }
 
-  public function ultimoXML(Request $request): JsonResponse {
+  public function storeTexto(Request $request): JsonResponse
+  {
+    try {
+      $this->xmlService->validaDadosTest([
+        'empresa' => $request->header('empresa'),
+        'status' => $request->header('status'),
+        'xml' => $request->xml
+      ]);
+      $xml = $this->xmlService->cadastroteste(base64_decode($request->xml));
+
+      match ($request->header('status')) {
+        'AUTORIZADO' => $this->dadosXMLService->cadastro(base64_decode($request->xml), $xml->getAttribute('xml_id'), $request->header('empresa')),
+        'CANCELADO' => $this->dadosXMLService->cadastroCancelado(base64_decode($request->xml), $xml->getAttribute('xml_id'), $request->header('empresa')),
+        'INUTILIZADO' => $this->dadosXMLService->cadastroInutilizado(base64_decode($request->xml), $xml->getAttribute('xml_id'), $request->header('empresa'), $this->xmlService->getChaveNotaFiscal($request->xml, $request->header('status'), $request->header('empresa'))),
+      };
+
+      return response()->json(['mensagem' => 'XML cadastrado com sucesso']);
+    } catch (XMLException $xmle) {
+      return response()->json(['mensagem' => $xmle->getMessage()], $xmle->getCode());
+    }
+  }
+
+  public function ultimoXML(Request $request): JsonResponse
+  {
     try {
       $empresa = $this->xmlService->validaDadosEmpresa($request->cnpj);
       $nota = $this->dadosXMLRepository->consultaUltimaNotaRecebidaEmpresa($empresa->getAttribute('empresa_id'));
