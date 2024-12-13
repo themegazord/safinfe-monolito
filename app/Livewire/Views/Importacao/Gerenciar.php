@@ -172,7 +172,9 @@ class Gerenciar extends Component
 
     if (count($erros) > 0) {
       $hash = base64_encode(json_encode($erros));
-      return redirect("/importacao/listagemerros/$hash");
+      cache()->put('erros', $hash);
+
+      return redirect("/importacao/listagemerros");
     }
 
     DB::beginTransaction();
@@ -210,8 +212,11 @@ class Gerenciar extends Component
 
     if (count($erros) > 0) {
       $hash = base64_encode(json_encode($erros));
-      return redirect("/importacao/listagemerros/$hash");
+      cache()->put('erros', $hash);
+
+      return redirect("/importacao/listagemerros");
     }
+
 
     Session::flash('sucesso', 'Importação da(s) contabilidade(s) finalizada com sucesso.');
     return redirect('/importacao');
@@ -356,8 +361,11 @@ class Gerenciar extends Component
 
     if (count($erros) > 0) {
       $hash = base64_encode(json_encode($erros));
-      return redirect("/importacao/listagemerros/$hash");
+      cache()->put('erros', $hash);
+
+      return redirect("/importacao/listagemerros");
     }
+
 
     Session::flash('sucesso', 'Importação da(s) empresa(s) finalizada com sucesso.');
     return redirect('/importacao');
