@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('importacao')->group(function () {
       Route::get('/', \App\Livewire\Views\Importacao\Gerenciar::class);
-      Route::get('/listagemerros/{hash}', \App\Livewire\Views\Importacao\ListagemErros::class);
+      Route::get('/listagemerros', \App\Livewire\Views\Importacao\ListagemErros::class);
     });
   });
   Route::prefix('versionamento')->group(function () {

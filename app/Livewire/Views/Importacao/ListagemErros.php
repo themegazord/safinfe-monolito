@@ -11,8 +11,8 @@ class ListagemErros extends Component
 {
   public array $erros = [];
 
-  public function mount(string $hash): void {
-    $this->erros = json_decode(base64_decode($hash), true);
+  public function mount(): void {
+    $this->erros = json_decode(base64_decode(cache()->get('erros')), true);
   }
 
   #[Title('SAFI NFE - Listagem de Erros da importação de XML')]

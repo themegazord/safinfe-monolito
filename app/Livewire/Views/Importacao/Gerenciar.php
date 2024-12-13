@@ -255,7 +255,7 @@ class Gerenciar extends Component
     // Validacao dos campos obrigatorios
     for ($i = 1; $i < count($data); $i++) {
       foreach ($data[$i] as $key => $campo) {
-        if ($key != 3 ) { // IE não é obrigatório
+        if ($key != 3 && $key != 11 ) { // IE não é obrigatório
           // Verifica se o campo é nulo ou vazio
           if (is_null($campo) || $campo === '') {
             // Verifica se o índice existe no cabeçalho
@@ -316,7 +316,9 @@ class Gerenciar extends Component
 
     if (count($erros) > 0) {
       $hash = base64_encode(json_encode($erros));
-      return redirect("/importacao/listagemerros/$hash");
+      cache()->put('erros', $hash);
+
+      return redirect("/importacao/listagemerros");
     }
 
     DB::beginTransaction();
