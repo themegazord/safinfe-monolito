@@ -10,7 +10,7 @@ use Livewire\Form;
 
 #[Validate(rule: [
   'social' => 'required|max:255',
-  'cnpj' => 'required|max:14',
+  'documento' => 'required|max:14',
   'telefone_corporativo' => 'required|max:20',
   'email_corporativo' => 'required|max:255',
   'email_contato' => 'required|max:255',
@@ -19,7 +19,7 @@ use Livewire\Form;
 ], message: [
   'required' => 'O campo é obrigatório.',
   'social.max' => 'A razão social da contabilidade deve conter no máximo 255 caracteres.',
-  'cnpj.max' => 'O CNPJ deve conter no máximo 14 caracteres.',
+  'documento.max' => 'O documento deve conter no máximo 14 caracteres.',
   'telefone_corporativo.max' => 'O telefone corporativo deve conter no máximo 20 caracteres.',
   'email_corporativo.max' => 'O email corporativo deve conter no máximo 255 caracteres.',
   'email_contato.max' => 'O email corporativo deve conter no máximo 255 caracteres.',
@@ -30,7 +30,7 @@ class ContabilidadeForm extends Form
 {
   public ?int $endereco_id = null;
   public string $social = '';
-  public string $cnpj = '';
+  public string $documento = '';
   public string $telefone_corporativo = '';
   public string $email_corporativo = '';
   public string $email_contato = '';
@@ -40,7 +40,7 @@ class ContabilidadeForm extends Form
 
   public function tratarCamposSujos(): void
   {
-    $this->cnpj = str_replace(['-', '.', '/'], '', $this->cnpj);
+    $this->documento = str_replace(['-', '.', '/'], '', $this->documento);
     $this->telefone_corporativo = trim(str_replace(['-', '.', '/', '(', ')'], '', $this->telefone_corporativo));
     $this->telefone_contato = trim(str_replace(['-', '.', '/', '(', ')'], '', $this->telefone_contato));
     $this->telefone_reserva = trim(str_replace(['-', '.', '/', '(', ')'], '', $this->telefone_reserva));

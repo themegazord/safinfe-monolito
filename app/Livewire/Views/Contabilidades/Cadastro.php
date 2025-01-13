@@ -37,7 +37,7 @@ class Cadastro extends Component
     $this->contabilidade->tratarCamposSujos();
     $this->contabilidade->validate();
 
-    if (!is_null(DB::table('contabilidades')->where('cnpj', $this->contabilidade->cnpj)->first())) return $this->addError('contabilidade.cnpj', 'CNPJ já existente.');
+    if (!is_null(DB::table('contabilidades')->where('cnpj', $this->contabilidade->documento)->first())) return $this->addError('contabilidade.documento', 'Documento já existente.');
     if (!is_null(DB::table('contabilidades')->where('email_corporativo', $this->contabilidade->email_corporativo)->first())) return $this->addError('contabilidade.email_corporativo', 'Email corporativo já existente.');
     if (!is_null(DB::table('contabilidades')->where('email_contato', $this->contabilidade->email_contato)->first())) return $this->addError('contabilidade.email_contato', 'Email de contato já existente.');
 

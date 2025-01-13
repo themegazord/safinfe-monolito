@@ -126,8 +126,14 @@ class Gerenciar extends Component
           if (strlen($campo) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A razao social na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 255 caracteres"];
         }
         if ($key === 1 /* CNPJ */) {
-          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) !== 14) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ limpo da linha {$this->retornaLinha($i + 1)} deve conter 14 caracteres"];
-          if (!$this->validar_cnpj($campo)) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
+          if (!strlen(preg_replace("/[^0-9]/", "", trim($campo))) === 14 || !strlen(preg_replace("/[^0-9]/", "", trim($campo))) === 11) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O documento limpo da linha {$this->retornaLinha($i + 1)} deve conter 11 (CPF) ou 14 caracteres"];
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) === 14) {
+            if (!$this->validar_cnpj($campo)) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
+          }
+
+          if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) === 11) {
+            if (!$this->validaCPF($campo)) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CPF na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
+          }
           if (!is_null($contabilidadeRepository->consultaContabilidadePorCNPJ(preg_replace("/[^0-9]/", "", trim($campo))))) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} ja esta em uso"];
         }
         if ($key === 2 /* Telefone principal */) {

@@ -20,9 +20,9 @@
             @error('contabilidade.social') <span class="form-error">{{ $message }}</span> @enderror
           </div>
           <div>
-            <label for="cnpj" class="form-label">Insira a CNPJ da contabilidade</label>
-            <input type="text" wire:model="contabilidade.cnpj" id="cnpj" class="form-control cnpj">
-            @error('contabilidade.cnpj') <span class="form-error">{{ $message }}</span> @enderror
+            <label for="cnpj" class="form-label">Insira o documento da contabilidade</label>
+            <input type="text" wire:model="contabilidade.documento" id="cnpj" class="form-control">
+            @error('contabilidade.documento') <span class="form-error">{{ $message }}</span> @enderror
           </div>
         </div>
         <div class="subinput-form-contabilidade">

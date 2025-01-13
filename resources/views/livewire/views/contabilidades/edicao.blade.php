@@ -21,8 +21,8 @@
           </div>
           <div>
             <label for="cnpj" class="form-label">Insira a CNPJ da contabilidade</label>
-            <input type="text" wire:model.fill="contabilidade.cnpj" value="{{ $contabilidadeAtual['cnpj'] }}" id="cnpj" class="form-control cnpj">
-            @error('contabilidade.cnpj') <span class="form-error">{{ $message }}</span> @enderror
+            <input type="text" wire:model.fill="contabilidade.documento" value="{{ $contabilidadeAtual['documento'] }}" id="documento" class="form-control">
+            @error('contabilidade.documento') <span class="form-error">{{ $message }}</span> @enderror
           </div>
         </div>
         <div class="subinput-form-contabilidade">
