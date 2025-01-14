@@ -54,6 +54,10 @@
         "dev": [
           "Composer\\Config::disableProcessTimeout",
           "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185\" \"php artisan serve --host=192.168.0.5\" \"php artisan queue:listen --tries=1\" \"npm run dev --host\" --names=server,queue,vite"
+        ],
+        "devD": [
+          "Composer\\Config::disableProcessTimeout",
+          "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74,#e5a78d,#a3d8a1\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" \"d:/php/mailpit.exe\" \"php artisan reverb:start\" --names=server,queue,vite,mailpit"
         ]
     },
     "extra": {
