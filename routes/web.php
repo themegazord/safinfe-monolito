@@ -9,6 +9,10 @@ Livewire::setUpdateRoute(function ($handle) {
 });
 
 Route::get('/', \App\Livewire\Views\Autenticacao\Login::class)->name('login');
+Route::get('/resetar-senha', \App\Livewire\Views\Autenticacao\ResetarSenha::class)->name('resetarSenha');
+Route::get("/logout", function () {
+  auth()->logout();
+});
 Route::get('/contato', \App\Livewire\Views\Autenticacao\Contato::class);
 Route::middleware('auth')->group(function () {
   Route::get('dashboard', \App\Livewire\Views\Dashboard\Dashboard::class);

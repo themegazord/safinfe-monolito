@@ -3,6 +3,7 @@
 namespace App\Livewire\Views\Autenticacao;
 
 use App\Livewire\Forms\LoginForm;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -21,7 +22,11 @@ class Login extends Component
 
   public function logar(): void {
     $this->login->validate();
-    $this->login->efetuarLogin();
-    redirect('/dashboard');
+    if (Auth::attempt($this->login->all())) {
+      Auth::login(Auth::user());
+      redirect('/dashboard');
+    } else {
+      $this->addError('login.email', 'Email ou senha inválidos');
+    }
   }
 }

@@ -23,10 +23,4 @@ class LoginForm extends Form
 {
   public string $email = '';
   public string $password = '';
-
-  public function efetuarLogin(): void {
-    if (Auth::attempt($this->all())) {
-      Auth::login(Auth::user());
-    }
-  }
 }
