@@ -19,7 +19,11 @@
         <input type="text" wire:model.fill="contador.cpf" value="{{ $contadorAtual['cpf'] }}" id="cpf" class="form-control">
         @error('contador.cpf') <span class="form-error">{{ $message }}</span> @enderror
       </div>
-      <button wire:click="enviaEmailTrocaSenha" class="envia-troca-senha">Enviar email para troca de senha...</button>
+      <div>
+        <label for="novaSenha" class="form-label">Caso queira, informe a nova senha do contador.</label>
+        <input type="text" wire:model.live="novaSenha" id="novaSenha" class="form-control">
+        <button wire:click="trocaSenha({{ $contadorAtual['contador_id'] }})" class="envia-troca-senha">Trocar senha</button>
+      </div>
     </div>
     <hr>
     <h5>Insira a contabilidade do contador</h5>

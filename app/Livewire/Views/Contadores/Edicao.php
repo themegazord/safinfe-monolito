@@ -3,10 +3,12 @@
 namespace App\Livewire\Views\Contadores;
 
 use App\Livewire\Forms\ContadorForm;
+use App\Models\Contador;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
 use App\Repositories\Eloquent\Repository\ContadorRepository;
 use App\Repositories\Eloquent\Repository\UsuarioRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -15,6 +17,7 @@ use Livewire\Component;
 class Edicao extends Component
 {
   public array $contadorAtual = [];
+  public ?string $novaSenha = null;
   public Collection $contabilidades;
   public ContadorForm $contador;
 
@@ -68,5 +71,14 @@ class Edicao extends Component
   public function voltar(): void
   {
     redirect('contadores/');
+  }
+
+  public function trocaSenha(int $contador_id): void {
+    Contador::find($contador_id)->usuario->forceFill([
+      'password' => Hash::make($this->novaSenha)
+    ])->save();
+
+    Session::flash('sucesso', 'Senha alterada com sucesso');
+    $this->novaSenha = null;
   }
 }
