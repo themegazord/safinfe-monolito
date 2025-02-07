@@ -52,7 +52,10 @@ class Cadastro extends Component
 
     unset($this->contabilidade->empresas);
 
-    $contabilidade = $contabilidadeRepository->cadastroContabilidade($this->contabilidade->all());
+    $contabilidade = $contabilidadeRepository->cadastroContabilidade([
+      'cnpj' => $this->contabilidade->documento,
+      ...$this->contabilidade->all()
+    ]);
 
     foreach($empresas as $key => $empresa) {
       $empContRepository->cadastrar([
