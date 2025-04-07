@@ -22,8 +22,8 @@ class Login extends Component
 
   public function logar(): void {
     $this->login->validate();
-    if (Auth::attempt($this->login->all())) {
-      Auth::login(Auth::user());
+    if (Auth::attempt($this->login->all(), $this->lembraSenha)) {
+      Auth::login(Auth::user(), $this->lembraSenha);
       redirect('/dashboard');
     } else {
       $this->addError('login.email', 'Email ou senha inválidos');
