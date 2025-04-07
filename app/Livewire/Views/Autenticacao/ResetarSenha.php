@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Mary\Traits\Toast;
 
 class ResetarSenha extends Component
 {
+  use Toast;
   public ResetarSenhaForm $resetSenha;
 
   #[Layout('components.layouts.autenticacao')]
@@ -27,8 +29,7 @@ class ResetarSenha extends Component
     $usuario = User::whereEmail($this->resetSenha->email)->first();
 
     if (is_null($usuario) || !Hash::check($this->resetSenha->oldPassword, $usuario->password)) {
-      Session::flash('sucesso', 'Dados atualizados');
-      $this->redirect('/');
+      $this->success("Dados atualizados.", redirectTo: route('login'));
       return;
     }
 
@@ -36,8 +37,7 @@ class ResetarSenha extends Component
       'password' => Hash::make($this->resetSenha->newPassword)
     ])->save();
 
-    Session::flash('sucesso', 'Dados atualizados');
-    $this->redirect('/');
+    $this->success("Dados atualizados.", redirectTo: route('login'));
     return;
   }
 }
