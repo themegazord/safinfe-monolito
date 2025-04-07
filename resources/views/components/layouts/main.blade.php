@@ -4,46 +4,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
   <title>{{ $title ?? 'Page Title' }}</title>
-
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-    * {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    ol,
-    ul {
-      padding-left: 0;
-    }
-
-    :root {
-      --body-color: #E3E9F7;
-      --sidebar-color: #FFF;
-      --primary-color: #000511;
-      --primary-color-hover: rgb(94, 80, 252);
-      --primary-color-light: #F6F5FF;
-      --toggle-color: #DDD;
-      --text-color: #707070;
-
-      --tran-02: all 0.2s ease;
-      --tran-03: all 0.3s ease;
-      --tran-04: all 0.4s ease;
-      --tran-05: all 0.5s ease;
-    }
-  </style>
-  <link rel="stylesheet" href="{{asset('css/style.css')}}">
 </head>
 
 <body>
-  <livewire:componentes.utils.navbar.main-navbar />
-  <livewire:componentes.utils.notificacao.flash />
-  {{ $slot }}
+  <x-toast />
+  <x-main full-width>
+    <x-slot:sidebar drawer="main-drawer" class="bg-base-100 lg:bg-inherit">
+      <div class="ml-5 pt-5">SAFI NFE</div>
+
+      <x-menu activate-by-route>
+
+        @if ($usuario = auth()->user())
+        <x-menu-separator />
+
+        <x-list-item :item="$usuario" value="name" sub-value="email" no-separator no-hover class="-mx-2 !-my-2 rounded">
+          <x-slot:actions>
+
+          </x-slot:actions>
+        </x-list-item>
+        @endif
+
+        <x-menu-item title="Dashboard" icon="o-home" link="{{ route('dashboard') }}" no-wire-navigate />
+
+        @if ($usuario->role === 'ADMIN')
+        <x-menu-item title="Contabilidades" icon="o-building-library" link="{{ route('contabilidades') }}" no-wire-navigate />
+        <x-menu-item title="Contadores" icon="o-identification" link="{{ route('contadores') }}" no-wire-navigate />
+        <x-menu-item title="Clientes" icon="o-users" link="{{ route('clientes') }}" no-wire-navigate />
+        <x-menu-item title="Empresas" icon="o-building-office" link="{{ route('empresas') }}" no-wire-navigate />
+        <x-menu-item title="Administradores" icon="o-shield-check" link="{{ route('administradores') }}" no-wire-navigate />
+        <x-menu-item title="Importação" icon="o-arrow-down-tray" link="{{ route('importacao') }}" no-wire-navigate />
+        @endif
+
+        <x-menu-item title="Consulta de XML" icon="o-magnifying-glass" link="{{ route('consultaxml') }}" no-wire-navigate />
+        <x-menu-item title="Versionamento" icon="o-clock" link="{{ route('versionamento') }}" no-wire-navigate />
+
+
+        <!-- Botão de logout -->
+
+        <x-menu-item title="Sair" icon="o-arrow-left-end-on-rectangle"
+          link="{{ route('logout') }}" no-wire-navigate />
+
+      </x-menu>
+
+    </x-slot:sidebar>
+    {{-- The `$slot` goes here --}}
+    <x-slot:content>
+      <div class="w-full flex flex-row-reverse">
+        <label for="main-drawer" class="btn btn-ghost drawer-button lg:hidden">
+          <x-icon name="o-bars-3-bottom-right" class="w-8 h-8" />
+        </label>
+      </div>
+      {{ $slot }}
+    </x-slot:content>
+  </x-main>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
   <script src="https://kit.fontawesome.com/187a0c0ba5.js" crossorigin="anonymous"></script>
