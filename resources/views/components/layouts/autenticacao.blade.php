@@ -10,6 +10,7 @@
 
 <body>
   <livewire:componentes.utils.navbar.top-nav-bar />
+  <x-toast />
   <div class="bg-gray-950 h-[90vh] flex justify-center items-center">
     {{ $slot }}
   </div>
