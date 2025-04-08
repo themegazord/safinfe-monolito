@@ -12,6 +12,8 @@
 
   <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
 
+  {{-- Chart.js  --}}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
     flatpickr.localize(flatpickr.l10ns.pt);
   </script>

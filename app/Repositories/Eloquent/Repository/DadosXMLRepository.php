@@ -100,17 +100,19 @@ class DadosXMLRepository implements IDadosXML
       ->first();
   }
 
-  public function consultaPorID(int $dado_id): ?DadosXML {
+  public function consultaPorID(int $dado_id): ?DadosXML
+  {
     return DadosXML::query()
       ->where('dados_id', $dado_id)
       ->first();
   }
 
-  public function consultaDadosNotaFiscalAutorizada(int $numeronf): ?DadosXML {
+  public function consultaDadosNotaFiscalAutorizada(int $numeronf): ?DadosXML
+  {
     return DadosXML::query()
-    ->where('numeronf', $numeronf)
-    ->where('status', 'AUTORIZADO')
-    ->first();
+      ->where('numeronf', $numeronf)
+      ->where('status', 'AUTORIZADO')
+      ->first();
   }
 
   public function consultaVariosXML($xmls)
@@ -121,14 +123,16 @@ class DadosXMLRepository implements IDadosXML
       ->get();
   }
 
-  public function consultaXMLChaveStatus(string $chave, string $status): ?DadosXML {
+  public function consultaXMLChaveStatus(string $chave, string $status): ?DadosXML
+  {
     return DadosXML::query()
       ->where('chave', $chave)
       ->where('status', $status)
       ->first();
   }
 
-  public function consultaUltimaNotaRecebidaEmpresa(int $empresa_id): ?DadosXML {
+  public function consultaUltimaNotaRecebidaEmpresa(int $empresa_id): ?DadosXML
+  {
     return DadosXML::query()
       ->where('empresa_id', $empresa_id)
       ->orderBy('dados_id', 'desc')
