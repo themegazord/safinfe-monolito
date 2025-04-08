@@ -3,6 +3,7 @@
 namespace App\Livewire\Views\Importacao;
 
 use App\Exceptions\Tipos\EnumTiposValidacao;
+use App\Jobs\ImportaXMLsJob;
 use App\Livewire\Forms\ImportacaoContabilidadeForm;
 use App\Livewire\Forms\ImportacaoEmpresaForm;
 use App\Livewire\Forms\ImportacaoXMLForm;
@@ -10,6 +11,7 @@ use App\Models\User;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
+use App\Services\ArquivoTemporarioService;
 use App\Services\DadosXMLService;
 use App\Services\XMLService;
 use App\Traits\ValidacoesTrait;
@@ -17,6 +19,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
@@ -27,16 +30,18 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\Features\SupportRedirects\Redirector;
 use Livewire\WithFileUploads;
-use ZipArchive;
+use Mary\Traits\Toast;
 
 class Gerenciar extends Component
 {
-  use WithFileUploads, ValidacoesTrait;
+  use WithFileUploads, ValidacoesTrait, Toast;
 
   public array $xmls = [];
   public string $xmlNomeAtual = '';
   public int $cont = 0;
+  public ?int $numeroTotalArquivos = null;
   public ?int $qtdeLinhasArquivo = null;
+  public bool $startPolling = false;
   public string $importacaoTabSelecionada = 'importacaoXML-tab';
   public User|Authenticatable $usuario;
   public Collection $empresas;
@@ -60,14 +65,14 @@ class Gerenciar extends Component
   /**
    * @throws ValidationException
    */
-  public function importacaoXML(XMLService $xmlService, DadosXMLService $dadosXMLService): Redirector|RedirectResponse
+  public function importacaoXML(XMLService $xmlService, DadosXMLService $dadosXMLService, ArquivoTemporarioService $limpador): void
   {
     $this->importacaoXMLForm->validate();
       if ($this->importacaoXMLForm->arquivo->getClientOriginalExtension() !== 'zip') {
-        Session::flash('erro', 'Aceitamos apenas .zip');
-        return redirect('/importacao');
+        $this->warning('Aceitamos somente .zip');
+        return;
       }
-      return $this->recebeRARXMLS($xmlService, $dadosXMLService);
+      $this->recebeRARXMLS($xmlService, $dadosXMLService, $limpador);
   }
 
   /**
@@ -385,68 +390,24 @@ class Gerenciar extends Component
     };
   }
 
-  #[Computed()]
-  public function contador(): int {
-    $this->cont += 1;
-    return $this->cont;
+  #[Computed]
+  public function progresso()
+  {
+    return Cache::get("importacao_progress_" . auth()->id(), [
+      'processados' => 0,
+      'total' => 1
+    ]);
   }
 
-  private function recebeRARXMLS(XMLService $xmlService, DadosXMLService $dadosXMLService): Redirector|RedirectResponse
+
+  private function recebeRARXMLS(XMLService $xmlService, DadosXMLService $dadosXMLService, ArquivoTemporarioService $limpador): void
   {
-    DB::beginTransaction();
+    $path = $this->importacaoXMLForm->arquivo->storeAs('public', $this->importacaoXMLForm->arquivo->getClientOriginalName());
+    $realPath = storage_path('app/' . $path);
 
-    try {
-      $zip = new ZipArchive();
+    dispatch(new ImportaXMLsJob($realPath, $this->importacaoXMLForm->empresa_id));
 
-      $path = $this->importacaoXMLForm->arquivo->storeAs('public', $this->importacaoXMLForm->arquivo->getClientOriginalName());
-      $realPath = storage_path('app/' . $path);
-      $pathXMLUsuario = storage_path('app/tempXML/' . Auth::user()->id);
-
-      DB::commit();
-      if ($zip->open($realPath) === TRUE) {
-        $zip->extractTo($pathXMLUsuario);
-        $zip->close();
-        foreach(array_filter(scandir($pathXMLUsuario), fn ($arq) => $arq !== '.' && $arq !== '..') as $arquivo) {
-          $this->xmlNomeAtual = $arquivo;
-          $this->defineGravaXML("{$pathXMLUsuario}/{$arquivo}", $xmlService, $dadosXMLService);
-        }
-      }
-      Session::flash('sucesso', "XMLS importados com sucesso.");
-      return redirect('/importacaoxml');
-    } catch (\Exception $e) {
-      DB::rollBack();
-      Session::flash('erro', $e->getMessage() . " => XML com erro: " . $this->xmlNomeAtual);
-      return redirect('/importacaoxml');
-    } finally {
-      unlink($realPath);
-    }
-  }
-
-  private function defineGravaXML(string $caminho, XMLService $xmlService, DadosXMLService $dadosXMLService): void
-  {
-    $xmlConsultado = $dadosXMLService->consultaDadosXMLPorChave(str_replace('-', '', filter_var($this->xmlNomeAtual, FILTER_SANITIZE_NUMBER_INT)));
-
-    if (str_contains($this->xmlNomeAtual, 'ProcNfe')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'AUTORIZADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastro($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->importacaoXMLForm->empresa_id);
-      }
-    }
-
-    if (str_contains($this->xmlNomeAtual, 'Can')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'CANCELADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastroCancelado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->importacaoXMLForm->empresa_id);
-      }
-    }
-    if (str_contains($this->xmlNomeAtual, 'inu')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'INUTILIZADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastroInutilizado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->importacaoXMLForm->empresa_id, $this->xmlNomeAtual);
-      }
-    }
-
-    unlink($caminho);
+    $this->startPolling = true;
   }
 
   private function retornaLinha(int $numeroIndex): int {
