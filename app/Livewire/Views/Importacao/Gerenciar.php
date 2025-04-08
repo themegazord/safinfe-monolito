@@ -37,6 +37,7 @@ class Gerenciar extends Component
   public string $xmlNomeAtual = '';
   public int $cont = 0;
   public ?int $qtdeLinhasArquivo = null;
+  public string $importacaoTabSelecionada = 'importacaoXML-tab';
   public User|Authenticatable $usuario;
   public Collection $empresas;
   public ImportacaoXMLForm $importacaoXMLForm;
