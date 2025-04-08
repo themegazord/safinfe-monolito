@@ -12,9 +12,12 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Dashboard extends Component
 {
+  use Toast;
+
   public User|Authenticatable $usuario;
   public ?Collection $empresasContador = null;
   public ?Collection $empresasGeral = null;
@@ -22,6 +25,7 @@ class Dashboard extends Component
   public ?Collection $XMLs = null;
   public ?array $consulta = [
     'empresa_id' => null,
+    'data_inicio_fim' => null,
     'data_inicio' => null,
     'data_fim' => null,
     'modelo' => 'TODAS',
@@ -70,10 +74,16 @@ class Dashboard extends Component
   {
     $this->zeraInformacoesRelatorios();
 
-    $this->consulta['data_inicio'] = date('Y/m/d', strtotime($this->consulta['data_inicio']));
-    $this->consulta['data_fim'] = date('Y/m/d', strtotime($this->consulta['data_fim']));
+    $this->consulta['data_inicio'] = date('Y/m/d', strtotime(explode(' até ', $this->consulta['data_inicio_fim'])[0]));
+    $this->consulta['data_fim'] = date('Y/m/d', strtotime(explode(' até ', $this->consulta['data_inicio_fim'])[1]));
 
     $this->dadosXML = $dadosXMLRepository->preConsultaDadosXML($this->consulta, $this->consulta['empresa_id'])->orderBy('dx1.numeronf')->get();
+
+    if ($this->dadosXML->isEmpty()) {
+      $this->warning(title: 'Não foi encontrado notas nesse periodo');
+      return;
+    }
+
     $this->XMLs = collect();
     foreach ($this->dadosXML as $xml) {
       $this->XMLs->add($xmlRepository->consultaPorId($xml->xml_id)->getAttribute('xml'));
