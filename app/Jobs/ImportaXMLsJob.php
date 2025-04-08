@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Mary\Traits\Toast;
 use ZipArchive;
 
@@ -43,14 +42,11 @@ class ImportaXMLsJob implements ShouldQueue
     $zip = new ZipArchive();
 
     if ($zip->open($this->pathArquivo) === TRUE) {
-      $total = $zip->numFiles;
-      Cache::put("importacao_progress_{$this->usuario_id}", ['processados' => 0, 'total' => $total]);
 
       $zip->extractTo($pathXMLUsuario);
       $zip->close();
 
       $arquivos = array_filter(scandir($pathXMLUsuario), fn ($f) => $f !== '.' && $f !== '..');
-      $processados = 0;
 
       DB::beginTransaction();
 
@@ -59,18 +55,17 @@ class ImportaXMLsJob implements ShouldQueue
           $this->xmlNomeAtual = $arquivo;
           $path = "{$pathXMLUsuario}/{$arquivo}";
           $this->defineGravaXML($path, $xmlService, $dadosXMLService);
-          $processados++;
-          Cache::put("importacao_progress_{$this->usuario_id}", ['processados' => $processados, 'total' => $total]);
           DB::commit();
         } catch (\Throwable $e) {
           DB::rollBack();
           Log::warning("{$e->getMessage()} => XML com erro: $this->xmlNomeAtual");
           $this->warning("{$e->getMessage()} => XML com erro: $this->xmlNomeAtual", redirectTo: route('importacao'));
+        } finally {
         }
       }
 
       Cache::forget("importacao_progress_{$this->usuario_id}");
-      Storage::delete($this->pathArquivo);
+      unlink($this->pathArquivo);
       File::deleteDirectory($pathXMLUsuario);
     }
   }

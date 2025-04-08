@@ -9,12 +9,6 @@
 
           <x-file class="cols-span-1" wire:model="importacaoXMLForm.arquivo" label="Seleciona o arquivo .zip com os XML's" hint="Somente .zip" accept=".zip,application/zip,application/x-zip-compressed" />
         </div>
-        @if ($startPolling)
-        <div wire:poll.500ms>
-          <x-progress :value="$this->progresso['processados']" :max="$this->progresso['total']" />
-          <p>Importando: {{ $this->progresso['processados'] }} / {{ $this->progresso['total'] }}</p>
-        </div>
-        @endif
         <div class="flex flex-row-reverse">
           <x-button type="submit" label="Importar" class="btn btn-primary mt-4" spinner="importacaoXML" />
         </div>
@@ -23,32 +17,32 @@
     <x-tab name="importacaoContabilidade-tab" label="Importacao de Contabilidades" icon="o-building-library">
       <form wire:submit="importacaoContabilidade">
         <div class="mb-3">
-          <label for="arquivos" class="form-label">Importe o Excel com os dados das contabilidades: </label>
-          <input class="form-control" type="file" id="arquivos" wire:model="importacaoContabilidadeForm.arquivo">
-          @error('importacaoContabilidadeForm.arquivo')
-          <span class="text-danger">{{ $message }}</span>
-          @enderror
+          <x-file
+            wire:model="importacaoContabilidadeForm.arquivo"
+            label="Importe o Excel com os dados das contabilidades:"
+            hint="Somente arquivos .xls ou .xlsx"
+            accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
         </div>
-        <div class="form-xml-acoes">
-          <button type="submit" class="float-end me-1">Importar</button>
-          <button type="button" class="float-end me-1" wire:click="downloadArquivoMolde('contabilidade')">Download Molde</button>
-          <button type="button" class="float-end me-1" wire:click="voltar">Voltar</button>
+        <div class="flex flex-col sm:flex-row-reverse gap-4">
+          <x-button type="submit" class="btn btn-success" label="Importar"/>
+          <x-button type="button" class="btn btn-secondary" label="Download Molde" wire:click="downloadArquivoMolde('contabilidade')" />
+          <x-button type="button" class="btn btn-error" label="Voltar" wire:click="voltar" />
         </div>
       </form>
     </x-tab>
     <x-tab name="importacaoEmpresa-tab" label="Importacao de Empresas" icon="o-building-office">
       <form wire:submit="importacaoEmpresa">
         <div class="mb-3">
-          <label for="arquivos" class="form-label">Importe o Excel com os dados das empresas: </label>
-          <input class="form-control" type="file" id="arquivos" wire:model="importacaoEmpresaForm.arquivo">
-          @error('importacaoEmpresaForm.arquivo')
-          <span class="text-danger">{{ $message }}</span>
-          @enderror
+        <x-file
+            wire:model="importacaoEmpresaForm.arquivo"
+            label="Importe o Excel com os dados das empresas:"
+            hint="Somente arquivos .xls ou .xlsx"
+            accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
         </div>
-        <div class="form-xml-acoes">
-          <button type="submit" class="float-end me-1">Importar</button>
-          <button type="button" class="float-end me-1" wire:click="downloadArquivoMolde('empresa')">Download Molde</button>
-          <button type="button" class="float-end me-1" wire:click="voltar">Voltar</button>
+        <div class="flex flex-col sm:flex-row-reverse gap-4">
+          <x-button type="submit" class="btn btn-success" label="Importar"/>
+          <x-button type="button" class="btn btn-secondary" label="Download Molde" wire:click="downloadArquivoMolde('empresa')" />
+          <x-button type="button" class="btn btn-error" label="Voltar" wire:click="voltar" />
         </div>
       </form>
     </x-tab>
