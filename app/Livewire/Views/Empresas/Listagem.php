@@ -11,23 +11,22 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\Features\SupportRedirects\Redirector;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 
 class Listagem extends Component
 {
-  use WithPagination;
+  use WithPagination, WithoutUrlPagination;
 
   public LengthAwarePaginator $empresas;
   public string $consulta = '';
+  public int $porPagina = 10;
 
   #[Layout('components.layouts.main')]
   #[Title('SAFI NFE - Listagem de Empresas')]
-  public function render(EmpresaRepository $empresaRepository)
+  public function render()
   {
-    $empresas = $empresaRepository->paginacaoEmpresas(10, $this->consulta);
-    return view('livewire.views.empresas.listagem', [
-      'listagem' => compact('empresas')
-    ]);
+    return view('livewire.views.empresas.listagem');
   }
 
   public function irCadastrar(): void {

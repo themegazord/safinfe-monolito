@@ -6,7 +6,6 @@ use CommerceGuys\Intl\Currency\CurrencyRepository;
 use CommerceGuys\Intl\Formatter\CurrencyFormatter;
 use CommerceGuys\Intl\NumberFormat\NumberFormatRepository;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Reactive;
 use Livewire\Component;
 
 class Valorestotaismensais extends Component
