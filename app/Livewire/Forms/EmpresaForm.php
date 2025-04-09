@@ -29,12 +29,12 @@ use Livewire\Form;
 class EmpresaForm extends Form
 {
   public ?int $endereco_id = null;
-  public string $fantasia = '';
-  public string $social = '';
-  public string $cnpj = '';
+  public ?string $fantasia = null;
+  public ?string $social = null;
+  public ?string $cnpj = null;
   public ?string $ie = null;
-  public string $email_contato = '';
-  public string $telefone_contato = '';
+  public ?string $email_contato = null;
+  public ?string $telefone_contato = null;
   public ?string $telefone_reserva = null;
 
   public function tratarCamposSujos(): void {
