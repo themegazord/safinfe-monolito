@@ -13,9 +13,12 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Edicao extends Component
 {
+  use Toast;
+
   public ?Empresa $empresaAtual;
   public ?Endereco $enderecoAtual;
   public EmpresaForm $empresa;
@@ -24,6 +27,7 @@ class Edicao extends Component
   public function mount(int $empresa_id, EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository): void {
     $this->empresaAtual = $empresaRepository->consultaEmpresa($empresa_id);
     $this->enderecoAtual = $enderecoRepository->consultaEndereco($this->empresaAtual->endereco_id);
+    $this->endereco->estado = $this->enderecoAtual->estado;
   }
 
   #[Layout('components.layouts.main')]
@@ -53,8 +57,7 @@ class Edicao extends Component
     $empresaRepository->editaEmpresa($empresaAtualizado);
     $enderecoRepository->editaEndereco($enderecoAtualizado);
 
-    Session::flash('sucesso', 'Empresa editada com sucesso');
-    redirect('/empresas');
+    $this->success('Empresa editada com sucesso', redirectTo: route('empresas'));
   }
 
   public function voltar(): void {

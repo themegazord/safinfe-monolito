@@ -90,8 +90,8 @@
       </div>
     </div>
     <div class="flex flex-col sm:flex-row-reverse gap-4 mt-4">
-      <x-button type="submit" class="btn btn-success" label="Cadastrar" />
-      <x-button class="btn btn-error" wire:click="voltar" label="Voltar" />
+      <x-button type="submit" class="btn btn-success" label="Cadastrar" spinner="cadastrar"/>
+      <x-button class="btn btn-error" wire:click="voltar" label="Voltar" spinner="voltar"/>
     </div>
   </form>
 </div>
