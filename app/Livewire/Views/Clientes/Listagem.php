@@ -25,10 +25,7 @@ class Listagem extends Component
   #[Layout('components.layouts.main')]
   public function render(ClienteRepository $clienteRepository)
   {
-    $clientes = $clienteRepository->paginacaoClientes(10, $this->pesquisa, $this->estaAtivo);
-    return view('livewire.views.clientes.listagem', [
-      'listagem' => compact('clientes')
-    ]);
+    return view('livewire.views.clientes.listagem');
   }
 
   public function irCadastrar(): void {
