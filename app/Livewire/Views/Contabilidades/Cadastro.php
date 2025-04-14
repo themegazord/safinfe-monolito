@@ -4,25 +4,28 @@ namespace App\Livewire\Views\Contabilidades;
 
 use App\Livewire\Forms\ContabilidadeForm;
 use App\Livewire\Forms\EnderecoForm;
-use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
-use App\Repositories\Eloquent\Repository\EmpContRepository;
-use App\Repositories\Eloquent\Repository\EmpresaRepository;
-use App\Repositories\Eloquent\Repository\EnderecoRepository;
+use App\Models\Contabilidade;
+use App\Models\EmpCont;
+use App\Models\Empresa;
+use App\Models\Endereco;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
+  use Toast;
+
   public ContabilidadeForm $contabilidade;
   public EnderecoForm $endereco;
   public Collection $empresas;
+  public string $dadosContabilidadeTab = "dadosContabilidade-tab";
 
-  public function mount(EmpresaRepository $empresaRepository): void {
-    $this->empresas = $empresaRepository->listagemEmpresas()->sortBy('fantasia');
+  public function mount(): void {
+    $this->search();
   }
 
   #[Title("SAFI NFE - Cadastro de Contabilidades")]
@@ -32,19 +35,29 @@ class Cadastro extends Component
     return view('livewire.views.contabilidades.cadastro');
   }
 
-  public function cadastrar(EnderecoRepository $enderecoRepository, ContabilidadeRepository $contabilidadeRepository, EmpContRepository $empContRepository) {
+  public function cadastrar(): void {
     $this->contabilidade->filtraEmpresas();
     $this->contabilidade->tratarCamposSujos();
     $this->contabilidade->validate();
 
-    if (!is_null(DB::table('contabilidades')->where('cnpj', $this->contabilidade->documento)->first())) return $this->addError('contabilidade.documento', 'Documento já existente.');
-    if (!is_null(DB::table('contabilidades')->where('email_corporativo', $this->contabilidade->email_corporativo)->first())) return $this->addError('contabilidade.email_corporativo', 'Email corporativo já existente.');
-    if (!is_null(DB::table('contabilidades')->where('email_contato', $this->contabilidade->email_contato)->first())) return $this->addError('contabilidade.email_contato', 'Email de contato já existente.');
+
+    if (!is_null(DB::table('contabilidades')->where('cnpj', $this->contabilidade->documento)->first())) {
+      $this->addError('contabilidade.documento', 'Documento já existente.');
+      return;
+    }
+    if (!is_null(DB::table('contabilidades')->where('email_corporativo', $this->contabilidade->email_corporativo)->first())) {
+      $this->addError('contabilidade.email_corporativo', 'Email corporativo já existente.');
+      return;
+    }
+    if (!is_null(DB::table('contabilidades')->where('email_contato', $this->contabilidade->email_contato)->first())) {
+      $this->addError('contabilidade.email_contato', 'Email de contato já existente.');
+      return;
+    }
 
     $this->endereco->tratarCamposSujos();
     $this->endereco->validate();
 
-    $endereco = $enderecoRepository->cadastraEndereco($this->endereco->all());
+    $endereco = Endereco::create($this->endereco->all());
 
     $this->contabilidade->endereco_id = $endereco->getAttribute('endereco_id');
 
@@ -52,23 +65,26 @@ class Cadastro extends Component
 
     unset($this->contabilidade->empresas);
 
-    $contabilidade = $contabilidadeRepository->cadastroContabilidade([
+    $contabilidade = Contabilidade::create([
       'cnpj' => $this->contabilidade->documento,
       ...$this->contabilidade->all()
     ]);
 
-    foreach($empresas as $key => $empresa) {
-      $empContRepository->cadastrar([
-        'empresa_id' => $key,
+    foreach($empresas as $empresa) {
+      EmpCont::create([
+        'empresa_id' => $empresa,
         'contabilidade_id' => $contabilidade->getAttribute('contabilidade_id')
       ]);
     }
 
-    Session::flash('sucesso', 'Contabilidade cadastrada com sucesso.');
-    redirect('/contabilidades');
+    $this->success('Contabilidade cadastrada com sucesso', redirectTo: route('contabilidades'));
   }
 
   public function voltar(): void {
     redirect('/contabilidades');
+  }
+
+  public function search(string $valor = ""): void {
+    $this->empresas = Empresa::query()->where('fantasia', 'like', "%$valor%")->orderBy('fantasia')->get();
   }
 }
