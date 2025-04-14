@@ -4,23 +4,25 @@ namespace App\Livewire\Views\Clientes;
 
 use App\Livewire\Forms\ClienteForm;
 use App\Livewire\Forms\UsuarioForm;
-use App\Repositories\Eloquent\Repository\ClienteRepository;
-use App\Repositories\Eloquent\Repository\EmpresaRepository;
-use App\Repositories\Eloquent\Repository\UsuarioRepository;
+use App\Models\Cliente;
+use App\Models\Empresa;
+use App\Models\User;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
+  use Toast;
+
   public ClienteForm $cliente;
   public UsuarioForm $usuario;
   public Collection $empresas;
 
-  public function mount(EmpresaRepository $empresaRepository): void {
-    $this->empresas = collect($empresaRepository->listagemEmpresas());
+  public function mount(): void {
+    $this->search();
   }
 
   #[Title('SAFI NFE - Cadastro de Clientes')]
@@ -30,10 +32,13 @@ class Cadastro extends Component
     return view('livewire.views.clientes.cadastro');
   }
 
-  public function cadastrar(UsuarioRepository $usuarioRepository, ClienteRepository $clienteRepository) {
+  public function cadastrar(): void {
     $this->cliente->validate();
 
-    if (!is_null($clienteRepository->consultaClientePorEmail($this->cliente->email))) return $this->addError('cliente.email', 'O email já existe no sistema');
+    if (!is_null(Cliente::whereEmail($this->cliente->email))) {
+      $this->addError('cliente.email', 'O email já existe no sistema');
+      return;
+    }
 
     $this->usuario->validateOnly('password');
     $this->usuario->encriptaSenha();
@@ -42,18 +47,21 @@ class Cadastro extends Component
     $this->usuario->email = $this->cliente->email;
     $this->usuario->role = 'CLIENTE';
 
-    $usuario = $usuarioRepository->cadastraUsuario($this->usuario->all());
+    $usuario = User::create($this->usuario->all());
 
     $this->cliente->usuario_id = $usuario->getAttribute('id');
 
-    $clienteRepository->cadastroCliente($this->cliente->all());
+    Cliente::create($this->cliente->all());
 
-    Session::flash('sucesso', 'Cliente cadastrado com sucesso.');
-    redirect('clientes/');
+    $this->success('Cliente cadastrado com sucesso', redirectTo: route('clientes'));
   }
 
   public function voltar(): void
   {
     redirect('contadores/');
+  }
+
+  public function search(?string $valor = null): void {
+    $this->empresas = Empresa::query()->where('fantasia', 'like', "%$valor%")->orderBy('fantasia')->get();
   }
 }
