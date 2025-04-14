@@ -6,7 +6,7 @@
         <x-input label="Insira o dado a ser pesquisado" placeholder="Nome, email, empresa..." wire:model.blur="pesquisa" inline />
       </div>
       <div class="col-span-1">
-        <x-checkbox label="Inativo / Ativo" wire:model.live="estaAtivo" left />
+        <x-checkbox label="Ativo ?" wire:model.live="estaAtivo" left />
       </div>
       <div class="col-span-1">
         <x-button class="btn btn-primary" wire:click="irCadastrar" label="Cadastrar"/>
@@ -41,24 +41,31 @@
       ['key' => 'fantasia', 'label' => 'Empresa'],
     ];
     @endphp
-    <x-table :headers="$headers" :rows="$clientes" striped>
+    <x-table :headers="$headers" :rows="$clientes" striped show-empty-text empty-text="{{ $estaAtivo ? 'Não contêm clientes ativos' : 'Não contêm clientes inativos' }}">
       @scope('actions', $cliente)
         <div class="flex gap-4">
           <x-button class="btn btn-ghost rounded" icon="o-pencil-square" wire:click="irEdicaoCliente({{ $cliente->cliente_id }})"/>
-          <x-button class="btn btn-ghost rounded" icon="o-arrow-path-rounded-square" onclick="emiteEventoExclusaocliente({{ $cliente->cliente_id }})" />
+          <x-button class="btn btn-ghost rounded" icon="o-arrow-path-rounded-square" wire:click="setInativacaoCliente({{ $cliente->cliente_id }})" />
         </div>
       @endscope
     </x-table>
   </div>
-  <script>
-    function emiteEventoExclusaocliente(cliente_id) {
-      console.log(cliente_id);
-      var resposta = confirm("Deseja realmente alterar o status desse cliente?");
-      if (resposta) {
-        Livewire.dispatch('inativar-cliente', {
-          cliente_id
-        })
-      }
-    }
-  </script>
+
+  <x-modal wire:model="modalConfirmandoInativacaoCliente" title="Inativar cliente?" class="backdrop-blur">
+    @if ($clienteAtual !== null)
+    Tem certeza que deseja {{ $clienteAtual->trashed() ? 'reativar' : 'inativar' }} este cliente?
+
+    <x-slot:actions>
+      <x-button
+        label="Cancelar"
+        @click="$wire.modalConfirmandoInativacaoCliente = false"
+        class="btn btn-info" />
+
+      <x-button
+        label="{{ $clienteAtual->trashed() ? 'Reativar' : 'Inativar' }}"
+        wire:click="inativarCliente"
+        class="btn btn-error" />
+    </x-slot:actions>
+    @endif
+  </x-modal>
 </div>
