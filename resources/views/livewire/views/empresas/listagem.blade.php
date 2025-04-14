@@ -54,6 +54,8 @@
       <x-button
         label="Remover"
         wire:click="excluirEmpresa"
+        spinner="excluirEmpresa"
+        wire:loading.attr="disabled"
         class="btn btn-error" />
     </x-slot:actions>
     @endif
