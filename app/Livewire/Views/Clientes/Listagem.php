@@ -7,12 +7,13 @@ use App\Repositories\Eloquent\Repository\ClienteRepository;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination, Toast;
+  use WithPagination, WithoutUrlPagination, Toast;
 
   public ?string $pesquisa = null;
   public int $porPagina = 10;

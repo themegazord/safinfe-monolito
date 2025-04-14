@@ -9,7 +9,7 @@
         <x-checkbox label="Ativo ?" wire:model.live="estaAtivo" left />
       </div>
       <div class="col-span-1">
-        <x-button class="btn btn-primary" wire:click="irCadastrar" label="Cadastrar"/>
+        <x-button class="btn btn-primary w-full" wire:click="irCadastrar" label="Cadastrar"/>
       </div>
     </div>
     @php
@@ -41,7 +41,7 @@
       ['key' => 'fantasia', 'label' => 'Empresa'],
     ];
     @endphp
-    <x-table :headers="$headers" :rows="$clientes" striped show-empty-text empty-text="{{ $estaAtivo ? 'Não contêm clientes ativos' : 'Não contêm clientes inativos' }}">
+    <x-table :headers="$headers" :rows="$clientes" with-pagination striped show-empty-text empty-text="{{ $estaAtivo ? 'Não contêm clientes ativos' : 'Não contêm clientes inativos' }}">
       @scope('actions', $cliente)
         <div class="flex gap-4">
           <x-button class="btn btn-ghost rounded" icon="o-pencil-square" wire:click="irEdicaoCliente({{ $cliente->cliente_id }})"/>
