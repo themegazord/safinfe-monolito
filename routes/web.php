@@ -10,6 +10,7 @@ Livewire::setUpdateRoute(function ($handle) {
 
 Route::get('/', \App\Livewire\Views\Autenticacao\Login::class)->name('login');
 Route::get('/resetar-senha', \App\Livewire\Views\Autenticacao\ResetarSenha::class)->name('resetarSenha');
+Route::get('/resetsenha/reset/{token}/{email}', \App\Livewire\Views\Autenticacao\ResetSenha::class)->name('resetSenha');
 Route::get("/logout", function () {
   Auth::logout();
 })->name('logout');

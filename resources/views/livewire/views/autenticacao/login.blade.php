@@ -14,7 +14,7 @@
       <x-checkbox label="Lembrar senha?" wire:model="lembraSenha" />
     </div>
     <!-- TODO: voltar e fazer a rotina de reset de senha decente. -->
-    <!-- <a href="/resetar-senha" class="text-sm link link-hover">Esqueceu sua senha?</a> -->
+    <a href="/resetar-senha" class="text-sm link link-hover">Esqueceu sua senha?</a>
   </div>
   <div class="flex w-full">
     <x-button class="btn btn-primary mx-auto" label="Entrar" spinner="logar" wire:click="logar" />

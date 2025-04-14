@@ -35,7 +35,7 @@ class Cadastro extends Component
   public function cadastrar(): void {
     $this->cliente->validate();
 
-    if (!is_null(Cliente::whereEmail($this->cliente->email))) {
+    if (!is_null(Cliente::whereEmail($this->cliente->email)->first())) {
       $this->addError('cliente.email', 'O email já existe no sistema');
       return;
     }
