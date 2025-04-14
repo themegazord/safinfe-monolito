@@ -16,6 +16,7 @@ class Listagem extends Component
   use WithPagination;
 
   public ?string $pesquisa = null;
+  public int $porPagina = 10;
   public bool $estaAtivo = true;
 
   #[Title('SAFI NFE - Listagem de Clientes')]
