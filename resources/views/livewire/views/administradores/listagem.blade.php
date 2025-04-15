@@ -31,9 +31,27 @@
       @scope('actions', $administrador)
         <div class="flex gap-4">
           <x-button class="btn btn-ghost rounded" icon="o-pencil-square" wire:click="irEdicaoAdministrador({{ $administrador->id }})"/>
-          <x-button class="btn btn-ghost rounded" icon="o-trash" wire:click="setApagarAdministrador({{ $administrador->id }})" />
+          <x-button class="btn btn-ghost rounded" icon="o-trash" wire:click="setRemoverAdministrador({{ $administrador->id }})" />
         </div>
       @endscope
     </x-table>
   </div>
+
+  <x-modal wire:model="modalConfirmandoRemocaoAdministrador" title="Remover administrador?" class="backdrop-blur">
+    @if ($administradorAtual !== null)
+    Tem certeza que deseja remover este administrador?
+
+    <x-slot:actions>
+      <x-button
+        label="Cancelar"
+        @click="$wire.modalConfirmandoRemocaoAdministrador = false"
+        class="btn btn-info" />
+
+      <x-button
+        label="Remover"
+        wire:click="removerAdministrador"
+        class="btn btn-error" />
+    </x-slot:actions>
+    @endif
+  </x-modal>
 </div>
