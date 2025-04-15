@@ -14,15 +14,13 @@ class Listagem extends Component
   use WithPagination;
 
   public ?string $pesquisa = null;
+  public ?int $porPagina = 10;
 
   #[Title('SAFI NFE - Listagem de Usuarios')]
   #[Layout('components.layouts.main')]
-  public function render(UsuarioRepository $usuarioRepository)
+  public function render()
   {
-    $administradores = $usuarioRepository->paginacaoUsuarios('ADMIN', 10, $this->pesquisa);
-    return view('livewire.views.administradores.listagem', [
-      'listagem' => compact('administradores')
-    ]);
+    return view('livewire.views.administradores.listagem');
   }
 
   public function irCadastrar(): void {
