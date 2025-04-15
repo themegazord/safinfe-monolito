@@ -17,6 +17,8 @@ class Listagem extends Component
 
   public ?string $pesquisa = null;
   public bool $estaAtivo = true;
+  public int $porPagina = 10;
+
 
   #[Title('SAFI NFE - Listagem de Contadores')]
   #[Layout('components.layouts.main')]
