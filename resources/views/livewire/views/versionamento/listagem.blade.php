@@ -1,39 +1,37 @@
-<div class="main">
-  <h1>Listagem de Versões</h1>
-  <livewire:componentes.utils.notificacao.flash />
-  <div class="container-listagem-versao">
-    <div class="container-consulta-versao">
-      <div>
-        <label for="pesquisa" class="form-label">Insira o dado a ser pesquisado</label>
-        <input type="text" class="form-control" id="pesquisa" wire:model.blur="pesquisa" placeholder="Versão, o que foi feito...">
+<div class="p-4 md:p-6 flex flex-col gap-4">
+  <h1 class="font-bold text-2xl">Listagem de Versões</h1>
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col md:grid md:grid-cols-5 gap-4">
+      <div class="{{ $usuario->getAttribute('role') === 'ADMIN' ? 'col-span-4' : 'col-span-5' }}">
+        <x-input label="Insira o dado a ser pesquisado" placeholder="Versão, o que foi feito..." wire:model.blur="pesquisa" inline />
       </div>
       @if ($usuario->getAttribute('role') === 'ADMIN')
-      <button wire:click="irCadastrar">Cadastrar</button>
+      <x-button wire:click="irCadastrar" label="Cadastrar" class="btn btn-primary" />
       @endif
     </div>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Patch</th>
-          <th>Data</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach ($listagem['versoes'] as $versao)
-        <tr>
-          <th>{{ $versao->getAttribute('versionamento_id') }}</th>
-          <td>{{ $versao->getAttribute('patch') }}</td>
-          <td>{{ date('d/m/Y', strtotime($versao->getAttribute('created_at'))) }}</td>
-          <td>
-            <i class="fa-solid fa-eye" data-bs-toggle="modal" data-bs-target="#modal-detalhe-versao" wire:click="selecionaVersaoAtual({{$versao->getAttribute('versionamento_id')}})"></i>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
-    {{ $listagem['versoes']->links() }}
+    @php
+    $versoes = \App\Models\Versionamento::query()
+      ->orWhere('patch', $this->pesquisa)
+      ->orWhere('detalhe', 'like', "%$this->pesquisa%")
+      ->orderBy('versionamento_id', 'desc')
+      ->paginate($this->perPage);
+
+    $headers = [
+      ['key' => 'versionamento_id', 'label' => '#'],
+      ['key' => 'patch', 'label' => 'Patch'],
+      ['key' => 'created_at', 'label' => 'Data'],
+    ];
+    @endphp
+    <x-table :headers="$headers" :rows="$versoes" with-pagination striped>
+      @scope('cell_created_at', $versao)
+        <p>{{ date('d/m/Y', strtotime($versao->getAttribute('created_at'))) }}</p>
+      @endscope
+      @scope('actions', $versao)
+        <div class="flex gap-4">
+          <x-button class="btn btn-ghost rounded" icon="o-eye" wire:click="selecionaVersaoAtual({{$versao->getAttribute('versionamento_id')}})"/>
+        </div>
+      @endscope
+    </x-table>
   </div>
 
   <!-- Inicia modal de visualização dos detalhes da atualização -->

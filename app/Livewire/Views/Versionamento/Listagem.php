@@ -30,14 +30,7 @@ class Listagem extends Component
   #[Title('SAFI NFE - Versionamento')]
   public function render()
   {
-    $versoes = Versionamento::query()
-    ->orWhere('patch', $this->pesquisa)
-    ->orWhere('detalhe', 'like', "%$this->pesquisa%")
-    ->orderBy('versionamento_id', 'desc')
-    ->paginate($this->perPage);
-    return view('livewire.views.versionamento.listagem', [
-      'listagem' => compact('versoes')
-    ]);
+    return view('livewire.views.versionamento.listagem');
   }
 
   public function irCadastrar(): void {
