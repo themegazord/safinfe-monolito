@@ -6,6 +6,7 @@ use App\Notifications\SolicitacaoResetSenhaNotification;
 use Livewire\Component;
 use App\Livewire\Forms\ResetarSenhaForm;
 use App\Models\User;
+use App\Traits\EnviaEmailResetSenhaTrait;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
 
 class ResetarSenha extends Component
 {
-  use Toast;
+  use Toast, EnviaEmailResetSenhaTrait;
   public ResetarSenhaForm $resetSenha;
 
   #[Layout('components.layouts.autenticacao')]
@@ -26,18 +27,8 @@ class ResetarSenha extends Component
 
   public function alterarSenha(): void {
     $this->resetSenha->validate();
-    $usuario = User::whereEmail($this->resetSenha->email)->first();
 
-    if ($usuario !== null) {
-      $token = Str::uuid();
-
-      DB::table('password_reset_tokens')->insert([
-        'token' => $token,
-        'email' => $this->resetSenha->email
-      ]);
-
-      $usuario->notify(new SolicitacaoResetSenhaNotification($token, $this->resetSenha->email));
-    }
+    $this->enviaEmail($this->resetSenha->email);
 
     $this->success(title: 'Email encaminhado com sucesso', redirectTo: route('login'));
   }

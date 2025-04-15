@@ -6,6 +6,7 @@ use App\Livewire\Forms\ClienteForm;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\User;
+use App\Traits\EnviaEmailResetSenhaTrait;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -14,7 +15,7 @@ use Mary\Traits\Toast;
 
 class Edicao extends Component
 {
-  use Toast;
+  use Toast, EnviaEmailResetSenhaTrait;
 
   public ?Cliente $clienteAtual;
   public Collection $empresas;
@@ -64,5 +65,11 @@ class Edicao extends Component
 
   public function voltar(): void {
     redirect('clientes/');
+  }
+
+  public function enviaEmailTrocaSenha(): void {
+    $this->enviaEmail($this->clienteAtual->email);
+
+    $this->success('Email enviado com sucesso');
   }
 }
