@@ -53,4 +53,22 @@
       @endscope
     </x-table>
   </div>
+
+  <x-modal wire:model="modalConfirmandoInativacaoContador" title="Inativar contador?" class="backdrop-blur">
+    @if ($contadorAtual !== null)
+    Tem certeza que deseja {{ $contadorAtual->trashed() ? 'reativar' : 'inativar' }} este contador?
+
+    <x-slot:actions>
+      <x-button
+        label="Cancelar"
+        @click="$wire.modalConfirmandoInativacaoContador = false"
+        class="btn btn-info" />
+
+      <x-button
+        label="{{ $contadorAtual->trashed() ? 'Reativar' : 'Inativar' }}"
+        wire:click="inativarContador"
+        class="btn btn-error" />
+    </x-slot:actions>
+    @endif
+  </x-modal>
 </div>

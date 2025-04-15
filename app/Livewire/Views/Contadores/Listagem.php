@@ -9,15 +9,19 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination;
+  use WithPagination, Toast, WithoutUrlPagination;
 
   public ?string $pesquisa = null;
   public bool $estaAtivo = true;
   public int $porPagina = 10;
+  public ?Contador $contadorAtual;
+  public bool $modalConfirmandoInativacaoContador = false;
 
 
   #[Title('SAFI NFE - Listagem de Contadores')]
@@ -49,5 +53,22 @@ class Listagem extends Component
 
   public function irCadastrar(): void {
     redirect('/contadores/cadastro');
+  }
+
+  public function setInativacaoContador(int $contador_id): void {
+    $this->contadorAtual = Contador::withTrashed()->find($contador_id);
+    $this->modalConfirmandoInativacaoContador = !$this->modalConfirmandoInativacaoContador;
+  }
+
+  public function inativarContador(): void {
+    if ($this->contadorAtual->trashed()) {
+      $this->contadorAtual->restore();
+      $this->success('Contador ativado com sucesso');
+    } else {
+      $this->contadorAtual->delete();
+      $this->success('Contador inativado com sucesso');
+    }
+    $this->modalConfirmandoInativacaoContador = !$this->modalConfirmandoInativacaoContador;
+    $this->estaAtivo = true;
   }
 }
