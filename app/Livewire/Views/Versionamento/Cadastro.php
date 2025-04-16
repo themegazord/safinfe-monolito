@@ -3,14 +3,15 @@
 namespace App\Livewire\Views\Versionamento;
 
 use App\Livewire\Forms\VersaoForm;
-use App\Repositories\Eloquent\Repository\VersionamentoRepository;
-use Illuminate\Support\Facades\Session;
+use App\Models\Versionamento;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
+  use Toast;
   public VersaoForm $versao;
 
   #[Layout('components.layouts.main')]
@@ -20,13 +21,12 @@ class Cadastro extends Component
     return view('livewire.views.versionamento.cadastro');
   }
 
-  public function cadastrar(VersionamentoRepository $versionamentoRepository) {
+  public function cadastrar() {
     $this->versao->validate();
-    if (!is_null($versionamentoRepository->consultaVersaoPorPatch($this->versao->patch))) return $this->addError('versao.patch', 'A versão já existe');
-    $versionamentoRepository->cadastro($this->versao->all());
+    if (!is_null(Versionamento::wherePatch($this->versao->patch)->first())) return $this->addError('versao.patch', 'A versão já existe');
+    Versionamento::create($this->versao->all());
 
-    Session::flash('sucesso', 'Versão cadastrada com sucesso.');
-    return redirect('versionamento');
+    $this->success("Versão cadastrada com sucesso.", redirectTo: route('versionamento'));
   }
 
   public function voltar(): void {
