@@ -1,87 +1,112 @@
-<div class="main">
-  <h1>Cadastro de Versão</h1>
-  <livewire:componentes.utils.notificacao.flash />
-  <div class="container-cadastro-preview-versao">
-    <form wire:submit="cadastrar">
-      <div>
-        <label for="patch">Insira o patch da versão</label>
-        <input type="text" class="form-control" id="patch" placeholder="Insira o patch da versão" wire:model="versao.patch">
-        @error('versao.patch') <span class="form-error">{{ $message }}</span> @enderror
-      </div>
-      <div>
-        <label for="detalhe">Insira o que foi feito...</label>
-        <textarea class="form-control" placeholder="Insira o que foi feito..." id="detalhe" wire:model="versao.detalhe"></textarea>
-        @error('versao.detalhe') <span class="form-error">{{ $message }}</span> @enderror
-      </div>
-      <div class="botoes-acoes">
-        <button type="button" wire:click="voltar">Voltar</button>
-        <button type="button" id="geraPreview">Preview</button>
-        <button type="submit">Cadastrar</button>
+<div class="p-4 md:p-6 flex flex-col gap-4">
+  <h1 class="font-bold text-2xl">Cadastro de Versão</h1>
+  <div class="flex flex-col md:grid md:grid-cols-2 gap-4">
+    <form wire:submit="cadastrar" class="flex flex-col gap-4">
+      <x-input label="Insira o patch da versão" placeholder="Insira o patch da versão..." wire:model="versao.patch" inline />
+      <x-editor wire:model="versao.detalhe" label="Insira o que foi feito" />
+      <div class="flex flex-col-reverse md:flex-row-reverse gap-4">
+        <x-button type="submit" wire:loading.attr="disabled" spinner="cadastrar" label="Cadastrar" class="btn btn-success w-full md:w-auto" />
+        <x-button type="button" wire:click="mostrarPreview" wire:loading.attr="disabled" spinner="mostrarPreview" label="Preview" class="btn btn-primary w-full md:w-auto" />
+        <x-button type="button" wire:click="voltar" wire:loading.attr="disabled" spinner="voltar" label="Voltar" class="btn btn-error w-full md:w-auto" />
       </div>
     </form>
-    <div class="card">
-      <div class="card-body">
-        <div id="preview"></div>
+    <div wire:key="preview-card">
+      <div class="preview">
+        {!! $versao->detalhe !!}
       </div>
     </div>
   </div>
-  <script type="module">
-    import markdownIt from 'https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/+esm'
-    let geraPreview = document.getElementById('geraPreview');
-    let preview = document.getElementById('preview');
-    let detalhe = document.getElementById('detalhe');
 
-    geraPreview.addEventListener('click', function() {
-      const md = markdownIt();
-      const result = md.render(detalhe.value);
-      preview.innerHTML = result
-    });
-  </script>
   <style>
-    .main {
-      padding: 3rem 0 0 5rem;
+    /* Restaura estilos padrão do HTML dentro de .preview */
+    .preview {
+      font-family: inherit;
+      color: inherit;
+      line-height: 1.6;
     }
 
-    .container-cadastro-preview-versao {
-      width: 80%;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-    }
-
-    .container-cadastro-preview-versao form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    #detalhe {
-      height: 50%;
-    }
-
-    .botoes-acoes {
-      margin-top: 1rem;
-      gap: 1rem;
-      display: flex;
-      justify-content: end;
-    }
-
-    .botoes-acoes button {
-      padding: .5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      background-color: var(--primary-color);
-      color: white;
+    .preview h1 {
+      font-size: 2rem;
+      /* 32px */
       font-weight: 700;
-      transition: var(--tran-04);
+      margin-top: 2rem;
+      margin-bottom: 1rem;
     }
 
-    .botoes-acoes button:hover {
-      background-color: var(--primary-color-hover);
+    .preview h2 {
+      font-size: 1.75rem;
+      /* 28px */
+      font-weight: 700;
+      margin-top: 1.75rem;
+      margin-bottom: 1rem;
     }
 
-    #preview {
-      padding: 1rem;
+    .preview h3 {
+      font-size: 1.5rem;
+      /* 24px */
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .preview h4 {
+      font-size: 1.25rem;
+      /* 20px */
+      font-weight: 600;
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .preview h5 {
+      font-size: 1.125rem;
+      /* 18px */
+      font-weight: 500;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .preview h6 {
+      font-size: 1rem;
+      /* 16px */
+      font-weight: 500;
+      margin-top: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .preview p {
+      margin-bottom: 1rem;
+    }
+
+    .preview ul {
+      list-style-type: disc;
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .preview ol {
+      list-style-type: decimal;
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .preview li {
+      margin-bottom: 0.25rem;
+    }
+
+    .preview strong {
+      font-weight: bold;
+    }
+
+    .preview em {
+      font-style: italic;
+    }
+
+    .preview blockquote {
+      margin: 1rem 0;
+      padding-left: 1rem;
+      border-left: 4px solid #ccc;
+      color: #666;
+      font-style: italic;
     }
   </style>
 </div>

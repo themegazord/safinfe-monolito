@@ -32,4 +32,8 @@ class Cadastro extends Component
   public function voltar(): void {
     redirect('versionamento');
   }
+
+  public function mostrarPreview(): void {
+    $this->versao->detalhe = $this->versao->detalhe;
+  }
 }

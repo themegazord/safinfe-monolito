@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <title>{{ $title ?? 'Page Title' }}</title>
   {{-- Flatpickr  --}}
@@ -14,6 +15,10 @@
 
   {{-- Chart.js  --}}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  {{-- TinyMCE --}}
+  <script src="https://cdn.tiny.cloud/1/32qv1xwv8jwk9zf35myf0qjbh02xz1kmll6dopo1a3byxlmp/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
   <script>
     flatpickr.localize(flatpickr.l10ns.pt);
   </script>
