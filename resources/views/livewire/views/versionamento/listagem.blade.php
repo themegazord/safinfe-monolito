@@ -42,7 +42,9 @@
       Visualização da versão: {{ $versaoAtual->patch }}
     </x-slot:title>
 
-    {!! $versaoAtual->detalhe !!}
+    <div class="preview">
+      {!! $versaoAtual->detalhe !!}
+    </div>
 
     <x-slot:actions>
       <x-button
@@ -51,6 +53,99 @@
         class="btn btn-info" />
     </x-slot:actions>
     @endif
+
+    <style>
+      /* Restaura estilos padrão do HTML dentro de .preview */
+      .preview {
+        font-family: inherit;
+        color: inherit;
+        line-height: 1.6;
+      }
+
+      .preview h1 {
+        font-size: 2rem;
+        /* 32px */
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .preview h2 {
+        font-size: 1.75rem;
+        /* 28px */
+        font-weight: 700;
+        margin-top: 1.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .preview h3 {
+        font-size: 1.5rem;
+        /* 24px */
+        font-weight: 600;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .preview h4 {
+        font-size: 1.25rem;
+        /* 20px */
+        font-weight: 600;
+        margin-top: 1.25rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .preview h5 {
+        font-size: 1.125rem;
+        /* 18px */
+        font-weight: 500;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .preview h6 {
+        font-size: 1rem;
+        /* 16px */
+        font-weight: 500;
+        margin-top: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .preview p {
+        margin-bottom: 1rem;
+      }
+
+      .preview ul {
+        list-style-type: disc;
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .preview ol {
+        list-style-type: decimal;
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .preview li {
+        margin-bottom: 0.25rem;
+      }
+
+      .preview strong {
+        font-weight: bold;
+      }
+
+      .preview em {
+        font-style: italic;
+      }
+
+      .preview blockquote {
+        margin: 1rem 0;
+        padding-left: 1rem;
+        border-left: 4px solid #ccc;
+        color: #666;
+        font-style: italic;
+      }
+    </style>
   </x-modal>
   <!-- Fim modal de visualização dos detalhes da atualização -->
 </div>

@@ -12,10 +12,11 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination;
+  use WithPagination, Toast;
 
   public string $pesquisa = '';
   public ?Versionamento $versaoAtual = null;
@@ -38,14 +39,8 @@ class Listagem extends Component
     redirect('/versionamento/cadastro');
   }
 
-  public function selecionaVersaoAtual(int $versionamento_id, VersionamentoRepository $versionamentoRepository): void {
-    $this->versaoAtual = $versionamentoRepository->consultaVersaoPorId($versionamento_id);
+  public function selecionaVersaoAtual(int $versionamento_id): void {
+    $this->versaoAtual = Versionamento::find($versionamento_id);
     $this->modalVisualizarVersao = !$this->modalVisualizarVersao;
-    $this->dispatch('recebe-detalhe', ['detalhe' => $this->versaoAtual->detalhe]);
-  }
-
-  #[On("limpa-versao-selecionado")]
-  public function limpaVersaoSelecionada() {
-    $this->versaoAtual = null;
   }
 }
