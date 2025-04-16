@@ -21,6 +21,7 @@ class Listagem extends Component
   public ?Versionamento $versaoAtual = null;
   public User|Authenticatable $usuario;
   public int $perPage = 10;
+  public bool $modalVisualizarVersao = false;
 
   public function mount(): void {
     $this->usuario = Auth::user();
@@ -39,6 +40,7 @@ class Listagem extends Component
 
   public function selecionaVersaoAtual(int $versionamento_id, VersionamentoRepository $versionamentoRepository): void {
     $this->versaoAtual = $versionamentoRepository->consultaVersaoPorId($versionamento_id);
+    $this->modalVisualizarVersao = !$this->modalVisualizarVersao;
     $this->dispatch('recebe-detalhe', ['detalhe' => $this->versaoAtual->detalhe]);
   }
 
