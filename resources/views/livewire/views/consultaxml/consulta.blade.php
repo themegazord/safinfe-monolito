@@ -1,251 +1,111 @@
-<div class="main">
-  <h1>Consulta XML</h1>
-  <livewire:componentes.utils.notificacao.flash />
-  <div class="container-consulta-xml">
-    @if ($usuario->getAttribute('role') === 'CLIENTE')
-    <form wire:submit="consulta">
-      <div class="grupo-consulta-xml">
-        <div class="grupo-consulta-xml">
-          <div class="input-data">
-            <label for="data-inicio">Data inicio</label>
-            <input type="date" name="data-inicio" id="data-inicio" wire:model="consultaCliente.data_inicio" autocomplete="off">
-            @error('consultaCliente.data_inicio')
-            <span class="text-danger">{{ $message }}</span>
-            @enderror
-          </div>
-          <div class="input-data">
-            <label for="data-fim">Data fim</label>
-            <input type="date" name="data-fim" id="data-fim" wire:model="consultaCliente.data_fim" autocomplete="off">
-            @error('consultaCliente.data_fim')
-            <span class="text-danger">{{ $message }}</span>
-            @enderror
-          </div>
-        </div>
-        <div class="subgrupo-consulta-xml">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="serie" placeholder="Série" wire:model="consultaCliente.serie" autocomplete="off">
-            <label for="serie">Série</label>
-          </div>
-          <select class="form-select" aria-label="Selecione o tipo da nota fiscal" wire:model="consultaCliente.modelo" autocomplete="off">
-            <option value="TODAS" selected>Selecione o tipo da nota fiscal</option>
-            <option value="55">NF-e</option>
-            <option value="65">NFC-e</option>
-          </select>
-        </div>
-      </div>
-      <div class="grupo-consulta-xml">
-        <select class="form-select" aria-label="Selecione o status" wire:model="consultaCliente.status" autocomplete="off">
-          <option value="TODAS" selected>Selecione o status da nota fiscal</option>
-          <option value="AUTORIZADO">Autorizadas</option>
-          <option value="CANCELADO">Canceladas</option>
-          <option value="INUTILIZADO">Inutilizadas</option>
-        </select>
-        <div class="grupo-consulta-xml">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="numeroInicial" placeholder="Série" wire:model="consultaCliente.numeroInicial" autocomplete="off">
-            <label for="numeroInicial">Numero inicial:</label>
-          </div>
-          <div class="form-floating">
-            <input type="text" class="form-control" id="numeroFinal" placeholder="Série" wire:model="consultaCliente.numeroFinal" autocomplete="off">
-            <label for="numeroFinal">Numero Final:</label>
-          </div>
-        </div>
-      </div>
-      <div class="form-consulta-xml-acoes">
-        <button type="submit">Consultar</button>
-        <button type="button" wire:click="downloadDireto">Download Direto</button>
-      </div>
-    </form>
-    @endif
-    @if ($usuario->getAttribute('role') === 'CONTADOR')
-    <form wire:submit="consulta">
-      <div class="grupo-consulta-xml">
-        <div class="grupo-consulta-xml">
-          <div class="input-data">
-            <label for="data-inicio">Data inicio</label>
-            <input type="date" name="data-inicio" id="data-inicio" wire:model="consultaContador.data_inicio" autocomplete="off">
-            @error('consultaContador.data_inicio')
-            <span class="text-danger">{{ $message }}</span>
-            @enderror
-          </div>
-          <div class="input-data">
-            <label for="data-fim">Data fim</label>
-            <input type="date" name="data-fim" id="data-fim" wire:model="consultaContador.data_fim" autocomplete="off">
-            @error('consultaContador.data_fim')
-            <span class="text-danger">{{ $message }}</span>
-            @enderror
-          </div>
-        </div>
-        <div class="subgrupo-consulta-xml">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="serie" placeholder="Série" wire:model="consultaContador.serie" autocomplete="off">
-            <label for="serie">Série</label>
-          </div>
-          <select class="form-select" aria-label="Selecione o tipo da nota fiscal" wire:model="consultaContador.modelo" autocomplete="off">
-            <option value="TODAS" selected>Selecione o tipo da nota fiscal</option>
-            <option value="55">NF-e</option>
-            <option value="65">NFC-e</option>
-          </select>
-        </div>
-      </div>
-      <div class="grupo-consulta-xml">
-        <select class="form-select" aria-label="Selecione o status" wire:model="consultaContador.status" autocomplete="off">
-          <option value="TODAS" selected>Selecione o status da nota fiscal</option>
-          <option value="AUTORIZADO">Autorizadas</option>
-          <option value="CANCELADO">Canceladas</option>
-          <option value="INUTILIZADO">Inutilizadas</option>
-        </select>
-        <div class="grupo-consulta-xml">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="numeroInicial" placeholder="Série" wire:model="consultaContador.numeroInicial" autocomplete="off">
-            <label for="numeroInicial">Numero inicial:</label>
-          </div>
-          <div class="form-floating">
-            <input type="text" class="form-control" id="numeroFinal" placeholder="Série" wire:model="consultaContador.numeroFinal" autocomplete="off">
-            <label for="numeroFinal">Numero Final:</label>
-          </div>
-        </div>
-      </div>
-      <select class="form-select" aria-label="Selecione a empresa que você quer consultar as notas fiscais." wire:model="consultaContador.empresa_id" autocomplete="off">
-        <option value="{{ null }}" selected>Selecione a empresa que você quer consultar as notas fiscais.</option>
-        @foreach ($empresas as $empresa)
-        <option value="{{ $empresa->getAttribute('empresa_id') }}">{{ $empresa->getAttribute('fantasia') }}</option>
-        @endforeach
-      </select>
-      @error('consultaContador.empresa_id')
-      <span class="text-danger">{{ $message }}</span>
-      @enderror
-      <div class="form-consulta-xml-acoes">
-        <button type="submit">Consultar</button>
-        <button type="button" wire:click="downloadDireto">Download Direto</button>
-      </div>
-    </form>
-    @endif
-    @if ($usuario->getAttribute('role') === 'ADMIN')
-    <form wire:submit="consulta">
-      <div class="grupo-consulta-xml">
-        <div class="grupo-consulta-xml">
-          <div class="input-data">
-            <label for="data-inicio">Data inicio</label>
-            <input type="date" name="data-inicio" id="data-inicio" wire:model="consultaAdmin.data_inicio" autocomplete="off">
-            @error('consultaAdmin.data_inicio')
-            <span class="text-danger">{{ $message }}</span>
-            @enderror
-          </div>
-          <div class="input-data">
-            <label for="data-fim">Data fim</label>
-            <input type="date" name="data-fim" id="data-fim" wire:model="consultaAdmin.data_fim" autocomplete="off">
-            @error('consultaAdmin.data_fim')
-            <span class="text-danger">{{ $message }}</span>
-            @enderror
-          </div>
-        </div>
-        <div class="subgrupo-consulta-xml">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="serie" placeholder="Série" wire:model="consultaAdmin.serie" autocomplete="off">
-            <label for="serie">Série</label>
-          </div>
-          <select class="form-select" aria-label="Selecione o tipo da nota fiscal" wire:model="consultaAdmin.modelo" autocomplete="off">
-            <option value="TODAS" selected>Selecione o tipo da nota fiscal</option>
-            <option value="55">NF-e</option>
-            <option value="65">NFC-e</option>
-          </select>
-        </div>
-      </div>
-      <div class="grupo-consulta-xml">
-        <select class="form-select" aria-label="Selecione o status" wire:model="consultaAdmin.status" autocomplete="off">
-          <option value="TODAS" selected>Selecione o status da nota fiscal</option>
-          <option value="AUTORIZADO">Autorizadas</option>
-          <option value="CANCELADO">Canceladas</option>
-          <option value="INUTILIZADO">Inutilizadas</option>
-        </select>
-        <div class="grupo-consulta-xml">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="numeroInicial" placeholder="Série" wire:model="consultaAdmin.numeroInicial" autocomplete="off">
-            <label for="numeroInicial">Numero inicial:</label>
-          </div>
-          <div class="form-floating">
-            <input type="text" class="form-control" id="numeroFinal" placeholder="Série" wire:model="consultaAdmin.numeroFinal" autocomplete="off">
-            <label for="numeroFinal">Numero Final:</label>
-          </div>
-        </div>
-      </div>
-      <select class="form-select" aria-label="Selecione a empresa que você quer consultar as notas fiscais." wire:model="consultaAdmin.empresa_id" autocomplete="off">
-        <option value="{{ null }}" selected>Selecione a empresa que você quer consultar as notas fiscais.</option>
-        @foreach ($empresas as $empresa)
-        <option value="{{ $empresa->getAttribute('empresa_id') }}">{{ $empresa->getAttribute('fantasia') }}</option>
-        @endforeach
-      </select>
-      @error('consultaAdmin.empresa_id')
-      <span class="text-danger">{{ $message }}</span>
-      @enderror
-      <div class="form-consulta-xml-acoes">
-        <button type="submit">Consultar</button>
-        <button type="button" wire:click="downloadDireto">Download Direto</button>
-      </div>
-    </form>
-    @endif
-  </div>
+<div class="p-4 md:p-6 flex flex-col gap-4">
+  @php
+  $config = ['mode' => 'range', 'altFormat' => 'd/m/Y'];
+  $modelos = [
+  ["id" => "55", "name" => "NF-e"],
+  ["id" => "65", "name" => "NFC-e"],
+  ];
+  $status = [
+  ["id" => "AUTORIZADO", "name" => "Autorizadas"],
+  ["id" => "CANCELADO", "name" => "Canceladas"],
+  ["id" => "INUTILIZADO", "name" => "Inutilizadas"],
+  ];
+  @endphp
+  <h1 class="font-bold text-2xl">Consulta XML</h1>
 
-  <style>
-    .main {
-      display: flex;
-      flex-direction: column;
-      padding: 3rem 0 0 5rem;
-    }
+  @if ($usuario->getAttribute('role') === 'CLIENTE')
+    <livewire:views.consultaxml.componentes.consulta :model-prefix="'consultaCliente'" :modelos="$modelos" :status="$status" :config="$config" />
+  @endif
 
-    .container-consulta-xml {
-      display: flex;
-      flex-direction: column;
-      width: 80%;
-    }
+  @if ($usuario->getAttribute('role') === 'CONTADOR')
+    <livewire:views.consultaxml.componentes.consulta :model-prefix="'consultaContador'" :modelos="$modelos" :status="$status" :config="$config" :empresa-selector="true" :empresas="$empresas" />
+  @endif
 
-    .grupo-consulta-xml {
-      display: grid;
-      grid-template-columns: 48% 48%;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
+  @if ($usuario->getAttribute('role') === 'ADMIN')
+    <livewire:views.consultaxml.componentes.consulta :model-prefix="'consultaAdmin'" :modelos="$modelos" :status="$status" :config="$config" :empresa-selector="true" :empresas="$empresas" />
+  @endif
 
-    .subgrupo-consulta-xml {
-      display: flex;
-      gap: 1rem;
-      width: 100%;
-    }
+  @php
+    $headers = [
+      ['key' => 'dados_id', 'label' => 'ID'],
+      ['key' => 'modelo', 'label' => 'Modelo'],
+      ['key' => 'serie', 'label' => 'Série'],
+      ['key' => 'numeronf', 'label' => 'Número NF'],
+      ['key' => 'numeronf_final', 'label' => 'Número NF Final'],
+      ['key' => 'status', 'label' => 'Status'],
+      ['key' => 'dh_emissao_evento', 'label' => 'Data do evento'],
+    ];
 
-    .input-data {
-      display: flex;
-      flex-direction: column;
-    }
+    $dados_xml = DB::table('dados_xml as dx1')
+    ->where(function ($query) {
+        $query->whereIn('dx1.status', ['cancelado', 'denegado', 'inutilizado'])
+              ->orWhere(function ($subQuery) {
+                  $subQuery->where('dx1.status', 'autorizado')
+                           ->whereNotExists(function ($subSubQuery) {
+                               $subSubQuery->select(DB::raw(1))
+                                           ->from('dados_xml as dx2')
+                                           ->whereRaw('dx2.numeronf = dx1.numeronf')
+                                           ->whereIn('dx2.status', ['cancelado', 'denegado', 'inutilizado']);
+                           });
+              });
+    })
+    ->where('empresa_id', $dadosXML['empresa_id'])
 
-    .input-data>input {
-      width: 100%;
-    }
+    // filtro de data com when
+    ->when(!is_null($dadosXML['data_inicio']) && !is_null($dadosXML['data_fim']), function ($query) use ($dadosXML) {
+        $inicio = date('Y-m-d', strtotime($dadosXML['data_inicio']));
+        $fim = date('Y-m-d', strtotime($dadosXML['data_fim']));
 
-    .form-consulta-xml-acoes {
-      display: flex;
-      flex-direction: row-reverse;
-      gap: 2rem;
-      margin-top: 2rem;
-    }
+        if ($inicio === $fim) {
+            $query->whereDate('dh_emissao_evento', $inicio);
+        } else {
+            $query->whereBetween(DB::raw('DATE(dh_emissao_evento)'), [$inicio, $fim]);
+        }
+    })
+    ->when(!is_null($dadosXML['data_inicio']) && is_null($dadosXML['data_fim']), function ($query) use ($dadosXML) {
+        $query->whereDate('dh_emissao_evento', '>=', date('Y-m-d', strtotime($dadosXML['data_inicio'])));
+    })
+    ->when(is_null($dadosXML['data_inicio']) && !is_null($dadosXML['data_fim']), function ($query) use ($dadosXML) {
+        $query->whereDate('dh_emissao_evento', '<=', date('Y-m-d', strtotime($dadosXML['data_fim'])));
+    })
 
-    .form-consulta-xml-acoes button:last-child {
-      background-color: var(--green-confirm);
-    }
+    // status
+    ->when($dadosXML['status'] !== "TODAS", function ($query) use ($dadosXML) {
+        $query->where('dx1.status', $dadosXML['status']);
+    })
 
-    .form-consulta-xml-acoes button {
-      padding: .5rem 1rem;
-      border: none;
-      border-radius: 5px;
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: 700;
-      transition: var(--tran-04);
-      width: 100%;
-    }
+    // modelo
+    ->when($dadosXML['modelo'] !== "TODAS", function ($query) use ($dadosXML) {
+        $query->where('dx1.modelo', $dadosXML['modelo']);
+    })
 
-    .form-consulta-xml-acoes button:hover {
-      background-color: var(--primary-color-hover);
-    }
-  </style>
+    // série
+    ->when(!is_null($dadosXML['serie']), function ($query) use ($dadosXML) {
+        $query->where('dx1.serie', $dadosXML['serie']);
+    })
+
+    // faixa de número NF
+    ->when(!is_null($dadosXML['numeroInicial']) && !is_null($dadosXML['numeroFinal']), function ($query) use ($dadosXML) {
+        $query->whereBetween('numeronf', [$dadosXML['numeroInicial'], $dadosXML['numeroFinal']]);
+    })
+    ->when(!is_null($dadosXML['numeroInicial']) && is_null($dadosXML['numeroFinal']), function ($query) use ($dadosXML) {
+        $query->where('numeronf', '>=', $dadosXML['numeroInicial']);
+    })
+    ->when(is_null($dadosXML['numeroInicial']) && !is_null($dadosXML['numeroFinal']), function ($query) use ($dadosXML) {
+        $query->where('numeronf', '<=', $dadosXML['numeroFinal']);
+    });
+
+    $dados_xml = $dados_xml->orderBy('dx1.dados_id')->paginate($this->porPagina);
+  @endphp
+
+  <x-table
+    :headers="$headers"
+    :rows="$dados_xml"
+    striped
+    with-pagination
+    show-empty-text
+    empty-text="Nenhuma nota em consulta"
+  >
+
+  </x-table>
 </div>

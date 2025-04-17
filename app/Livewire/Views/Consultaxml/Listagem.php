@@ -18,7 +18,6 @@ use App\Trait\AnaliseXML\Tributacao\AnalisaPISSTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaPISXMLTrait;
 use CommerceGuys\Intl\Currency\CurrencyRepository;
 use CommerceGuys\Intl\Formatter\CurrencyFormatter;
-use CommerceGuys\Intl\Formatter\NumberFormatter;
 use CommerceGuys\Intl\NumberFormat\NumberFormatRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;

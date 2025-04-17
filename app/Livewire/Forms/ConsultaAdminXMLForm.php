@@ -6,8 +6,7 @@ use Livewire\Attributes\Validate;
 use Livewire\Form;
 
 #[Validate(rule: [
-  'data_inicio' => 'required_without:numeroInicial,numeroFinal',
-  'data_fim' => 'required_without:numeroInicial,numeroFinal',
+  'data_inicio_fim' => 'required_without:numeroInicial,numeroFinal',
   'empresa_id' => 'required'
 ], message: [
   'required' => 'Campo obrigatório',
@@ -15,6 +14,7 @@ use Livewire\Form;
 ])]
 class ConsultaAdminXMLForm extends Form
 {
+  public ?string $data_inicio_fim = null;
   public ?string $data_inicio = null;
   public ?string $data_fim = null;
   public string $status = "TODAS";

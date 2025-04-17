@@ -2,42 +2,41 @@
 
 namespace App\Livewire\Views\Consultaxml;
 
-use App\Livewire\Forms\ConsultaAdminXMLForm;
-use App\Livewire\Forms\ConsultaClienteXMLForm;
-use App\Livewire\Forms\ConsultaContadorXMLForm;
+use App\Models\Empresa;
 use App\Models\User;
-use App\Repositories\Eloquent\Repository\DadosXMLRepository;
-use App\Repositories\Eloquent\Repository\EmpresaRepository;
-use App\Repositories\Eloquent\Repository\XMLRepository;
+use App\Models\XML;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Livewire\Features\SupportRedirects\Redirector;
+use Livewire\WithPagination;
+use Mary\Traits\Toast;
 use ZipArchive;
 
 class Consulta extends Component
 {
+  use WithPagination, Toast;
   public Authenticatable|User $usuario;
-  public ConsultaContadorXMLForm $consultaContador;
-  public ConsultaClienteXMLForm $consultaCliente;
-  public ConsultaAdminXMLForm $consultaAdmin;
   public ?Collection $empresas;
   public string $diretorioUsuario = '';
   public string $diretorioRARUsuario = '';
+  public ?array $dadosXML = null;
+  public ?int $porPagina = 15;
 
-  public function mount(EmpresaRepository $empresaRepository): void
+  public function mount(): void
   {
     $this->usuario = Auth::user();
-    $this->empresas = match($this->usuario->getAttribute('role')) {
+    $this->empresas = match ($this->usuario->getAttribute('role')) {
       'CONTADOR' => $this->usuario->contador->contabilidade->empresas,
-      'ADMIN' => $empresaRepository->listagemEmpresas(),
+      'ADMIN' => $this->pesquisaEmpresasAdmin(),
       default => null
     };
+    $this->dadosXML = ['empresa_id' => null, 'data_inicio' => null, 'data_fim' => null, 'status' => null, 'modelo' => null, 'serie' => null, 'numeroInicial' => null, 'numeroFinal' => null];
   }
 
   public function __destruct()
@@ -50,100 +49,121 @@ class Consulta extends Component
   #[Layout('components.layouts.main')]
   public function render()
   {
-
     return view('livewire.views.consultaxml.consulta');
   }
 
-  public function consulta(): Redirector|RedirectResponse
+  #[On('envia-consulta')]
+  public function consulta(array $params): void
   {
-
-    if ($this->usuario->getAttribute('role') === 'CLIENTE') {
-      $this->consultaCliente->validate();
-      return redirect('/consultaxml/' . base64_encode(json_encode($this->consultaCliente)));
-    }
-
-    if ($this->usuario->getAttribute('role') === 'CONTADOR') {
-      $this->consultaContador->validate();
-      return redirect('/consultaxml/' . base64_encode(json_encode($this->consultaContador)));
-    }
-
-    if ($this->usuario->getAttribute('role') === 'ADMIN') {
-      $this->consultaAdmin->validate();
-      return redirect('/consultaxml/' . base64_encode(json_encode($this->consultaAdmin)));
-    }
+    $this->dadosXML = $params;
   }
 
-  public function downloadDireto(DadosXMLRepository $dadosXMLRepository, XMLRepository $xmlRepository)
+  #[On('download-direto')]
+  public function downloadDireto(array $params)
   {
-    match ($this->usuario->getAttribute('role')) {
-      'CLIENTE' => $this->consultaCliente->validate(),
-      'CONTADOR' => $this->consultaContador->validate(),
-      'ADMIN' => $this->consultaAdmin->validate()
-    };
+    $dados_xml = $this->consultaDadosDownload($params);
+
+    if ($dados_xml->isEmpty()) {
+      $this->warning("Nenhuma nota fiscal encontrada.");
+      return;
+    }
+
+    $tempZipPath = tempnam(sys_get_temp_dir(), 'zip_');
     $zip = new ZipArchive();
-    $dados_xml = match ($this->usuario->getAttribute('role')) {
-      'CLIENTE' => $dadosXMLRepository->preConsultaDadosXML(
-        $this->consultaCliente->all(),
-        $this->usuario->cliente->empresa->getAttribute('empresa_id')
-      ),
-      'CONTADOR' => $dadosXMLRepository->preConsultaDadosXML(
-        $this->consultaContador->all(),
-        $this->consultaContador->empresa_id
-      ),
-      'ADMIN' => $dadosXMLRepository->preConsultaDadosXML(
-        $this->consultaAdmin->all(),
-        $this->consultaAdmin->empresa_id
-      ),
-    };
 
-    $this->diretorioUsuario = storage_path('app/tempXMLExportPorUsuario/' . $this->usuario->getAttribute('id'));
-    $this->diretorioRARUsuario = storage_path("app/tempRARDownload/" . $this->usuario->getAttribute('id'));
-    if (!file_exists($this->diretorioUsuario)) {
-      mkdir($this->diretorioUsuario, 0755, true);
+    if ($zip->open($tempZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+      $this->warning("Não foi possível criar o ZIP em memória.");
+      return;
     }
 
-    if (!file_exists($this->diretorioRARUsuario)) {
-      mkdir($this->diretorioRARUsuario, 0755, true);
-    }
-    $nomeZIP = match($this->usuario->getAttribute('role')) {
-      'CLIENTE' => $this->diretorioRARUsuario . '/' . $this->consultaCliente->data_inicio . '_' . $this->consultaCliente->data_fim . '.zip',
-      'CONTADOR' => $this->diretorioRARUsuario . '/' . $this->consultaContador->data_inicio . '_' . $this->consultaContador->data_fim . '.zip',
-      'ADMIN' => $this->diretorioRARUsuario . '/' . $this->consultaAdmin->data_inicio . '_' . $this->consultaAdmin->data_fim . '.zip',
-    };
-    if ($zip->open($nomeZIP, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-      throw new \Exception("Não foi possível criar o arquivo .zip: " . $nomeZIP);
-    }
-    foreach ($dados_xml->get() as $dado) {
+    foreach ($dados_xml as $dado) {
       try {
-        $caminhoXML = $this->diretorioUsuario . '/' . $dado->chave . '.xml';
-
-        $xml = fopen($caminhoXML, "a+");
-
-        if ($xml === false) {
-          throw new \Exception("Não foi possível criar o arquivo XML: " . $caminhoXML);
+        $conteudoXML = XML::find($dado->xml_id)?->getAttribute('xml');
+        if ($conteudoXML) {
+          $zip->addFromString($dado->chave . '.xml', $conteudoXML);
         }
-
-        fwrite($xml, $xmlRepository->consultaPorId($dado->xml_id)->getAttribute('xml'));
-        fclose($xml);
-        $zip->addFile($caminhoXML, $dado->chave . '.xml');
       } catch (\Exception $e) {
+        $this->warning("Erro ao processar o XML ID: {$dado->xml_id}");
         Log::error("Erro ao processar o XML ID: {$dado->xml_id}, Erro: " . $e->getMessage());
+        return;
       }
     }
+
     $zip->close();
-    return response()->download($nomeZIP, "XMLArquivos.zip", [
+
+    return response()->streamDownload(function () use ($tempZipPath) {
+      readfile($tempZipPath);
+      unlink($tempZipPath); // limpa após envio
+    }, 'XMLArquivos.zip', [
       'Content-Type' => 'application/zip',
-    ])->deleteFileAfterSend(true);
+    ]);
   }
 
-  private function removePasta(string $caminho): void
+  public function pesquisaEmpresasAdmin(?string $valor = null): Collection
   {
-    $arquivos = array_diff(scandir($caminho), array('.', '..'));
+    return Empresa::query()->where('fantasia', 'like', "%$valor%")->get();
+  }
 
-    foreach ($arquivos as $arquivo) {
-      is_dir("$caminho/$arquivo") ? $this->removePasta($caminho) : unlink("$caminho/$arquivo");
-    }
+  private function consultaDadosDownload(array $dadosXML): Collection {
+    $dados_xml = DB::table('dados_xml as dx1')
+    ->where(function ($query) {
+        $query->whereIn('dx1.status', ['cancelado', 'denegado', 'inutilizado'])
+              ->orWhere(function ($subQuery) {
+                  $subQuery->where('dx1.status', 'autorizado')
+                           ->whereNotExists(function ($subSubQuery) {
+                               $subSubQuery->select(DB::raw(1))
+                                           ->from('dados_xml as dx2')
+                                           ->whereRaw('dx2.numeronf = dx1.numeronf')
+                                           ->whereIn('dx2.status', ['cancelado', 'denegado', 'inutilizado']);
+                           });
+              });
+    })
+    ->where('empresa_id', $dadosXML['empresa_id'])
 
-    rmdir($caminho);
+    // filtro de data com when
+    ->when(!is_null($dadosXML['data_inicio']) && !is_null($dadosXML['data_fim']), function ($query) use ($dadosXML) {
+        $inicio = date('Y-m-d', strtotime($dadosXML['data_inicio']));
+        $fim = date('Y-m-d', strtotime($dadosXML['data_fim']));
+
+        if ($inicio === $fim) {
+            $query->whereDate('dh_emissao_evento', $inicio);
+        } else {
+            $query->whereBetween(DB::raw('DATE(dh_emissao_evento)'), [$inicio, $fim]);
+        }
+    })
+    ->when(!is_null($dadosXML['data_inicio']) && is_null($dadosXML['data_fim']), function ($query) use ($dadosXML) {
+        $query->whereDate('dh_emissao_evento', '>=', date('Y-m-d', strtotime($dadosXML['data_inicio'])));
+    })
+    ->when(is_null($dadosXML['data_inicio']) && !is_null($dadosXML['data_fim']), function ($query) use ($dadosXML) {
+        $query->whereDate('dh_emissao_evento', '<=', date('Y-m-d', strtotime($dadosXML['data_fim'])));
+    })
+
+    // status
+    ->when($dadosXML['status'] !== "TODAS", function ($query) use ($dadosXML) {
+        $query->where('dx1.status', $dadosXML['status']);
+    })
+
+    // modelo
+    ->when($dadosXML['modelo'] !== "TODAS", function ($query) use ($dadosXML) {
+        $query->where('dx1.modelo', $dadosXML['modelo']);
+    })
+
+    // série
+    ->when(!is_null($dadosXML['serie']), function ($query) use ($dadosXML) {
+        $query->where('dx1.serie', $dadosXML['serie']);
+    })
+
+    // faixa de número NF
+    ->when(!is_null($dadosXML['numeroInicial']) && !is_null($dadosXML['numeroFinal']), function ($query) use ($dadosXML) {
+        $query->whereBetween('numeronf', [$dadosXML['numeroInicial'], $dadosXML['numeroFinal']]);
+    })
+    ->when(!is_null($dadosXML['numeroInicial']) && is_null($dadosXML['numeroFinal']), function ($query) use ($dadosXML) {
+        $query->where('numeronf', '>=', $dadosXML['numeroInicial']);
+    })
+    ->when(is_null($dadosXML['numeroInicial']) && !is_null($dadosXML['numeroFinal']), function ($query) use ($dadosXML) {
+        $query->where('numeronf', '<=', $dadosXML['numeroFinal']);
+    });
+
+    return $dados_xml->get();
   }
 }
