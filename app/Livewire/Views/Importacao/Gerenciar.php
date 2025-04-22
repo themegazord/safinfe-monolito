@@ -65,14 +65,14 @@ class Gerenciar extends Component
   /**
    * @throws ValidationException
    */
-  public function importacaoXML(XMLService $xmlService, DadosXMLService $dadosXMLService, ArquivoTemporarioService $limpador): void
+  public function importacaoXML(): void
   {
     $this->importacaoXMLForm->validate();
     if ($this->importacaoXMLForm->arquivo->getClientOriginalExtension() !== 'zip') {
       $this->warning('Aceitamos somente .zip');
       return;
     }
-    $this->recebeRARXMLS($xmlService, $dadosXMLService, $limpador);
+    $this->recebeRARXMLS();
   }
 
   /**
@@ -394,7 +394,7 @@ class Gerenciar extends Component
   }
 
 
-  private function recebeRARXMLS(XMLService $xmlService, DadosXMLService $dadosXMLService, ArquivoTemporarioService $limpador): void
+  private function recebeRARXMLS(): void
   {
     $path = $this->importacaoXMLForm->arquivo->storeAs('public', $this->importacaoXMLForm->arquivo->getClientOriginalName());
     $realPath = storage_path('app/' . $path);
