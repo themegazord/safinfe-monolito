@@ -3,31 +3,31 @@
 namespace App\Livewire\Views\Contadores;
 
 use App\Livewire\Forms\ContadorForm;
+use App\Models\Contabilidade;
 use App\Models\Contador;
-use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
-use App\Repositories\Eloquent\Repository\ContadorRepository;
-use App\Repositories\Eloquent\Repository\UsuarioRepository;
+use App\Models\User;
+use App\Traits\EnviaEmailResetSenhaTrait;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Edicao extends Component
 {
-  public array $contadorAtual = [];
+  use Toast, EnviaEmailResetSenhaTrait;
+
+  public ?Contador $contadorAtual;
   public ?string $novaSenha = null;
   public Collection $contabilidades;
   public ContadorForm $contador;
 
   public function mount(
-    int $contador_id,
-    ContadorRepository $contadorRepository,
-    ContabilidadeRepository $contabilidadeRepository
+    int $contador_id
   ): void {
-    $this->contabilidades = $contabilidadeRepository->listagemContabilidades();
-    $this->contadorAtual = $contadorRepository->consultaContador($contador_id)->toArray();
+    $this->contabilidades = Contabilidade::all();
+    $this->contadorAtual = Contador::find($contador_id);
+    $this->contador->contabilidade_id = $this->contadorAtual->contabilidade_id;
   }
 
   #[Title('SAFI NFE - Edição de Contadors')]
@@ -37,21 +37,24 @@ class Edicao extends Component
     return view('livewire.views.contadores.edicao');
   }
 
-  public function editar(
-    ContadorRepository $contadorRepository,
-    UsuarioRepository $usuarioRepository
-  ) {
+  public function editar(): void {
     $this->contador->limpaCampos();
     $this->contador->validate();
 
     $this->contador->usuario_id = $this->contadorAtual['usuario_id'];
-    $contadorAtualizado = array_diff($this->contador->all(), $this->contadorAtual);
+    $contadorAtualizado = array_diff($this->contador->all(), $this->contadorAtual->toArray());
 
     // Valida se existe email cadastrado em outro usuario.
-    $contadorValidadoEmail = $contadorRepository->consultaContadorPorEmail($this->contador->email);
-    $contadorValidadeCPF = $contadorRepository->consultaContadorPorCPF($this->contador->cpf);
-    if (!is_null($contadorValidadoEmail) && $this->contadorAtual['contador_id'] !== $contadorValidadoEmail->getAttribute('contador_id')) return $this->addError('contador.email', 'O email já está sendo usado por outro usuario, escolha outro.');
-    if (!is_null($contadorValidadeCPF) && $this->contadorAtual['contador_id'] !== $contadorValidadeCPF->getAttribute('contador_id')) return $this->addError('contador.cpf', 'O CPF já está sendo usado por outro usuario, escolha outro.');
+    $contadorValidadoEmail = Contador::whereEmail($this->contador->email)->first();
+    $contadorValidadeCPF = Contador::whereCpf($this->contador->cpf)->first();
+    if (!is_null($contadorValidadoEmail) && $this->contadorAtual['contador_id'] !== $contadorValidadoEmail->getAttribute('contador_id')) {
+      $this->addError('contador.email', 'O email já está sendo usado por outro usuario, escolha outro.');
+      return;
+    }
+    if (!is_null($contadorValidadeCPF) && $this->contadorAtual['contador_id'] !== $contadorValidadeCPF->getAttribute('contador_id')) {
+      $this->addError('contador.cpf', 'O CPF já está sendo usado por outro usuario, escolha outro.');
+      return;
+    }
 
     // Pega somente as informações alteradas na edição do contador para ser alterado no cadastro de usuários.
     $usuarioAtualizado = [];
@@ -61,11 +64,10 @@ class Edicao extends Component
     $usuarioAtualizado['id'] = $this->contadorAtual['usuario_id'];
     $contadorAtualizado['contador_id'] = $this->contadorAtual['contador_id'];
 
-    $usuarioRepository->editaUsuario($usuarioAtualizado);
-    $contadorRepository->editacontador($contadorAtualizado);
+    User::where('id', $usuarioAtualizado['id'])->update($usuarioAtualizado);
+    Contador::where('contador_id', $contadorAtualizado['contador_id'])->update($contadorAtualizado);
 
-    Session::flash('sucesso', 'contador editado com sucesso.');
-    redirect('contadores/');
+    $this->success('Contador editado com sucesso', redirectTo: route('contadores'));
   }
 
   public function voltar(): void
@@ -73,12 +75,9 @@ class Edicao extends Component
     redirect('contadores/');
   }
 
-  public function trocaSenha(int $contador_id): void {
-    Contador::find($contador_id)->usuario->forceFill([
-      'password' => Hash::make($this->novaSenha)
-    ])->save();
+  public function enviaEmailTrocaSenha(): void {
+    $this->enviaEmail($this->contadorAtual->email);
 
-    Session::flash('sucesso', 'Senha alterada com sucesso');
-    $this->novaSenha = null;
+    $this->success('Email enviado com sucesso');
   }
 }

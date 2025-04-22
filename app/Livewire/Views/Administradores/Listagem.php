@@ -2,27 +2,29 @@
 
 namespace App\Livewire\Views\Administradores;
 
+use App\Models\User;
 use App\Repositories\Eloquent\Repository\UsuarioRepository;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination;
+  use WithPagination, WithoutUrlPagination, Toast;
 
   public ?string $pesquisa = null;
+  public ?int $porPagina = 10;
+  public ?User $administradorAtual;
+  public bool $modalConfirmandoRemocaoAdministrador = false;
 
   #[Title('SAFI NFE - Listagem de Usuarios')]
   #[Layout('components.layouts.main')]
-  public function render(UsuarioRepository $usuarioRepository)
+  public function render()
   {
-    $administradores = $usuarioRepository->paginacaoUsuarios('ADMIN', 10, $this->pesquisa);
-    return view('livewire.views.administradores.listagem', [
-      'listagem' => compact('administradores')
-    ]);
+    return view('livewire.views.administradores.listagem');
   }
 
   public function irCadastrar(): void {
@@ -33,16 +35,19 @@ class Listagem extends Component
     redirect("/administradores/edicao/$administrador_id");
   }
 
-  public function removerAdministrador(int $administrador_id, UsuarioRepository $usuarioRepository): void {
-    $administrador = $usuarioRepository->consultaUsuario($administrador_id);
-    if (is_null($administrador)) {
-      Session::flash('alerta', 'O administrador não existe.');
-      redirect('administradores/');
+  public function removerAdministrador(): void {
+    if (is_null($this->administradorAtual)) {
+      $this->warning('O administrador não existe.');
     }
 
-    $administrador->delete();
+    $this->administradorAtual->delete();
 
-    Session::flash('sucesso', 'O administrador foi removido com sucesso.');
-    redirect('administradores/');
+    $this->modalConfirmandoRemocaoAdministrador = !$this->modalConfirmandoRemocaoAdministrador;
+    $this->success('O administrador foi removido com sucesso');
+  }
+
+  public function setRemoverAdministrador(int $administrador_id): void {
+    $this->administradorAtual = User::find($administrador_id);
+    $this->modalConfirmandoRemocaoAdministrador = !$this->modalConfirmandoRemocaoAdministrador;
   }
 }

@@ -7,13 +7,15 @@ use App\Livewire\Forms\EnderecoForm;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
+  use Toast;
+
   public EnderecoForm $endereco;
   public EmpresaForm $empresa;
 
@@ -45,7 +47,6 @@ class Cadastro extends Component
 
     $empresaRepository->cadastroEmpresa($this->empresa->all());
 
-    Session::flash('sucesso', 'Empresa cadastrada com sucesso.');
-    redirect('/empresas');
+    $this->success('Empresa cadastrada com sucesso.', redirectTo: route('empresas'));
   }
 }

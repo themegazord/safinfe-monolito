@@ -3,6 +3,7 @@
 namespace App\Livewire\Views\Importacao;
 
 use App\Exceptions\Tipos\EnumTiposValidacao;
+use App\Jobs\ImportaXMLsJob;
 use App\Livewire\Forms\ImportacaoContabilidadeForm;
 use App\Livewire\Forms\ImportacaoEmpresaForm;
 use App\Livewire\Forms\ImportacaoXMLForm;
@@ -10,6 +11,7 @@ use App\Models\User;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
+use App\Services\ArquivoTemporarioService;
 use App\Services\DadosXMLService;
 use App\Services\XMLService;
 use App\Traits\ValidacoesTrait;
@@ -17,6 +19,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
@@ -27,16 +30,19 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\Features\SupportRedirects\Redirector;
 use Livewire\WithFileUploads;
-use ZipArchive;
+use Mary\Traits\Toast;
 
 class Gerenciar extends Component
 {
-  use WithFileUploads, ValidacoesTrait;
+  use WithFileUploads, ValidacoesTrait, Toast;
 
   public array $xmls = [];
   public string $xmlNomeAtual = '';
   public int $cont = 0;
+  public ?int $numeroTotalArquivos = null;
   public ?int $qtdeLinhasArquivo = null;
+  public bool $startPolling = false;
+  public string $importacaoTabSelecionada = 'importacaoXML-tab';
   public User|Authenticatable $usuario;
   public Collection $empresas;
   public ImportacaoXMLForm $importacaoXMLForm;
@@ -59,20 +65,21 @@ class Gerenciar extends Component
   /**
    * @throws ValidationException
    */
-  public function importacaoXML(XMLService $xmlService, DadosXMLService $dadosXMLService): Redirector|RedirectResponse
+  public function importacaoXML(XMLService $xmlService, DadosXMLService $dadosXMLService, ArquivoTemporarioService $limpador): void
   {
     $this->importacaoXMLForm->validate();
-      if ($this->importacaoXMLForm->arquivo->getClientOriginalExtension() !== 'zip') {
-        Session::flash('erro', 'Aceitamos apenas .zip');
-        return redirect('/importacao');
-      }
-      return $this->recebeRARXMLS($xmlService, $dadosXMLService);
+    if ($this->importacaoXMLForm->arquivo->getClientOriginalExtension() !== 'zip') {
+      $this->warning('Aceitamos somente .zip');
+      return;
+    }
+    $this->recebeRARXMLS($xmlService, $dadosXMLService, $limpador);
   }
 
   /**
    * @throws ValidationException
    */
-  public function importacaoContabilidade(ContabilidadeRepository $contabilidadeRepository, EnderecoRepository $enderecoRepository): Redirector|RedirectResponse {
+  public function importacaoContabilidade(ContabilidadeRepository $contabilidadeRepository, EnderecoRepository $enderecoRepository): Redirector|RedirectResponse
+  {
     $erros = array();
 
     $camposCabecalhoEsperados = [
@@ -106,7 +113,7 @@ class Gerenciar extends Component
     // Validacao de quantidades de colunas
     if (count($cabecalho) !== 14) $erros[] = ['tipo' => EnumTiposValidacao::ValidacaoDeContagemDeCampos->value, 'mensagem' => 'A quantidade de colunas dos cabecalhos e diferente do que foi esperado.'];
     // Validacao de schema do cabecalho
-    if (count(array_diff($camposCabecalhoEsperados, array_map(fn ($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
+    if (count(array_diff($camposCabecalhoEsperados, array_map(fn($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
     // Validacao dos campos obrigatorios
     for ($i = 1; $i < count($data); $i++) {
       foreach ($data[$i] as $key => $campo) {
@@ -152,22 +159,22 @@ class Gerenciar extends Component
         if ($key === 6 /* Telefone reserva */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O telefone de reserva na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
         }
-        if ($key === 7 /* Rua */ ) {
+        if ($key === 7 /* Rua */) {
           if (strlen(trim($campo)) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A rua na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
         }
-        if ($key === 8 /* Numero */ ) {
+        if ($key === 8 /* Numero */) {
           if (strlen(trim($campo)) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O numero na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
         }
-        if ($key === 9 /* CEP */ ) {
+        if ($key === 9 /* CEP */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) !== 8) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CEP na linha {$this->retornaLinha($i + 1)} tem que ter 8 caracteres"];
         }
-        if ($key === 10 /* Bairro */ ) {
+        if ($key === 10 /* Bairro */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O Bairro na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
         }
-        if ($key === 11 /* complemento */ ) {
+        if ($key === 11 /* complemento */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O complemento na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 255 caracteres"];
         }
-        if ($key === 12 /* cidade */ ) {
+        if ($key === 12 /* cidade */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A cidade na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
         }
         if ($key === 13 /* UF */) {
@@ -185,7 +192,7 @@ class Gerenciar extends Component
 
     DB::beginTransaction();
 
-    for($i = 1; $i < count($data); $i++) {
+    for ($i = 1; $i < count($data); $i++) {
       try {
         $enderecoCadastrado = $enderecoRepository->cadastraEndereco([
           'rua' => trim($data[$i][7]),
@@ -228,7 +235,8 @@ class Gerenciar extends Component
     return redirect('/importacao');
   }
 
-  public function importacaoEmpresa(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository): Redirector|RedirectResponse {
+  public function importacaoEmpresa(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository): Redirector|RedirectResponse
+  {
     $erros = array();
 
     $camposCabecalhoEsperados = [
@@ -262,11 +270,11 @@ class Gerenciar extends Component
     // Validacao de quantidades de colunas
     if (count($cabecalho) !== 14) $erros[] = ['tipo' => EnumTiposValidacao::ValidacaoDeContagemDeCampos->value, 'mensagem' => 'A quantidade de colunas dos cabecalhos e diferente do que foi esperado.'];
     // Validacao de schema do cabecalho
-    if (count(array_diff($camposCabecalhoEsperados, array_map(fn ($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
+    if (count(array_diff($camposCabecalhoEsperados, array_map(fn($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
     // Validacao dos campos obrigatorios
     for ($i = 1; $i < count($data); $i++) {
       foreach ($data[$i] as $key => $campo) {
-        if ($key != 3 && $key != 11 ) { // IE não é obrigatório
+        if ($key != 3 && $key != 11) { // IE não é obrigatório
           // Verifica se o campo é nulo ou vazio
           if (is_null($campo) || $campo === '') {
             // Verifica se o índice existe no cabeçalho
@@ -289,7 +297,7 @@ class Gerenciar extends Component
           if (!$this->validar_cnpj($campo)) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
           if (!is_null($empresaRepository->consultaEmpresaPorCNPJ(preg_replace("/[^0-9]/", "", trim($campo))))) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} ja esta em uso"];
         }
-        if ($key === 3 /* ie */ ) {
+        if ($key === 3 /* ie */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A IE na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
         }
         if ($key === 4 /* Email contato */) {
@@ -301,22 +309,22 @@ class Gerenciar extends Component
         if ($key === 6 /* Telefone reserva */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O telefone de reserva na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
         }
-        if ($key === 7 /* Rua */ ) {
+        if ($key === 7 /* Rua */) {
           if (strlen(trim($campo)) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A rua na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
         }
-        if ($key === 8 /* Numero */ ) {
+        if ($key === 8 /* Numero */) {
           if (strlen(trim($campo)) > 20) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O numero na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 20 caracteres"];
         }
-        if ($key === 9 /* CEP */ ) {
+        if ($key === 9 /* CEP */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) !== 8) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CEP na linha {$this->retornaLinha($i + 1)} tem que ter 8 caracteres"];
         }
-        if ($key === 10 /* Bairro */ ) {
+        if ($key === 10 /* Bairro */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O Bairro na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
         }
-        if ($key === 11 /* complemento */ ) {
+        if ($key === 11 /* complemento */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 255) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O complemento na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 255 caracteres"];
         }
-        if ($key === 12 /* cidade */ ) {
+        if ($key === 12 /* cidade */) {
           if (strlen(preg_replace("/[^0-9]/", "", trim($campo))) > 155) $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "A cidade na linha {$this->retornaLinha($i + 1)} tem que ter no maximo 155 caracteres"];
         }
         if ($key === 13 /* UF */) {
@@ -334,7 +342,7 @@ class Gerenciar extends Component
 
     DB::beginTransaction();
 
-    for($i = 1; $i < count($data); $i++) {
+    for ($i = 1; $i < count($data); $i++) {
       try {
         $enderecoCadastrado = $enderecoRepository->cadastraEndereco([
           'rua' => trim($data[$i][7]),
@@ -377,78 +385,27 @@ class Gerenciar extends Component
     return redirect('/importacao');
   }
 
-  public function downloadArquivoMolde(string $importacao) {
-    return match($importacao) {
+  public function downloadArquivoMolde(string $importacao)
+  {
+    return match ($importacao) {
       'contabilidade' => Storage::download('moldes/molde_importacao_contabilidades.xlsx'),
       'empresa' => Storage::download('moldes/molde_importacao_empresas.xlsx')
     };
   }
 
-  #[Computed()]
-  public function contador(): int {
-    $this->cont += 1;
-    return $this->cont;
-  }
 
-  private function recebeRARXMLS(XMLService $xmlService, DadosXMLService $dadosXMLService): Redirector|RedirectResponse
+  private function recebeRARXMLS(XMLService $xmlService, DadosXMLService $dadosXMLService, ArquivoTemporarioService $limpador): void
   {
-    DB::beginTransaction();
+    $path = $this->importacaoXMLForm->arquivo->storeAs('public', $this->importacaoXMLForm->arquivo->getClientOriginalName());
+    $realPath = storage_path('app/' . $path);
 
-    try {
-      $zip = new ZipArchive();
+    dispatch(new ImportaXMLsJob($realPath, $this->importacaoXMLForm->empresa_id));
 
-      $path = $this->importacaoXMLForm->arquivo->storeAs('public', $this->importacaoXMLForm->arquivo->getClientOriginalName());
-      $realPath = storage_path('app/' . $path);
-      $pathXMLUsuario = storage_path('app/tempXML/' . Auth::user()->id);
-
-      DB::commit();
-      if ($zip->open($realPath) === TRUE) {
-        $zip->extractTo($pathXMLUsuario);
-        $zip->close();
-        foreach(array_filter(scandir($pathXMLUsuario), fn ($arq) => $arq !== '.' && $arq !== '..') as $arquivo) {
-          $this->xmlNomeAtual = $arquivo;
-          $this->defineGravaXML("{$pathXMLUsuario}/{$arquivo}", $xmlService, $dadosXMLService);
-        }
-      }
-      Session::flash('sucesso', "XMLS importados com sucesso.");
-      return redirect('/importacaoxml');
-    } catch (\Exception $e) {
-      DB::rollBack();
-      Session::flash('erro', $e->getMessage() . " => XML com erro: " . $this->xmlNomeAtual);
-      return redirect('/importacaoxml');
-    } finally {
-      unlink($realPath);
-    }
+    $this->success('Arquivo enviado');
   }
 
-  private function defineGravaXML(string $caminho, XMLService $xmlService, DadosXMLService $dadosXMLService): void
+  private function retornaLinha(int $numeroIndex): int
   {
-    $xmlConsultado = $dadosXMLService->consultaDadosXMLPorChave(str_replace('-', '', filter_var($this->xmlNomeAtual, FILTER_SANITIZE_NUMBER_INT)));
-
-    if (str_contains($this->xmlNomeAtual, 'ProcNfe')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'AUTORIZADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastro($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->importacaoXMLForm->empresa_id);
-      }
-    }
-
-    if (str_contains($this->xmlNomeAtual, 'Can')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'CANCELADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastroCancelado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->importacaoXMLForm->empresa_id);
-      }
-    }
-    if (str_contains($this->xmlNomeAtual, 'inu')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'INUTILIZADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastroInutilizado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->importacaoXMLForm->empresa_id, $this->xmlNomeAtual);
-      }
-    }
-
-    unlink($caminho);
-  }
-
-  private function retornaLinha(int $numeroIndex): int {
     return $numeroIndex++;
   }
 }

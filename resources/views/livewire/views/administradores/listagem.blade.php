@@ -1,90 +1,57 @@
-<div class="main">
-  <h1>Listagem de Administradores</h1>
-  <livewire:componentes.utils.notificacao.flash />
-  <div class="container-tabela-administradores">
-    <div class="container-consulta-administradores">
-      <div>
-        <label for="pesquisa" class="form-label">Insira o dado a ser pesquisado</label>
-        <input type="text" class="form-control" id="pesquisa" wire:model.blur="pesquisa" placeholder="Nome, email, empresa...">
+<div class="p-4 md:p-6 flex flex-col gap-4">
+  <h1 class="font-bold text-2xl">Listagem de Administradores</h1>
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col md:grid md:grid-cols-5 gap-4">
+      <div class="w-full md:w-auto md:col-span-4">
+        <x-input label="Insira o dado a ser pesquisado" placeholder="Nome, email, empresa..." wire:model.blur="pesquisa" inline />
       </div>
-      <button wire:click="irCadastrar">Cadastrar</button>
+      <x-button wire:click="irCadastrar" label="Cadastrar" class="btn btn-primary w-full md:col-span-1 md:w-auto"/>
     </div>
-    <table class="table table-striped table-hover table-sm">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Acoes</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach ($listagem['administradores'] as $administrador)
-        <tr wire:key="{{ $administrador->id }}">
-          <td>{{ $administrador->id }}</td>
-          <td>{{ $administrador->name }}</td>
-          <td>{{ $administrador->email }}</td>
-          <td>
-            <i class="fa-solid fa-pen-to-square text-primary" wire:click="irEdicaoAdministrador({{ $administrador->id }})" style="cursor: pointer;"></i>
-            <i class="fa-solid fa-rotate text-danger" style="cursor: pointer;" onclick="emiteEventoExclusaoAdministrador(<?= $administrador->id ?>)"></i>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
-    {{ $listagem['administradores']->links() }}
+    @php
+      $administradores = \App\Models\User::query()->select([
+      'id',
+      'role',
+      'name',
+      'email',
+    ])->where('role', "ADMIN")
+    ->where(function ($query) use ($pesquisa) {
+      $query->Where('name', 'like', "%$pesquisa%")
+          ->orWhere('email', 'like', "%$pesquisa%");
+      });
+
+      $administradores = $administradores->paginate($porPagina);
+
+    $headers = [
+      ['key' => 'id', 'label' => '#'],
+      ['key' => 'name', 'label' => 'Nome'],
+      ['key' => 'email', 'label' => 'Email'],
+    ];
+    @endphp
+    <x-table :headers="$headers" :rows="$administradores" with-pagination striped>
+      @scope('actions', $administrador)
+        <div class="flex gap-4">
+          <x-button class="btn btn-ghost rounded" icon="o-pencil-square" wire:click="irEdicaoAdministrador({{ $administrador->id }})"/>
+          <x-button class="btn btn-ghost rounded" icon="o-trash" wire:click="setRemoverAdministrador({{ $administrador->id }})" />
+        </div>
+      @endscope
+    </x-table>
   </div>
-  <script>
-    function emiteEventoExclusaoadministrador(id) {
-      var resposta = confirm("Deseja realmente alterar o status desse administrador?");
-      if (resposta) {
-        Livewire.dispatch('inativar-administrador', {
-          id
-        })
-      }
-    }
-  </script>
-  <style>
-    .main {
-      display: flex;
-      flex-direction: column;
-      padding: 3rem 0 0 5rem;
-    }
 
-    .container-tabela-administradores {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      width: 80%;
-    }
+  <x-modal wire:model="modalConfirmandoRemocaoAdministrador" title="Remover administrador?" class="backdrop-blur">
+    @if ($administradorAtual !== null)
+    Tem certeza que deseja remover este administrador?
 
-    .container-tabela-administradores .container-consulta-administradores {
-      display: flex;
-      align-items: end;
-      gap: 1rem;
-    }
+    <x-slot:actions>
+      <x-button
+        label="Cancelar"
+        @click="$wire.modalConfirmandoRemocaoAdministrador = false"
+        class="btn btn-info" />
 
-    .container-tabela-administradores .container-consulta-administradores button {
-      height: 2rem;
-      padding: 0 1rem;
-      border-radius: 10px;
-      border: none;
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: 700;
-      transition: var(--tran-04);
-    }
-
-    .container-tabela-administradores .container-consulta-administradores button:hover {
-      background-color: var(--primary-color-hover);
-    }
-
-    .container-tabela-administradores .container-consulta-administradores div:first-child {
-      width: 100%;
-    }
-
-    .container-tabela-administradores .container-consulta-administradores div:first-child input {
-      height: 2rem;
-    }
-  </style>
+      <x-button
+        label="Remover"
+        wire:click="removerAdministrador"
+        class="btn btn-error" />
+    </x-slot:actions>
+    @endif
+  </x-modal>
 </div>

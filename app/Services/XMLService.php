@@ -55,23 +55,42 @@ class XMLService
 
   public function validaDadosTest(array $request): XMLException|bool
   {
-    if (!isset($request['status'])) return XMLException::statusNaoInformado();
-    if (!isset($request['xml'])) return XMLException::arquivoNaoInformado();
-    if (!in_array(strtoupper($request['status']), ['AUTORIZADO', 'CANCELADO', 'INUTILIZADO', 'DENAGADO'])) return XMLException::statusInvalido(strtoupper('status'));
-    $this->validaDadosEmpresa($request['empresa']);
+    if (!isset($request['status'])) {
+      return XMLException::statusNaoInformado();
+    }
 
-    file_put_contents(storage_path('app/public/tempXMLAPI/' . $request['empresa'] . '.xml'), base64_decode($request['xml']));
+    if (!isset($request['xml'])) {
+      return XMLException::arquivoNaoInformado();
+    }
 
-    // Validacao de CNPJ API com CNPJ do emitente da nota fiscal
-    $cnpjXML = $this->getCNPJNotaFiscal($request['xml'], $request['status'], $request['empresa']);
-    if ($cnpjXML !== $request['empresa']) return XMLException::empresaAPIXMLIncondizente($request['empresa'], $cnpjXML);
-    if (!is_null($this->dadosXMLRepository->consultaXMLChaveStatus(
-      $this->getChaveNotaFiscal($request['xml'], $request['status'], $request['empresa']), $request['status']))) return XMLException::xmlJaExistente();
+    $status = strtoupper($request['status']);
+    $empresa = $request['empresa'] ?? null;
 
-    unlink(storage_path('app/public/tempXMLAPI/' . $request['empresa'] . '.xml'));
+    if (!in_array($status, ['AUTORIZADO', 'CANCELADO', 'INUTILIZADO', 'DENAGADO'])) {
+      return XMLException::statusInvalido($status);
+    }
+
+    $this->validaDadosEmpresa($empresa);
+
+    $conteudoXML = base64_decode($request['xml']);
+
+    // Extrair dados diretamente da string XML em memória
+    $cnpjXML = $this->getCNPJNotaFiscal($conteudoXML, $status);
+
+    if ($cnpjXML !== $empresa) {
+      return XMLException::empresaAPIXMLIncondizente($empresa, $cnpjXML);
+    }
+
+    $chave = $this->getChaveNotaFiscal($conteudoXML, $status);
+    $xmlExistente = $this->dadosXMLRepository->consultaXMLChaveStatus($chave, $status);
+
+    if (!is_null($xmlExistente)) {
+      return XMLException::xmlJaExistente();
+    }
 
     return true;
   }
+
 
   public function validaDadosEmpresa(string $cnpj): XMLException|Model|null
   {
@@ -82,33 +101,27 @@ class XMLService
     return $empresa;
   }
 
-  public function getChaveNotaFiscal(string $base64XML, string $status, string $empresa): string
+  public function getChaveNotaFiscal(string $conteudoXML, string $status): string
   {
-    if ($status === 'AUTORIZADO') {
-      return substr(simplexml_load_string(file_get_contents(storage_path('app/public/tempXMLAPI/' . $empresa . '.xml')))->NFe[0]->infNFe[0]->attributes()->Id[0]->__toString(), 3);
-    }
+    $xml = simplexml_load_string($conteudoXML);
 
-    if ($status === 'CANCELADO') {
-      return simplexml_load_string(file_get_contents(storage_path('app/public/tempXMLAPI/' . $empresa . '.xml')))->evento[0]->infEvento[0]->chNFe[0]->__toString();
-    }
-
-    if ($status === 'INUTILIZADO') {
-      return substr(simplexml_load_string(file_get_contents(storage_path('app/public/tempXMLAPI/' . $empresa . '.xml')))->inutNFe[0]->infInut[0]->attributes()->__toString(), 2);
-    }
+    return match (strtoupper($status)) {
+      'AUTORIZADO' => substr($xml->NFe[0]->infNFe[0]->attributes()->Id[0]->__toString(), 3),
+      'CANCELADO' => $xml->evento[0]->infEvento[0]->chNFe[0]->__toString(),
+      'INUTILIZADO' => substr($xml->inutNFe[0]->infInut[0]->attributes()->Id[0]->__toString(), 2),
+      default => throw new \InvalidArgumentException("Status inválido para extração da chave: {$status}"),
+    };
   }
 
-  private function getCNPJNotaFiscal(string $base64XML, string $status, string $empresa): string
+  private function getCNPJNotaFiscal(string $conteudoXML, string $status): string
   {
-    if ($status === 'AUTORIZADO') {
-      return simplexml_load_string(file_get_contents(storage_path('app/public/tempXMLAPI/' . $empresa . '.xml')))->NFe[0]->infNFe[0]->emit[0]->CNPJ[0]->__toString();
-    }
+    $xml = simplexml_load_string($conteudoXML);
 
-    if ($status === 'CANCELADO') {
-      return simplexml_load_string(file_get_contents(storage_path('app/public/tempXMLAPI/' . $empresa . '.xml')))->evento[0]->infEvento[0]->CNPJ[0]->__toString();
-    }
-
-    if ($status === 'INUTILIZADO') {
-      return simplexml_load_string(file_get_contents(storage_path('app/public/tempXMLAPI/' . $empresa . '.xml')))->inutNFe[0]->infInut[0]->CNPJ[0]->__toString();
-    }
+    return match (strtoupper($status)) {
+      'AUTORIZADO' => $xml->NFe[0]->infNFe[0]->emit[0]->CNPJ[0]->__toString(),
+      'CANCELADO' => $xml->evento[0]->infEvento[0]->CNPJ[0]->__toString(),
+      'INUTILIZADO' => $xml->inutNFe[0]->infInut[0]->CNPJ[0]->__toString(),
+      default => throw new \InvalidArgumentException("Status inválido para extração de CNPJ: {$status}"),
+    };
   }
 }

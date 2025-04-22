@@ -3,14 +3,16 @@
 namespace App\Livewire\Views\Administradores;
 
 use App\Livewire\Forms\UsuarioForm;
-use App\Repositories\Eloquent\Repository\UsuarioRepository;
-use Illuminate\Support\Facades\Session;
+use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
+  use Toast;
+
   public UsuarioForm $administrador;
 
   #[Title('SAFI NFE - Cadastro de Administradores')]
@@ -20,18 +22,20 @@ class Cadastro extends Component
     return view('livewire.views.administradores.cadastro');
   }
 
-  public function cadastrar(UsuarioRepository $usuarioRepository)
+  public function cadastrar(): void
   {
     $this->administrador->validate();
     $this->administrador->encriptaSenha();
     $this->administrador->role = 'ADMIN';
 
-    if (!is_null($usuarioRepository->consultaUsuarioPorEmail($this->administrador->email))) return $this->addError('administrador.email', 'O email já está sendo usado.');
+    if (!is_null(User::whereEmail($this->administrador->email)->first())) {
+      $this->addError('administrador.email', 'O email já está sendo usado.');
+      return;
+    }
 
-    $usuarioRepository->cadastraUsuario($this->administrador->all());
+    User::create($this->administrador->all());
 
-    Session::flash('sucesso', 'Administrador cadastrado com sucesso.');
-    redirect('administradores/');
+    $this->success('Administrador cadastrado com sucesso', redirectTo: route('administradores'));
   }
 
   public function voltar(): void

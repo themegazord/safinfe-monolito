@@ -2,30 +2,28 @@
 
 namespace App\Livewire\Views\Contabilidades;
 
+use App\Models\Contabilidade;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Livewire\Features\SupportRedirects\Redirector;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination;
+  use WithPagination, WithoutUrlPagination, Toast;
   public ?string $consulta = null;
+  public int $porPagina = 10;
+  public ?Contabilidade $contabilidadeAtual;
+  public bool $modalConfirmandoRemocaoContabilidade = false;
 
   #[Title("SAFI NFE - Listagem de Contabilidades")]
   #[Layout("components.layouts.main")]
   public function render(ContabilidadeRepository $contabilidadeRepository)
   {
-    $contabilidades = $contabilidadeRepository->paginacaoContabilidades(10, $this->consulta);
-
-    return view('livewire.views.contabilidades.listagem', [
-      'listagem' => compact('contabilidades')
-    ]);
+    return view('livewire.views.contabilidades.listagem');
   }
 
   public function irCadastrar(): void {
@@ -36,16 +34,18 @@ class Listagem extends Component
     redirect("/contabilidades/edicao/{$contabilidade_id}");
   }
 
-  #[On('excluir-contabilidade')]
-  public function excluirContabilidade(int $contabilidade_id, ContabilidadeRepository $contabilidadeRepository): Redirector|RedirectResponse {
-    $contabilidade = $contabilidadeRepository->consultaContabilidade($contabilidade_id);
-    if (is_null($contabilidade)) {
-      Session::flash('erro', 'Contabilidade inexistente.');
-      return redirect('/contabilidades');
+  public function setRemocaoContabilidade(int $contabilidade_id): void {
+    $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+    $this->modalConfirmandoRemocaoContabilidade = true;
+  }
+
+  public function excluirContabilidade(): void {
+    if (is_null($this->contabilidadeAtual)) {
+      $this->error('Contabilidade inexistente.');
     }
-    $contabilidade->delete();
-    $contabilidade->endereco()->first()->delete();
-    Session::flash('sucesso', 'Contabilidade removida com sucesso.');
-    return redirect('/contabilidades');
+    $this->contabilidadeAtual->delete();
+    $this->contabilidadeAtual->endereco()->first()->delete();
+    $this->modalConfirmandoRemocaoContabilidade = false;
+    $this->success('Contabilidade removida com sucesso');
   }
 }

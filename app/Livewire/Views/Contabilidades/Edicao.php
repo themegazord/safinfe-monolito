@@ -5,20 +5,22 @@ namespace App\Livewire\Views\Contabilidades;
 use App\Livewire\Forms\ContabilidadeForm;
 use App\Livewire\Forms\EnderecoForm;
 use App\Models\Contabilidade;
+use App\Models\Empresa;
 use App\Models\Endereco;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
 use App\Repositories\Eloquent\Repository\EmpContRepository;
-use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Edicao extends Component
 {
+  use Toast;
+
   public ContabilidadeForm $contabilidade;
   public EnderecoForm $endereco;
   public Endereco $enderecoAtual;
@@ -27,15 +29,12 @@ class Edicao extends Component
 
   public function mount(
     int $contabilidade_id,
-    ContabilidadeRepository $contabilidadeRepository,
-    EnderecoRepository $enderecoRepository,
-    EmpresaRepository $empresaRepository
   ): void {
-    $this->contabilidadeAtual = $contabilidadeRepository->consultaContabilidade($contabilidade_id);
-    $this->enderecoAtual = $enderecoRepository->consultaEndereco($this->contabilidadeAtual->getAttribute('endereco_id'));
-    $this->empresas = $empresaRepository->listagemEmpresas()->sortBy('fantasia');
+    $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+    $this->enderecoAtual = Endereco::find($this->contabilidadeAtual->endereco_id);
+    $this->search();
     foreach($this->contabilidadeAtual->empresas()->get() as $empresa) {
-      $this->contabilidade->empresas[$empresa->empresa_id] = true;
+      array_push($this->contabilidade->empresas, $empresa->empresa_id);
     }
   }
 
@@ -70,9 +69,9 @@ class Edicao extends Component
 
     $empContRepository->removeRelacionamentoContabilidade($this->contabilidadeAtual->getAttribute('contabilidade_id'));
 
-    foreach($empresas as $key => $empresa) {
+    foreach($empresas as $empresa) {
       $empContRepository->cadastrar([
-        'empresa_id' => $key,
+        'empresa_id' => $empresa,
         'contabilidade_id' => $this->contabilidadeAtual->getAttribute('contabilidade_id')
       ]);
     }
@@ -88,11 +87,15 @@ class Edicao extends Component
     $enderecoRepository->editaEndereco($enderecoParaAtualizacao);
     $contabilidadeRepository->editaContabilidade($contabilidadeParaAtualizacao);
 
-    Session::flash('sucesso', 'Contabilidade editada com sucesso');
-    redirect('/contabilidades');
+
+    $this->success('Contabilidade editada com sucesso', redirectTo: route('contabilidades'));
   }
 
   public function voltar(): void {
     redirect('/contabilidades');
+  }
+
+  public function search(string $valor = ""): void {
+    $this->empresas = Empresa::query()->where('fantasia', 'like', "%$valor%")->orderBy('fantasia')->get();
   }
 }

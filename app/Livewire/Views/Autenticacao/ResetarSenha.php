@@ -2,16 +2,20 @@
 
 namespace App\Livewire\Views\Autenticacao;
 
+use App\Notifications\SolicitacaoResetSenhaNotification;
 use Livewire\Component;
 use App\Livewire\Forms\ResetarSenhaForm;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
+use App\Traits\EnviaEmailResetSenhaTrait;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Mary\Traits\Toast;
+use Illuminate\Support\Str;
 
 class ResetarSenha extends Component
 {
+  use Toast, EnviaEmailResetSenhaTrait;
   public ResetarSenhaForm $resetSenha;
 
   #[Layout('components.layouts.autenticacao')]
@@ -24,20 +28,8 @@ class ResetarSenha extends Component
   public function alterarSenha(): void {
     $this->resetSenha->validate();
 
-    $usuario = User::whereEmail($this->resetSenha->email)->first();
+    $this->enviaEmail($this->resetSenha->email);
 
-    if (is_null($usuario) || !Hash::check($this->resetSenha->oldPassword, $usuario->password)) {
-      Session::flash('sucesso', 'Dados atualizados');
-      $this->redirect('/');
-      return;
-    }
-
-    $usuario->forceFill([
-      'password' => Hash::make($this->resetSenha->newPassword)
-    ])->save();
-
-    Session::flash('sucesso', 'Dados atualizados');
-    $this->redirect('/');
-    return;
+    $this->success(title: 'Email encaminhado com sucesso', redirectTo: route('login'));
   }
 }

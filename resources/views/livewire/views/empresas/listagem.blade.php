@@ -1,94 +1,64 @@
-<div class="main">
-  <h1>Listagem de Empresas</h1>
-  <livewire:componentes.utils.notificacao.flash />
-  <div class="container-tabela-empresas">
-    <div class="container-consulta-empresas">
-      <div>
-        <label for="pesquisa" class="form-label">Razão social, nome fantasia, CNPJ, IE, email de contato...</label>
-        <input type="text" class="form-control" id="pesquisa" wire:model="pesquisa">
+<div class="container p-4">
+  <h1 class="font-bold text-2xl mb-4">Listagem de Empresas</h1>
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col w-full gap-4 lg:grid lg:grid-cols-5">
+      <div class="col-span-4">
+        <x-input label="Consulta" placeholder="Razão social, nome fantasia, CNPJ, IE, email de contato..." wire:model.blur="consulta" inline />
       </div>
-      <button wire:click="irCadastrar">Cadastrar</button>
+      <x-button wire:click="irCadastrar" label="Cadastrar" class="btn btn-primary" class="col-span-1" />
     </div>
-    <table class="table table-striped table-hover table-sm">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Razão Social</th>
-          <th>Nome Fantasia</th>
-          <th>CNPJ</th>
-          <th>IE</th>
-          <th>Email de Contato</th>
-          <th>Acoes</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach ($listagem['empresas'] as $empresa)
-        <tr wire:key="{{ $empresa->getAttribute('empresa_id') }}">
-          <td>{{ $empresa->getAttribute('empresa_id') }}</td>
-          <td>{{ $empresa->getAttribute('social') }}</td>
-          <td>{{ $empresa->getAttribute('fantasia') }}</td>
-          <td>{{ $empresa->getAttribute('cnpj') }}</td>
-          <td>{{ $empresa->getAttribute('ie') }}</td>
-          <td>{{ $empresa->getAttribute('email_contato') }}</td>
-          <td>
-            <i class="fa-solid fa-pen-to-square text-primary" wire:click="irEdicaoEmpresa({{ $empresa->getAttribute('empresa_id') }})" style="cursor: pointer;"></i>
-            <i class="fa-solid fa-trash text-danger" style="cursor: pointer;" onclick="emiteEventoExclusaoEmpresa(<?= $empresa->getAttribute('empresa_id') ?>)"></i>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
-    {{ $listagem['empresas']->links() }}
+    @php
+    $paginacaoEmpresa = \App\Models\Empresa::query()
+    ->orWhere('fantasia', 'like', '%' . $this->consulta . '%')
+    ->orWhere('social', 'like', '%' . $this->consulta . '%')
+    ->orWhere('cnpj', 'like', '%' . $this->consulta . '%')
+    ->orWhere('ie', 'like', '%' . $this->consulta . '%')
+    ->orWhere('email_contato', 'like', '%' . $this->consulta . '%')
+    ->paginate($this->porPagina);
+
+    $headers = [
+    ['key' => 'empresa_id', 'label' => '#', 'class' => 'w-1'],
+    ['key' => 'fantasia', 'label' => 'Nome fantasia'],
+    ['key' => 'social', 'label' => 'Razão social'],
+    ['key' => 'cnpj', 'label' => 'CNPJ'],
+    ['key' => 'ie', 'label' => 'IE'],
+    ['key' => 'email_contato', 'label' => 'Email de contato'],
+    ];
+    @endphp
+
+    <x-table
+      :headers="$headers"
+      :rows="$paginacaoEmpresa"
+      with-pagination
+      per-page="porPagina"
+      :per-page-values="[10, 15, 20, 30, 50]">
+      @scope('actions', $empresa)
+      <div class="flex">
+        <x-button class="btn btn-ghost" icon="o-pencil" wire:click="irEdicaoEmpresa({{ $empresa->empresa_id }})" />
+        <x-button class="btn btn-ghost" icon="o-trash" wire:click="setRemocaoEmpresa({{ $empresa->empresa_id }})" />
+      </div>
+      @endscope
+    </x-table>
   </div>
-  <script>
-    function emiteEventoExclusaoEmpresa(empresa_id) {
-      var resposta = confirm("Caso exclua a empresa, se não tiver XML no banco de dados, será apagada, junto com os dados do endereço, deseja realmente apagar a empresa?");
-      if (resposta) {
-        Livewire.dispatch('excluir-empresa', {empresa_id})
-      }
-    }
-  </script>
-  <style>
-    .main {
-      display: flex;
-      flex-direction: column;
-      padding: 3rem 0 0 5rem;
-    }
 
-    .container-tabela-empresas {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      width: 80%;
-    }
+  <x-modal wire:model="modalConfirmandoRemocaoEmpresa" title="Remover empresa?" class="backdrop-blur">
+    @if ($empresaAtual !== null)
+    Tem certeza que deseja remover esta empresa? Esta ação não poderá ser desfeita.
 
-    .container-tabela-empresas .container-consulta-empresas {
-      display: flex;
-      align-items: end;
-      gap: 1rem;
-    }
+    <x-slot:actions>
+      <x-button
+        label="Cancelar"
+        @click="$wire.modalConfirmandoRemocaoEmpresa = false"
+        class="btn btn-info" />
 
-    .container-tabela-empresas .container-consulta-empresas button {
-      height: 2rem;
-      padding: 0 1rem;
-      border-radius: 10px;
-      border: none;
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: 700;
-      transition: var(--tran-04);
-    }
+      <x-button
+        label="Remover"
+        wire:click="excluirEmpresa"
+        spinner="excluirEmpresa"
+        wire:loading.attr="disabled"
+        class="btn btn-error" />
+    </x-slot:actions>
+    @endif
+  </x-modal>
 
-    .container-tabela-empresas .container-consulta-empresas button:hover {
-      background-color: var(--primary-color-hover);
-    }
-
-    .container-tabela-empresas .container-consulta-empresas div {
-      width: 100%;
-    }
-
-    .container-tabela-empresas .container-consulta-empresas div input {
-      height: 2rem;
-    }
-  </style>
 </div>

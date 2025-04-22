@@ -1,93 +1,60 @@
-<div class="main">
-  <livewire:componentes.utils.notificacao.flash />
-  <h1>Listagem de Contabilidades</h1>
-  <div class="container-tabela-contabilidades">
-    <div class="container-consulta-contabilidades">
-      <div>
-        <label for="pesquisa" class="form-label">Razão social, CNPJ, telefone corporativo, email corporativo...</label>
-        <input type="text" class="form-control" id="pesquisa" wire:model="pesquisa">
+<div class="container p-4">
+  <h1 class="font-bold text-2xl mb-4">Listagem de Contabilidades</h1>
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col w-full gap-4 lg:grid lg:grid-cols-5">
+      <div class="col-span-4">
+        <x-input label="Consulta" placeholder="Razão social, CNPJ, telefone corporativo, email corporativo..." wire:model.blur="consulta" inline />
       </div>
-      <button wire:click="irCadastrar">Cadastrar</button>
+      <x-button wire:click="irCadastrar" label="Cadastrar" class="btn btn-primary" class="col-span-1" />
     </div>
-    <table class="table table-striped table-hover table-sm">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Razão Social</th>
-          <th>CNPJ</th>
-          <th>Telefone Corporativo</th>
-          <th>Email Corporativo</th>
-          <th>Acoes</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach ($listagem['contabilidades'] as $contabilidade)
-        <tr wire:key="{{ $contabilidade->getAttribute('contabilidade_id') }}">
-          <td>{{ $contabilidade->getAttribute('contabilidade_id') }}</td>
-          <td>{{ $contabilidade->getAttribute('social') }}</td>
-          <td>{{ $contabilidade->getAttribute('cnpj') }}</td>
-          <td>{{ $contabilidade->getAttribute('telefone_corporativo') }}</td>
-          <td>{{ $contabilidade->getAttribute('email_corporativo') }}</td>
-          <td>
-            <i class="fa-solid fa-pen-to-square text-primary" wire:click="irEdicaoContabilidade({{ $contabilidade->getAttribute('contabilidade_id') }})" style="cursor: pointer;"></i>
-            <i class="fa-solid fa-trash text-danger" style="cursor: pointer;" onclick="emiteEventoExclusaoContabilidade(<?= $contabilidade->getAttribute('contabilidade_id') ?>)"></i>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
+    @php
+    $paginacaoContabilidades = \App\Models\Contabilidade::query()
+    ->orWhere('social', 'like', '%' . $this->consulta . '%')
+    ->orWhere('cnpj', 'like', '%' . $this->consulta . '%')
+    ->orWhere('telefone_corporativo', 'like', '%' . $this->consulta . '%')
+    ->orWhere('email_corporativo', 'like', '%' . $this->consulta . '%')
+    ->paginate($this->porPagina);
 
-    {{ $listagem['contabilidades']->links()  }}
+    $headers = [
+    ['key' => 'contabilidade_id', 'label' => '#', 'class' => 'w-1'],
+    ['key' => 'social', 'label' => 'Razão Social'],
+    ['key' => 'cnpj', 'label' => 'CNPJ'],
+    ['key' => 'telefone_corporativo', 'label' => 'Telefone Corporativo'],
+    ['key' => 'email_corporativo', 'label' => 'Email Corporativo'],
+    ];
+    @endphp
+
+    <x-table
+      :headers="$headers"
+      :rows="$paginacaoContabilidades"
+      with-pagination
+      per-page="porPagina"
+      :per-page-values="[10, 15, 20, 30, 50]">
+      @scope('actions', $contabilidade)
+      <div class="flex">
+        <x-button class="btn btn-ghost" icon="o-pencil" wire:click="irEdicaoContabilidade({{ $contabilidade->contabilidade_id }})" />
+        <x-button class="btn btn-ghost" icon="o-trash" wire:click="setRemocaoContabilidade({{ $contabilidade->contabilidade_id }})" />
+      </div>
+      @endscope
+    </x-table>
   </div>
-  <script>
-    function emiteEventoExclusaoContabilidade(contabilidade_id) {
-      var resposta = confirm("Deseja realmente apagar a contabilidade?");
-      if (resposta) {
-        Livewire.dispatch('excluir-contabilidade', {contabilidade_id})
-      }
-    }
-  </script>
-  <style>
-    .main {
-      display: flex;
-      flex-direction: column;
-      padding: 3rem 0 0 5rem;
-    }
 
-    .container-tabela-contabilidades {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      width: 80%;
-    }
+  <x-modal wire:model="modalConfirmandoRemocaoContabilidade" title="Remover contabilidade?" class="backdrop-blur">
+    @if ($contabilidadeAtual !== null)
+    Tem certeza que deseja remover esta contabilidade? Esta ação não poderá ser desfeita.
 
-    .container-tabela-contabilidades .container-consulta-contabilidades {
-      display: flex;
-      align-items: end;
-      gap: 1rem;
-    }
+    <x-slot:actions>
+      <x-button
+        label="Cancelar"
+        @click="$wire.modalConfirmandoRemocaoContabilidade = false"
+        class="btn btn-info" />
 
-    .container-tabela-contabilidades .container-consulta-contabilidades button {
-      height: 2rem;
-      padding: 0 1rem;
-      border-radius: 10px;
-      border: none;
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: 700;
-      transition: var(--tran-04);
-    }
+      <x-button
+        label="Remover"
+        wire:click="excluirContabilidade"
+        class="btn btn-error" />
+    </x-slot:actions>
+    @endif
+  </x-modal>
 
-    .container-tabela-contabilidades .container-consulta-contabilidades button:hover {
-      background-color: var(--primary-color-hover);
-    }
-
-    .container-tabela-contabilidades .container-consulta-contabilidades div {
-      width: 100%;
-    }
-
-    .container-tabela-contabilidades .container-consulta-contabilidades div input {
-      height: 2rem;
-    }
-  </style>
 </div>

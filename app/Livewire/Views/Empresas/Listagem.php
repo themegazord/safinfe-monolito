@@ -2,46 +2,49 @@
 
 namespace App\Livewire\Views\Empresas;
 
-use App\Repositories\Eloquent\Repository\EmpresaRepository;
+use App\Models\Empresa;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\Features\SupportRedirects\Redirector;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
+use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination;
+  use WithPagination, WithoutUrlPagination, Toast;
 
   public LengthAwarePaginator $empresas;
+  public ?Empresa $empresaAtual = null;
   public string $consulta = '';
+  public int $porPagina = 10;
+  public bool $modalConfirmandoRemocaoEmpresa = false;
 
   #[Layout('components.layouts.main')]
   #[Title('SAFI NFE - Listagem de Empresas')]
-  public function render(EmpresaRepository $empresaRepository)
+  public function render()
   {
-    $empresas = $empresaRepository->paginacaoEmpresas(10, $this->consulta);
-    return view('livewire.views.empresas.listagem', [
-      'listagem' => compact('empresas')
-    ]);
+    return view('livewire.views.empresas.listagem');
   }
 
   public function irCadastrar(): void {
     redirect('/empresas/cadastro');
   }
 
-  #[On('excluir-empresa')]
-  public function excluirEmpresa(int $empresa_id, EmpresaRepository $empresaRepository): void {
-    $empresa = $empresaRepository->consultaEmpresa($empresa_id);
-    $empresa->endereco()->first()->delete();
-    $empresa->delete();
+  public function excluirEmpresa(): void {
+    $this->empresaAtual->endereco()->first()->delete();
+    $this->empresaAtual->delete();
 
-    Session::flash('sucesso', 'Empresa removida com sucesso');
-    redirect('/empresas');
+    $this->success('Empresa removida com sucesso.');
+    $this->modalConfirmandoRemocaoEmpresa = false;
+  }
+
+  public function setRemocaoEmpresa(?int $empresa_id): void {
+    $this->empresaAtual = Empresa::find($empresa_id);
+    $this->modalConfirmandoRemocaoEmpresa = true;
   }
 
   public function irEdicaoEmpresa(int $empresa_id): Redirector|RedirectResponse {

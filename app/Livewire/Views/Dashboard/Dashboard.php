@@ -3,6 +3,8 @@
 namespace App\Livewire\Views\Dashboard;
 
 use App\Models\User;
+use App\Models\XML;
+use Carbon\Carbon;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\XMLRepository;
@@ -12,9 +14,12 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class Dashboard extends Component
 {
+  use Toast;
+
   public User|Authenticatable $usuario;
   public ?Collection $empresasContador = null;
   public ?Collection $empresasGeral = null;
@@ -22,6 +27,7 @@ class Dashboard extends Component
   public ?Collection $XMLs = null;
   public ?array $consulta = [
     'empresa_id' => null,
+    'data_inicio_fim' => null,
     'data_inicio' => null,
     'data_fim' => null,
     'modelo' => 'TODAS',
@@ -70,14 +76,19 @@ class Dashboard extends Component
   {
     $this->zeraInformacoesRelatorios();
 
-    $this->consulta['data_inicio'] = date('Y/m/d', strtotime($this->consulta['data_inicio']));
-    $this->consulta['data_fim'] = date('Y/m/d', strtotime($this->consulta['data_fim']));
+    $this->consulta['data_inicio'] = date('Y/m/d', strtotime(explode(' até ', $this->consulta['data_inicio_fim'])[0]));
+    $this->consulta['data_fim'] = date('Y/m/d', strtotime(explode(' até ', $this->consulta['data_inicio_fim'])[1]));
 
     $this->dadosXML = $dadosXMLRepository->preConsultaDadosXML($this->consulta, $this->consulta['empresa_id'])->orderBy('dx1.numeronf')->get();
-    $this->XMLs = collect();
-    foreach ($this->dadosXML as $xml) {
-      $this->XMLs->add($xmlRepository->consultaPorId($xml->xml_id)->getAttribute('xml'));
+
+    if ($this->dadosXML->isEmpty()) {
+      $this->warning(title: 'Não foi encontrado notas nesse periodo');
+      return;
     }
+
+    $xmlIds = $this->dadosXML->pluck('xml_id');
+
+    $this->XMLs = XML::whereIn('xml_id', $xmlIds)->pluck('xml');
 
 
     $this->montaTopProdutosVendidos();
@@ -87,24 +98,31 @@ class Dashboard extends Component
 
   public function montaInformacoesDeValoresNota(): void
   {
-    if (!is_null($this->XMLs)) {
-      $informacoes = [
-        'Totais das notas' => 0,
-        'Total de ICMS das notas' => 0,
-        'Total de ICMS ST das notas' => 0,
-        'Valor total do PIS' => 0,
-        'Valor total do COFINS' => 0,
-      ];
-      foreach ($this->XMLs as $xml) {
-        $informacoes['Totais das notas'] += (float)simplexml_load_string($xml)->NFe[0]->infNFe[0]->total[0]->ICMSTot[0]->vNF[0]->__toString();
-        $informacoes['Total de ICMS das notas'] += (float)simplexml_load_string($xml)->NFe[0]->infNFe[0]->total[0]->ICMSTot[0]->vICMS[0]->__toString();
-        $informacoes['Total de ICMS ST das notas'] += (float)simplexml_load_string($xml)->NFe[0]->infNFe[0]->total[0]->ICMSTot[0]->vST[0]->__toString();
-        $informacoes['Valor total do PIS'] += (float)simplexml_load_string($xml)->NFe[0]->infNFe[0]->total[0]->ICMSTot[0]->vPIS[0]->__toString();
-        $informacoes['Valor total do COFINS'] += (float)simplexml_load_string($xml)->NFe[0]->infNFe[0]->total[0]->ICMSTot[0]->vCOFINS[0]->__toString();
-      }
-      $this->informacoesTotaisNotas = $informacoes;
+    if (is_null($this->XMLs)) {
+      return;
     }
+
+    $totais = [
+      'Totais das notas' => 0,
+      'Total de ICMS das notas' => 0,
+      'Total de ICMS ST das notas' => 0,
+      'Valor total do PIS' => 0,
+      'Valor total do COFINS' => 0,
+    ];
+
+    foreach ($this->XMLs as $xml) {
+      $totaisNota = simplexml_load_string($xml)->NFe[0]->infNFe[0]->total[0]->ICMSTot[0];
+
+      $totais['Totais das notas'] += (float) $totaisNota->vNF ?? 0;
+      $totais['Total de ICMS das notas'] += (float) $totaisNota->vICMS ?? 0;
+      $totais['Total de ICMS ST das notas'] += (float) $totaisNota->vST ?? 0;
+      $totais['Valor total do PIS'] += (float) $totaisNota->vPIS ?? 0;
+      $totais['Valor total do COFINS'] += (float) $totaisNota->vCOFINS ?? 0;
+    }
+
+    $this->informacoesTotaisNotas = $totais;
   }
+
 
   public function montaTotalVendasPorDia(XMLRepository $xmlRepository): void
   {
@@ -120,58 +138,69 @@ class Dashboard extends Component
 
   public function montaTopProdutosVendidos(): void
   {
-    if (!is_null($this->XMLs)) {
-      foreach ($this->XMLs as $xml) {
-        $det = simplexml_load_string($xml)->NFe[0]->infNFe[0]->det[0];
-        if (count(simplexml_load_string($xml)->NFe[0]->infNFe[0]->det) > 1) {
-          foreach (simplexml_load_string($xml)->NFe[0]->infNFe[0]->det as $detalhe) {
-            if (!isset($this->topProdutosVendidos[$detalhe->prod[0]->xProd[0]->__toString()])) {
-              $this->topProdutosVendidos[$detalhe->prod[0]->xProd[0]->__toString()]['Nome Produto'] = $detalhe->prod[0]->xProd[0]->__toString();
-              $this->topProdutosVendidos[$detalhe->prod[0]->xProd[0]->__toString()]['Valor Total'] = 0;
-              $this->topProdutosVendidos[$detalhe->prod[0]->xProd[0]->__toString()]['Quantidade'] = 0;
-            }
-            $this->topProdutosVendidos[$detalhe->prod[0]->xProd[0]->__toString()]['Valor Total'] = $detalhe->prod[0]->vProd[0]->__toString();
-            $this->topProdutosVendidos[$detalhe->prod[0]->xProd[0]->__toString()]['Quantidade'] = $detalhe->prod[0]->qTrib[0]->__toString();
-          }
-        } else {
-          if (!isset($this->topProdutosVendidos[$det->prod[0]->xProd[0]->__toString()])) {
-            $this->topProdutosVendidos[$det->prod[0]->xProd[0]->__toString()]['Nome Produto'] = $det->prod[0]->xProd[0]->__toString();
-            $this->topProdutosVendidos[$det->prod[0]->xProd[0]->__toString()]['Valor Total'] = 0;
-            $this->topProdutosVendidos[$det->prod[0]->xProd[0]->__toString()]['Quantidade'] = 0;
-          }
-          $this->topProdutosVendidos[$det->prod[0]->xProd[0]->__toString()]['Valor Total'] = $det->prod[0]->vProd[0]->__toString();
-          $this->topProdutosVendidos[$det->prod[0]->xProd[0]->__toString()]['Quantidade'] = $det->prod[0]->qTrib[0]->__toString();
+    if (is_null($this->XMLs)) return;
+
+    $produtos = [];
+
+    foreach ($this->XMLs as $xml) {
+      $xmlObj = simplexml_load_string($xml);
+
+      // Suporte para XML com estrutura padrão
+      if (!isset($xmlObj->NFe[0]->infNFe[0]->det)) continue;
+
+      $detalhes = $xmlObj->NFe[0]->infNFe[0]->det;
+
+      foreach ($detalhes as $detalhe) {
+        $nomeProduto = (string) $detalhe->prod->xProd;
+        $valor = (float) $detalhe->prod->vProd;
+        $quantidade = (float) $detalhe->prod->qTrib;
+
+        if (!isset($produtos[$nomeProduto])) {
+          $produtos[$nomeProduto] = [
+            'Nome Produto' => $nomeProduto,
+            'Valor Total' => 0,
+            'Quantidade' => 0,
+          ];
         }
+
+        $produtos[$nomeProduto]['Valor Total'] += $valor;
+        $produtos[$nomeProduto]['Quantidade'] += $quantidade;
       }
-
-      usort($this->topProdutosVendidos, function ($a, $b) {
-        return $b['Quantidade'] <=> $a['Quantidade']; // Para ordem decrescente, use $b e $a
-      });
-
-      $this->topProdutosVendidos = array_slice($this->topProdutosVendidos, 0, 10);
     }
+
+    // Ordena pela quantidade em ordem decrescente
+    usort($produtos, fn($a, $b) => $b['Quantidade'] <=> $a['Quantidade']);
+
+    // Pega os 10 primeiros
+    $this->topProdutosVendidos = array_slice($produtos, 0, 10);
   }
 
   private function notasPorDia(): Collection
   {
-    if (!is_null($this->dadosXML)) {
-      $notasPorData = collect();
-      for ($data = 1; $data <= date('t', strtotime($this->consulta['data_inicio'])); $data += 1) {
-        $dataFormatado = str_pad($data, 2, '0', STR_PAD_LEFT);
-        $notasPorData->put(date("Y/m/$dataFormatado", strtotime($this->consulta['data_inicio'])), $this->dadosXML->filter(function ($dado) use ($dataFormatado) {
-          return date('Y/m/d', strtotime($dado->dh_emissao_evento)) === date("Y/m/$dataFormatado", strtotime($this->consulta['data_inicio']));
-        }));
-      }
-      $notasPorData = $notasPorData->filter(fn($data) => $data->isNotEmpty());
-      return $notasPorData;
+    if (is_null($this->dadosXML)) {
+      return collect();
     }
-    return collect();
+
+    $inicio = Carbon::parse($this->consulta['data_inicio']);
+    $diasDoMes = $inicio->daysInMonth;
+
+    return collect(range(1, $diasDoMes))
+      ->mapWithKeys(function ($dia) use ($inicio) {
+        $data = $inicio->copy()->day($dia)->format('Y/m/d');
+
+        $notasDoDia = $this->dadosXML->filter(function ($dado) use ($data) {
+          return date('Y/m/d', strtotime($dado->dh_emissao_evento)) === $data;
+        });
+
+        return $notasDoDia->isNotEmpty() ? [$data => $notasDoDia] : [];
+      });
   }
+
 
   private function zeraInformacoesRelatorios(): void
   {
-    $this->informacoesTotaisNotas = null;
-    $this->totalNotasPorDiaMes = null;
-    $this->topProdutosVendidos = null;
+    foreach (['informacoesTotaisNotas', 'totalNotasPorDiaMes', 'topProdutosVendidos'] as $propriedade) {
+      $this->{$propriedade} = null;
+    }
   }
 }

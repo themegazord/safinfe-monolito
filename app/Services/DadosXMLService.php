@@ -6,7 +6,9 @@ use App\Models\Empresa;
 use App\Repositories\Interface\IDadosXML;
 use App\Repositories\Interface\IEmpresa;
 use DateTime;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class DadosXMLService
 {
@@ -18,50 +20,62 @@ class DadosXMLService
   public function cadastro(string $arquivo, string $idXML, string $cnpj): void
   {
     $infNFe = simplexml_load_string($arquivo)->NFe[0]->infNFe[0];
-    $this->dadosXMLRepository->cadastro(
-      $this->trataDadosXML(
-        chaveNota: $infNFe->attributes()['Id'],
-        status: 'AUTORIZADO',
-        idXML: $idXML,
-        empresa: $this->empresaRepository->consultaEmpresaPorCNPJ($cnpj),
-        dhEmissao: new DateTime((string)$infNFe->ide[0]->dhEmi),
-        ide: $infNFe->ide
-      )
-    );
+    try {
+      $this->dadosXMLRepository->cadastro(
+        $this->trataDadosXML(
+          chaveNota: $infNFe->attributes()['Id'],
+          status: 'AUTORIZADO',
+          idXML: $idXML,
+          empresa: $this->empresaRepository->consultaEmpresaPorCNPJ($cnpj),
+          dhEmissao: new DateTime((string)$infNFe->ide[0]->dhEmi),
+          ide: $infNFe->ide
+        )
+      );
+    } catch (Exception $e) {
+      Log::warning("Erro ao cadastrar dados do xml: {$infNFe->attributes()['Id']}");
+    }
   }
 
   public function cadastroCancelado(string $arquivo, string $idXML, string $cnpj): void
   {
     $xml = simplexml_load_string($arquivo);
-    $this->dadosXMLRepository->cadastro(
-      $this->trataDadosXMLEventoCancelamento(
-        chaveNota: (string)$xml->evento[0]->infEvento[0]->chNFe[0],
-        status: 'CANCELADO',
-        xml_id: $idXML,
-        justificativa: (string)$xml->evento[0]->infEvento[0]->detEvento[0]->xJust,
-        empresa: $this->empresaRepository->consultaEmpresaPorCNPJ($cnpj),
-        dhEvento: new DateTime($xml->evento[0]->infEvento[0]->dhEvento)
-      )
-    );
+    try {
+      $this->dadosXMLRepository->cadastro(
+        $this->trataDadosXMLEventoCancelamento(
+          chaveNota: (string)$xml->evento[0]->infEvento[0]->chNFe[0],
+          status: 'CANCELADO',
+          xml_id: $idXML,
+          justificativa: (string)$xml->evento[0]->infEvento[0]->detEvento[0]->xJust,
+          empresa: $this->empresaRepository->consultaEmpresaPorCNPJ($cnpj),
+          dhEvento: new DateTime($xml->evento[0]->infEvento[0]->dhEvento)
+        )
+      );
+    } catch (Exception $e) {
+      Log::warning("Erro ao cadastrar dados do xml cancelado: {(string)$xml->evento[0]->infEvento[0]->chNFe[0]}");
+    }
   }
 
   public function cadastroInutilizado(string $arquivo, string $xml_id, string $cnpj, string $nomeArquivo): void
   {
     $xml = simplexml_load_string($arquivo);
-    $this->dadosXMLRepository->cadastro(
-      $this->trataDadosXMLEventoInutilizacao(
-        chaveNota: str_replace('-', '', filter_var($nomeArquivo, FILTER_SANITIZE_NUMBER_INT)),
-        status: 'INUTILIZADO',
-        xml_id: $xml_id,
-        modelo: (string)$xml->retInutNFe[0]->infInut[0]->mod,
-        serie: (string)$xml->retInutNFe[0]->infInut[0]->serie,
-        numeronf: (string)$xml->retInutNFe[0]->infInut[0]->nNFIni,
-        numeronf_final: (string)$xml->retInutNFe[0]->infInut[0]->nNFFin,
-        justificativa: (string)$xml->inutNFe[0]->infInut[0]->xJust,
-        empresa: $this->empresaRepository->consultaEmpresaPorCNPJ($cnpj),
-        dhEvento: new DateTime((string)$xml->retInutNFe[0]->infInut[0]->dhRecbto)
-      )
-    );
+    try {
+      $this->dadosXMLRepository->cadastro(
+        $this->trataDadosXMLEventoInutilizacao(
+          chaveNota: str_replace('-', '', filter_var($nomeArquivo, FILTER_SANITIZE_NUMBER_INT)),
+          status: 'INUTILIZADO',
+          xml_id: $xml_id,
+          modelo: (string)$xml->retInutNFe[0]->infInut[0]->mod,
+          serie: (string)$xml->retInutNFe[0]->infInut[0]->serie,
+          numeronf: (string)$xml->retInutNFe[0]->infInut[0]->nNFIni,
+          numeronf_final: (string)$xml->retInutNFe[0]->infInut[0]->nNFFin,
+          justificativa: (string)$xml->inutNFe[0]->infInut[0]->xJust,
+          empresa: $this->empresaRepository->consultaEmpresaPorCNPJ($cnpj),
+          dhEvento: new DateTime((string)$xml->retInutNFe[0]->infInut[0]->dhRecbto)
+        )
+      );
+    } catch (Exception $e) {
+      Log::warning("Erro ao cadastrar dados do xml cancelado: {str_replace('-', '', filter_var($nomeArquivo, FILTER_SANITIZE_NUMBER_INT))}");
+    }
   }
 
   public function consultaDadosXMLPorChave(string $chave): ?Model {
