@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Empresa;
 use App\Services\DadosXMLService;
 use App\Services\XMLService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -19,6 +20,7 @@ class ImportaXMLsJob implements ShouldQueue
   use Queueable, Toast;
 
   protected ?int $usuario_id = null;
+  public Empresa $empresa;
   public string $xmlNomeAtual = '';
   /**
    * Create a new job instance.
@@ -26,6 +28,7 @@ class ImportaXMLsJob implements ShouldQueue
   public function __construct(protected string $pathArquivo, protected int $empresa_id)
   {
     $this->usuario_id = Auth::user()->id;
+    $this->empresa = Empresa::find($empresa_id);
   }
 
   /**
@@ -77,20 +80,20 @@ class ImportaXMLsJob implements ShouldQueue
     if (str_contains($this->xmlNomeAtual, 'ProcNfe')) {
       if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'AUTORIZADO') {
         $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastro($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->empresa_id);
+        $dadosXMLService->cadastro($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->empresa->cnpj);
       }
     }
 
     if (str_contains($this->xmlNomeAtual, 'Can')) {
       if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'CANCELADO') {
         $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastroCancelado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->empresa_id);
+        $dadosXMLService->cadastroCancelado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->empresa->cnpj);
       }
     }
     if (str_contains($this->xmlNomeAtual, 'inu')) {
       if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'INUTILIZADO') {
         $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastroInutilizado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->empresa_id, $this->xmlNomeAtual);
+        $dadosXMLService->cadastroInutilizado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->empresa->cnpj, $this->xmlNomeAtual);
       }
     }
 
