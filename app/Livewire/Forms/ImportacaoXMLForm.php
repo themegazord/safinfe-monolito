@@ -6,13 +6,13 @@ use Livewire\Attributes\Validate;
 use Livewire\Form;
 
 #[Validate(rule: [
-  'empresa_id' => 'required',
+  'cnpj' => 'required',
   'arquivo' => 'required'
 ], message: [
   'required' => 'Campo obrigatorio.',
 ])]
 class ImportacaoXMLForm extends Form
 {
-  public ?string $empresa_id = null;
+  public ?string $cnpj = null;
   public $arquivo;
 }

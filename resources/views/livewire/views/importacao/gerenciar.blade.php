@@ -5,7 +5,7 @@
     <x-tab name="importacaoXML-tab" label="Importação de XML" icon="o-document-arrow-down">
       <form wire:submit.prevent="importacaoXML">
         <div class="flex flex-col sm:grid sm:grid-cols-3 gap-4">
-          <x-select class="cols-span-2" label="Selecione a empresa que vai receber os XMLS" wire:model="importacaoXMLForm.empresa_id" :options="$empresas" option-value="cnpj" option-label="fantasia" />
+          <x-select class="cols-span-2" label="Selecione a empresa que vai receber os XMLS" wire:model="importacaoXMLForm.cnpj" :options="$empresas" option-value="cnpj" option-label="fantasia" />
 
           <x-file class="cols-span-1" wire:model="importacaoXMLForm.arquivo" label="Seleciona o arquivo .zip com os XML's" hint="Somente .zip" accept=".zip,application/zip,application/x-zip-compressed" />
         </div>

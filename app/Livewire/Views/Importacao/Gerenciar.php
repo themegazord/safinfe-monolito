@@ -399,7 +399,7 @@ class Gerenciar extends Component
     $path = $this->importacaoXMLForm->arquivo->storeAs('public', $this->importacaoXMLForm->arquivo->getClientOriginalName());
     $realPath = storage_path('app/' . $path);
 
-    dispatch(new ImportaXMLsJob($realPath, $this->importacaoXMLForm->empresa_id));
+    dispatch(new ImportaXMLsJob($realPath, $this->importacaoXMLForm->cnpj));
 
     $this->success('Arquivo enviado');
   }
