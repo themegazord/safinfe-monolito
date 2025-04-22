@@ -14,7 +14,7 @@ use Livewire\Form;
 ])]
 class ConsultaAdminXMLForm extends Form
 {
-  public ?string $data_inicio_fim = '2024-06-01 00:00 até 2024-06-30 00:00';
+  public ?string $data_inicio_fim = null;
   public ?string $data_inicio = null;
   public ?string $data_fim = null;
   public string $status = "TODAS";
@@ -22,5 +22,5 @@ class ConsultaAdminXMLForm extends Form
   public string $modelo = "TODAS";
   public ?int $numeroInicial = null;
   public ?int $numeroFinal = null;
-  public int|string|null $empresa_id = 3;
+  public int|string|null $empresa_id = null;
 }
