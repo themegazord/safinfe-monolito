@@ -105,10 +105,11 @@
         with-pagination
         show-empty-text
         empty-text="Nenhuma nota em consulta">
+
         @scope('actions', $dado)
         <div class="flex gap-2">
           <x-button class="btn btn-ghost" icon="o-eye" wire:click="setXMLAtual({{ $dado->dados_id }})" />
-          <x-button class="btn btn-ghost" icon="o-arrow-down-tray" wire:click="downloadXMLUnico" />
+          <x-button class="btn btn-ghost" icon="o-arrow-down-tray" wire:click="downloadXMLUnico({{ $dado->dados_id }})"/>
         </div>
         @endscope
       </x-table>

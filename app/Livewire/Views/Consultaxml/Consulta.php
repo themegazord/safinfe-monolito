@@ -29,6 +29,7 @@ use App\Trait\AnaliseXML\Tributacao\AnalisaIPIXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaISSQNTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaPISSTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaPISXMLTrait;
+use Illuminate\Support\Facades\Response;
 use SimpleXMLElement;
 use ZipArchive;
 
@@ -119,6 +120,26 @@ class Consulta extends Component
       'Content-Type' => 'application/zip',
     ]);
   }
+
+  public function downloadXMLUnico(int $dado_id)
+  {
+    $dadosXML = DadosXML::where('dados_id', $dado_id)->first();
+
+    try {
+      $nomeArquivo = $dadosXML->getAttribute('chave') . '.xml';
+      $conteudo = $dadosXML->xml->xml;
+
+      return Response::streamDownload(function () use ($conteudo) {
+        echo $conteudo;
+      }, $nomeArquivo, [
+        'Content-Type' => 'application/xml',
+      ]);
+    } catch (\Exception $e) {
+      Log::error("Erro ao processar o XML ID: {$dadosXML->xml_id}, Erro: " . $e->getMessage());
+      $this->warning("Erro ao processar o XML ID: {$dadosXML->xml_id}, Erro: " . $e->getMessage());
+    }
+  }
+
 
   public function pesquisaEmpresasAdmin(?string $valor = null): Collection
   {
