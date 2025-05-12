@@ -1,7 +1,7 @@
 <div class="p-4 md:p-6">
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="flex flex-col md:grid md:grid-cols-4 gap-4 mb-8">
     @if ($usuario->getAttribute('role') === 'CONTADOR')
-    <div class="col-span-1 sm:col-span-2">
+    <div class="md:col-span-4">
       <label for="empresaContador" class="block text-sm font-medium text-gray-200 mb-1">Selecione a empresa:</label>
       <select
         wire:model="consulta.empresa_id"
@@ -16,7 +16,7 @@
     @endif
 
     @if ($usuario->getAttribute('role') === 'ADMIN')
-    <div class="col-span-1 sm:col-span-2 lg:col-span-3">
+    <div class="md:col-span-4">
       <x-select
         wire:model="consulta.empresa_id"
         label="Selecione a empresa:"
@@ -28,7 +28,7 @@
     @endif
 
     @if ($usuario->getAttribute('role') === 'CLIENTE')
-    <div class="col-span-1 sm:col-span-2">
+    <div class="md:col-span-4">
       <label for="empresaCliente" class="block text-sm font-medium text-gray-200 mb-1">Sua empresa:</label>
       <input
         type="text"
@@ -41,27 +41,53 @@
 
     @php
     $configRangeDatePicker = ['altFormat' => 'd/m/Y', 'mode' => 'range', 'locale' => 'pt'];
+    $modelos = [
+    ["id" => "TODAS", "name" => "Todas"],
+    ["id" => "55", "name" => "NF-e"],
+    ["id" => "65", "name" => "NFC-e"],
+    ];
+    $status = [
+    ["id" => "TODAS", "name" => "Todas"],
+    ["id" => "AUTORIZADO", "name" => "Autorizadas"],
+    ["id" => "CANCELADO", "name" => "Canceladas"],
+    ["id" => "INUTILIZADO", "name" => "Inutilizadas"],
+    ];
     @endphp
 
-    <div class="col-span-1 sm:col-span-2">
-      <x-datepicker
-        label="Data inicial - Data final"
-        wire:model="consulta.data_inicio_fim"
-        icon="o-calendar"
-        :config="$configRangeDatePicker" />
+    <div class="flex flex-col  md:col-span-4  md:grid md:grid-cols-4 gap-4">
+      <div class="w-full md:col-span-2 md:w-auto">
+        <x-datepicker label="Data inicio - Data fim" placeholder="Data inicio - Data fim" wire:model="consulta.data_inicio_fim" icon="o-calendar" :config="$configRangeDatePicker" inline />
+      </div>
+      <div class="w-full md:col-span-1 md:w-auto">
+        <x-input label="Série" placeholder="Insira a série das notas fiscais..." wire:model="consulta.serie" autocomplete="off" inline />
+      </div>
+      <div class="w-full md:col-span-1 md:w-auto">
+        <x-select label="Modelo" placeholder="Selecione o tipo da nota fiscal" placeholder-value="TODAS" wire:model="consulta.modelo" :options="$modelos" inline />
+      </div>
     </div>
 
-    <div class="col-span-1 flex items-end">
-      <x-button
-        wire:click="consultar"
-        label="Gerar relatório"
-        class="w-full btn btn-primary"
-        spinner="consultar" />
+    <div class="flex flex-col md:col-span-4 md:grid md:grid-cols-4 gap-4">
+      <div class="w-full md:col-span-2 md:w-auto">
+        <x-select label="Selecione o status" placeholder="Selecione o status da nota fiscal..." placeholder-value="TODAS" wire:model="consulta.status" :options="$status" inline />
+      </div>
+      <div class="w-full md:col-span-1 md:w-auto">
+        <x-input label="Numero inicial:" placeholder="Insira o número inicial a ser consultado" wire:model="consulta.numeroInicial" inline />
+      </div>
+      <div class="w-full md:col-span-1 md:w-auto">
+        <x-input label="Numero final:" placeholder="Insira o número final a ser consultado" wire:model="consulta.numeroFinal" inline />
+      </div>
     </div>
+  </div>
+  <div class="flex items-end">
+    <x-button
+      wire:click="consultar"
+      label="Gerar relatório"
+      class="w-full btn btn-primary"
+      spinner="consultar" />
   </div>
 
   @if ($dadosXML !== null)
-  <div class="w-full overflow-x-scroll">
+  <div class="mt-4 w-full overflow-x-scroll">
     <table class="w-full table table-auto border-collapse text-xs">
       <thead>
         <tr class="bg-gray-100 text-gray-700">

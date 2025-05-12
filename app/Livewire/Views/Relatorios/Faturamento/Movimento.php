@@ -7,8 +7,6 @@ use App\Models\Empresa;
 use App\Models\User;
 use App\Models\XML;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
-use App\Repositories\Eloquent\Repository\EmpresaRepository;
-use App\Repositories\Eloquent\Repository\XMLRepository;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
