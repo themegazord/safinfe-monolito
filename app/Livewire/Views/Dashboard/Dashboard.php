@@ -4,7 +4,6 @@ namespace App\Livewire\Views\Dashboard;
 
 use App\Models\User;
 use App\Models\XML;
-use Carbon\Carbon;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\XMLRepository;
@@ -15,6 +14,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Mary\Traits\Toast;
+
+use function Laravel\Prompts\table;
 
 class Dashboard extends Component
 {
@@ -90,111 +91,119 @@ class Dashboard extends Component
 
     $this->XMLs = XML::whereIn('xml_id', $xmlIds)->pluck('xml');
 
-
-    $this->montaTopProdutosVendidos();
-    $this->montaInformacoesDeValoresNota();
-    $this->montaTotalVendasPorDia($xmlRepository);
+    $this->montaFaturamentoMovimento();
+    // $this->montaTopProdutosVendidos();
+    // $this->montaInformacoesDeValoresNota();
+    // $this->montaTotalVendasPorDia($xmlRepository);
   }
 
-  public function montaInformacoesDeValoresNota(): void
+  public function montaFaturamentoMovimento(): void
   {
     if (is_null($this->XMLs)) {
       return;
     }
 
-    $totais = [
-      'Totais das notas' => 0,
-      'Total de ICMS das notas' => 0,
-      'Total de ICMS ST das notas' => 0,
-      'Valor total do PIS' => 0,
-      'Valor total do COFINS' => 0,
-    ];
-
-    foreach ($this->XMLs as $xml) {
-      $totaisNota = simplexml_load_string($xml)->NFe[0]->infNFe[0]->total[0]->ICMSTot[0];
-
-      $totais['Totais das notas'] += (float) $totaisNota->vNF ?? 0;
-      $totais['Total de ICMS das notas'] += (float) $totaisNota->vICMS ?? 0;
-      $totais['Total de ICMS ST das notas'] += (float) $totaisNota->vST ?? 0;
-      $totais['Valor total do PIS'] += (float) $totaisNota->vPIS ?? 0;
-      $totais['Valor total do COFINS'] += (float) $totaisNota->vCOFINS ?? 0;
-    }
-
-    $this->informacoesTotaisNotas = $totais;
+    dd($this->dadosXML);
   }
 
+  // public function montaInformacoesDeValoresNota(): void
+  // {
+  //   if (is_null($this->XMLs)) {
+  //     return;
+  //   }
 
-  public function montaTotalVendasPorDia(XMLRepository $xmlRepository): void
-  {
-    foreach ($this->notasPorDia() as $data => $notas) {
-      foreach ($notas as $dadoNota) {
-        if (!isset($this->totalNotasPorDiaMes[$data])) {
-          $this->totalNotasPorDiaMes[$data] = 0;
-        }
-        $this->totalNotasPorDiaMes[$data] += (float)simplexml_load_string($xmlRepository->consultaPorId($dadoNota->xml_id)->getAttribute('xml'))->NFe[0]->infNFe[0]->total[0]->ICMSTot[0]->vNF[0]->__toString();
-      }
-    }
-  }
+  //   $totais = [
+  //     'Totais das notas' => 0,
+  //     'Total de ICMS das notas' => 0,
+  //     'Total de ICMS ST das notas' => 0,
+  //     'Valor total do PIS' => 0,
+  //     'Valor total do COFINS' => 0,
+  //   ];
 
-  public function montaTopProdutosVendidos(): void
-  {
-    if (is_null($this->XMLs)) return;
+  //   foreach ($this->XMLs as $xml) {
+  //     $totaisNota = simplexml_load_string($xml)->NFe[0]->infNFe[0]->total[0]->ICMSTot[0];
 
-    $produtos = [];
+  //     $totais['Totais das notas'] += (float) $totaisNota->vNF ?? 0;
+  //     $totais['Total de ICMS das notas'] += (float) $totaisNota->vICMS ?? 0;
+  //     $totais['Total de ICMS ST das notas'] += (float) $totaisNota->vST ?? 0;
+  //     $totais['Valor total do PIS'] += (float) $totaisNota->vPIS ?? 0;
+  //     $totais['Valor total do COFINS'] += (float) $totaisNota->vCOFINS ?? 0;
+  //   }
 
-    foreach ($this->XMLs as $xml) {
-      $xmlObj = simplexml_load_string($xml);
+  //   $this->informacoesTotaisNotas = $totais;
+  // }
 
-      // Suporte para XML com estrutura padrão
-      if (!isset($xmlObj->NFe[0]->infNFe[0]->det)) continue;
+  // public function montaTotalVendasPorDia(XMLRepository $xmlRepository): void
+  // {
+  //   foreach ($this->notasPorDia() as $data => $notas) {
+  //     foreach ($notas as $dadoNota) {
+  //       if (!isset($this->totalNotasPorDiaMes[$data])) {
+  //         $this->totalNotasPorDiaMes[$data] = 0;
+  //       }
+  //       $this->totalNotasPorDiaMes[$data] += (float)simplexml_load_string($xmlRepository->consultaPorId($dadoNota->xml_id)->getAttribute('xml'))->NFe[0]->infNFe[0]->total[0]->ICMSTot[0]->vNF[0]->__toString();
+  //     }
+  //   }
+  // }
 
-      $detalhes = $xmlObj->NFe[0]->infNFe[0]->det;
+  // public function montaTopProdutosVendidos(): void
+  // {
+  //   if (is_null($this->XMLs)) return;
 
-      foreach ($detalhes as $detalhe) {
-        $nomeProduto = (string) $detalhe->prod->xProd;
-        $valor = (float) $detalhe->prod->vProd;
-        $quantidade = (float) $detalhe->prod->qTrib;
+  //   $produtos = [];
 
-        if (!isset($produtos[$nomeProduto])) {
-          $produtos[$nomeProduto] = [
-            'Nome Produto' => $nomeProduto,
-            'Valor Total' => 0,
-            'Quantidade' => 0,
-          ];
-        }
+  //   foreach ($this->XMLs as $xml) {
+  //     $xmlObj = simplexml_load_string($xml);
 
-        $produtos[$nomeProduto]['Valor Total'] += $valor;
-        $produtos[$nomeProduto]['Quantidade'] += $quantidade;
-      }
-    }
+  //     // Suporte para XML com estrutura padrão
+  //     if (!isset($xmlObj->NFe[0]->infNFe[0]->det)) continue;
 
-    // Ordena pela quantidade em ordem decrescente
-    usort($produtos, fn($a, $b) => $b['Quantidade'] <=> $a['Quantidade']);
+  //     $detalhes = $xmlObj->NFe[0]->infNFe[0]->det;
 
-    // Pega os 10 primeiros
-    $this->topProdutosVendidos = array_slice($produtos, 0, 10);
-  }
+  //     foreach ($detalhes as $detalhe) {
+  //       $nomeProduto = (string) $detalhe->prod->xProd;
+  //       $valor = (float) $detalhe->prod->vProd;
+  //       $quantidade = (float) $detalhe->prod->qTrib;
 
-  private function notasPorDia(): Collection
-  {
-    if (is_null($this->dadosXML)) {
-      return collect();
-    }
+  //       if (!isset($produtos[$nomeProduto])) {
+  //         $produtos[$nomeProduto] = [
+  //           'Nome Produto' => $nomeProduto,
+  //           'Valor Total' => 0,
+  //           'Quantidade' => 0,
+  //         ];
+  //       }
 
-    $inicio = Carbon::parse($this->consulta['data_inicio']);
-    $diasDoMes = $inicio->daysInMonth;
+  //       $produtos[$nomeProduto]['Valor Total'] += $valor;
+  //       $produtos[$nomeProduto]['Quantidade'] += $quantidade;
+  //     }
+  //   }
 
-    return collect(range(1, $diasDoMes))
-      ->mapWithKeys(function ($dia) use ($inicio) {
-        $data = $inicio->copy()->day($dia)->format('Y/m/d');
+  //   // Ordena pela quantidade em ordem decrescente
+  //   usort($produtos, fn($a, $b) => $b['Quantidade'] <=> $a['Quantidade']);
 
-        $notasDoDia = $this->dadosXML->filter(function ($dado) use ($data) {
-          return date('Y/m/d', strtotime($dado->dh_emissao_evento)) === $data;
-        });
+  //   // Pega os 10 primeiros
+  //   $this->topProdutosVendidos = array_slice($produtos, 0, 10);
+  // }
 
-        return $notasDoDia->isNotEmpty() ? [$data => $notasDoDia] : [];
-      });
-  }
+  // private function notasPorDia(): Collection
+  // {
+  //   if (is_null($this->dadosXML)) {
+  //     return collect();
+  //   }
+
+  //   $inicio = Carbon::parse($this->consulta['data_inicio']);
+  //   $diasDoMes = $inicio->daysInMonth;
+
+  //   return collect(range(1, $diasDoMes))
+  //     ->mapWithKeys(function ($dia) use ($inicio) {
+  //       $data = $inicio->copy()->day($dia)->format('Y/m/d');
+
+  //       $notasDoDia = $this->dadosXML->filter(function ($dado) use ($data) {
+  //         return date('Y/m/d', strtotime($dado->dh_emissao_evento)) === $data;
+  //       });
+
+  //       return $notasDoDia->isNotEmpty() ? [$data => $notasDoDia] : [];
+  //     });
+  // }
 
 
   private function zeraInformacoesRelatorios(): void

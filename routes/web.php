@@ -46,6 +46,11 @@ Route::middleware('auth')->group(function () {
       Route::get('/listagemerros', \App\Livewire\Views\Importacao\ListagemErros::class);
     });
   });
+  Route::prefix('relatorios')->group(function () {
+    Route::prefix('faturamento')->group(function () {
+      Route::get('movimento', \App\Livewire\Views\Relatorios\Faturamento\Movimento::class)->name('relatorios.faturamento.movimento');
+    });
+  });
   Route::prefix('versionamento')->group(function () {
     Route::get('/', \App\Livewire\Views\Versionamento\Listagem::class)->name('versionamento');
     Route::get('/cadastro', \App\Livewire\Views\Versionamento\Cadastro::class);

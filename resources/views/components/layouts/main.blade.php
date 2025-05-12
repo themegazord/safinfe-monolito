@@ -56,6 +56,12 @@
         <x-menu-item title="Consulta de XML" icon="o-magnifying-glass" link="{{ route('consultaxml') }}" no-wire-navigate />
         <x-menu-item title="Versionamento" icon="o-clock" link="{{ route('versionamento') }}" no-wire-navigate />
 
+        <x-menu-sub title="Relatórios" icon="o-book-open">
+          <x-menu-sub title="Faturamento" icon="o-document-currency-dollar">
+            <x-menu-item title="Movimento" link="{{ route('relatorios.faturamento.movimento') }}" no-wire-navigate/>
+          </x-menu-sub>
+        </x-menu-sub>
+
 
         <!-- Botão de logout -->
 
