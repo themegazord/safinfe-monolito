@@ -30,6 +30,7 @@ use App\Trait\AnaliseXML\Tributacao\AnalisaISSQNTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaPISSTXMLTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaPISXMLTrait;
 use Illuminate\Support\Facades\Response;
+use Livewire\WithoutUrlPagination;
 use SimpleXMLElement;
 use ZipArchive;
 
@@ -77,6 +78,7 @@ class Consulta extends Component
   #[On('envia-consulta')]
   public function consulta(array $params): void
   {
+    $this->resetPage();
     $this->dadosXML = $params;
   }
 
