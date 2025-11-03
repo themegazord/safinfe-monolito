@@ -10,23 +10,25 @@ use Livewire\Component;
 
 class Login extends Component
 {
-  public LoginForm $login;
-  public bool $lembraSenha = false;
+    public LoginForm $login;
 
-  #[Layout('components.layouts.autenticacao')]
-  #[Title('SAFI NFE - Login')]
-  public function render()
-  {
-    return view('livewire.views.autenticacao.login');
-  }
+    public bool $lembraSenha = false;
 
-  public function logar(): void {
-    $this->login->validate();
-    if (Auth::attempt($this->login->all(), $this->lembraSenha)) {
-      Auth::login(Auth::user(), $this->lembraSenha);
-      redirect('/dashboard');
-    } else {
-      $this->addError('login.email', 'Email ou senha inválidos');
+    #[Layout('components.layouts.autenticacao')]
+    #[Title('SAFI NFE - Login')]
+    public function render()
+    {
+        return view('livewire.views.autenticacao.login');
     }
-  }
+
+    public function logar(): void
+    {
+        $this->login->validate();
+        if (Auth::attempt($this->login->all(), $this->lembraSenha)) {
+            Auth::login(Auth::user(), $this->lembraSenha);
+            redirect('/dashboard');
+        } else {
+            $this->addError('login.email', 'Email ou senha inválidos');
+        }
+    }
 }

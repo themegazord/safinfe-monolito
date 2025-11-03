@@ -13,39 +13,47 @@ use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination, WithoutUrlPagination, Toast;
-  public ?string $consulta = null;
-  public int $porPagina = 10;
-  public ?Contabilidade $contabilidadeAtual;
-  public bool $modalConfirmandoRemocaoContabilidade = false;
+    use Toast, WithoutUrlPagination, WithPagination;
 
-  #[Title("SAFI NFE - Listagem de Contabilidades")]
-  #[Layout("components.layouts.main")]
-  public function render(ContabilidadeRepository $contabilidadeRepository)
-  {
-    return view('livewire.views.contabilidades.listagem');
-  }
+    public ?string $consulta = null;
 
-  public function irCadastrar(): void {
-    redirect("/contabilidades/cadastro");
-  }
+    public int $porPagina = 10;
 
-  public function irEdicaoContabilidade(int $contabilidade_id): void {
-    redirect("/contabilidades/edicao/{$contabilidade_id}");
-  }
+    public ?Contabilidade $contabilidadeAtual;
 
-  public function setRemocaoContabilidade(int $contabilidade_id): void {
-    $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
-    $this->modalConfirmandoRemocaoContabilidade = true;
-  }
+    public bool $modalConfirmandoRemocaoContabilidade = false;
 
-  public function excluirContabilidade(): void {
-    if (is_null($this->contabilidadeAtual)) {
-      $this->error('Contabilidade inexistente.');
+    #[Title('SAFI NFE - Listagem de Contabilidades')]
+    #[Layout('components.layouts.main')]
+    public function render(ContabilidadeRepository $contabilidadeRepository)
+    {
+        return view('livewire.views.contabilidades.listagem');
     }
-    $this->contabilidadeAtual->delete();
-    $this->contabilidadeAtual->endereco()->first()->delete();
-    $this->modalConfirmandoRemocaoContabilidade = false;
-    $this->success('Contabilidade removida com sucesso');
-  }
+
+    public function irCadastrar(): void
+    {
+        redirect('/contabilidades/cadastro');
+    }
+
+    public function irEdicaoContabilidade(int $contabilidade_id): void
+    {
+        redirect("/contabilidades/edicao/{$contabilidade_id}");
+    }
+
+    public function setRemocaoContabilidade(int $contabilidade_id): void
+    {
+        $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+        $this->modalConfirmandoRemocaoContabilidade = true;
+    }
+
+    public function excluirContabilidade(): void
+    {
+        if (is_null($this->contabilidadeAtual)) {
+            $this->error('Contabilidade inexistente.');
+        }
+        $this->contabilidadeAtual->delete();
+        $this->contabilidadeAtual->endereco()->first()->delete();
+        $this->modalConfirmandoRemocaoContabilidade = false;
+        $this->success('Contabilidade removida com sucesso');
+    }
 }

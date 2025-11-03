@@ -14,39 +14,46 @@ use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
-  use Toast;
+    use Toast;
 
-  public EnderecoForm $endereco;
-  public EmpresaForm $empresa;
+    public EnderecoForm $endereco;
 
-  #[Layout('components.layouts.main')]
-  #[Title('SAFI NFE - Cadastro de Empresas')]
-  public function render()
-  {
-    return view('livewire.views.empresas.cadastro');
-  }
+    public EmpresaForm $empresa;
 
-  public function voltar(): void {
-    redirect('/empresas');
-  }
+    #[Layout('components.layouts.main')]
+    #[Title('SAFI NFE - Cadastro de Empresas')]
+    public function render()
+    {
+        return view('livewire.views.empresas.cadastro');
+    }
 
-  public function cadastrar(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository) {
-    $this->endereco->tratarCamposSujos();
+    public function voltar(): void
+    {
+        redirect('/empresas');
+    }
 
-    if (!is_null(DB::table('empresas')->where('cnpj', $this->empresa->cnpj)->first())) return $this->addError('empresa.cnpj', 'CNPJ já existente.');
-    if (!is_null(DB::table('empresas')->where('ie', $this->empresa->ie)->first())) return $this->addError('empresa.ie', 'IE já existente.');
+    public function cadastrar(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository)
+    {
+        $this->endereco->tratarCamposSujos();
 
-    $this->endereco->validate();
+        if (! is_null(DB::table('empresas')->where('cnpj', $this->empresa->cnpj)->first())) {
+            return $this->addError('empresa.cnpj', 'CNPJ já existente.');
+        }
+        if (! is_null(DB::table('empresas')->where('ie', $this->empresa->ie)->first())) {
+            return $this->addError('empresa.ie', 'IE já existente.');
+        }
 
-    $endereco_cadastrado = $enderecoRepository->cadastraEndereco($this->endereco->all());
+        $this->endereco->validate();
 
-    $this->empresa->tratarCamposSujos();
-    $this->empresa->validate();
+        $endereco_cadastrado = $enderecoRepository->cadastraEndereco($this->endereco->all());
 
-    $this->empresa->endereco_id = $endereco_cadastrado->getAttribute('endereco_id');
+        $this->empresa->tratarCamposSujos();
+        $this->empresa->validate();
 
-    $empresaRepository->cadastroEmpresa($this->empresa->all());
+        $this->empresa->endereco_id = $endereco_cadastrado->getAttribute('endereco_id');
 
-    $this->success('Empresa cadastrada com sucesso.', redirectTo: route('empresas'));
-  }
+        $empresaRepository->cadastroEmpresa($this->empresa->all());
+
+        $this->success('Empresa cadastrada com sucesso.', redirectTo: route('empresas'));
+    }
 }

@@ -10,16 +10,16 @@ use Livewire\Component;
 
 class Valorestotaismensais extends Component
 {
-  public array $informacoesTotaisNotas = [];
+    public array $informacoesTotaisNotas = [];
 
-  public function mount(array $dados): void
-  {
-    $this->informacoesTotaisNotas = $dados;
-  }
+    public function mount(array $dados): void
+    {
+        $this->informacoesTotaisNotas = $dados;
+    }
 
-  public function render()
-  {
-    return <<<'HTML'
+    public function render()
+    {
+        return <<<'HTML'
     <div class="flex flex-col lg:flex-row gap-4">
       <x-stat
         class="bg-base-300"
@@ -63,14 +63,15 @@ class Valorestotaismensais extends Component
 
     </div>
     HTML;
-  }
+    }
 
-  #[Computed()]
-  public function formataValoresMonetarios(float $valor, string $moeda): string
-  {
-    $fmtRepo = new NumberFormatRepository();
-    $moedaRepo = new CurrencyRepository();
-    $fmt = new CurrencyFormatter($fmtRepo, $moedaRepo);
-    return $fmt->format($valor, $moeda);
-  }
+    #[Computed()]
+    public function formataValoresMonetarios(float $valor, string $moeda): string
+    {
+        $fmtRepo = new NumberFormatRepository;
+        $moedaRepo = new CurrencyRepository;
+        $fmt = new CurrencyFormatter($fmtRepo, $moedaRepo);
+
+        return $fmt->format($valor, $moeda);
+    }
 }

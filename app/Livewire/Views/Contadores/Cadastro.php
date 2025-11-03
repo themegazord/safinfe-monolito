@@ -15,53 +15,64 @@ use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
-  use Toast;
+    use Toast;
 
-  public ContadorForm $contador;
-  public UsuarioForm $usuario;
-  public Collection $contabilidades;
+    public ContadorForm $contador;
 
-  public function mount(): void {
-    $this->search();
-  }
+    public UsuarioForm $usuario;
 
-  #[Title('SAFI NFE - Cadastro de contadors')]
-  #[Layout('components.layouts.main')]
-  public function render()
-  {
-    return view('livewire.views.contadores.cadastro');
-  }
+    public Collection $contabilidades;
 
-  public function cadastrar() {
-    $this->contador->limpaCampos();
-    $this->contador->validate();
+    public function mount(): void
+    {
+        $this->search();
+    }
 
-    if (is_null(Contabilidade::query()->find($this->contador->contabilidade_id))) return $this->addError('contador.contabilidade_id', 'A contabilidade deve ser informada.');
-    if (!is_null(Contador::whereEmail($this->contador->email)->first())) return $this->addError('contador.email', 'O email já existe no sistema');
-    if (!is_null(Contador::whereCpf($this->contador->cpf)->first())) return $this->addError('contador.cpf', 'O CPF já existe no sistema');
+    #[Title('SAFI NFE - Cadastro de contadors')]
+    #[Layout('components.layouts.main')]
+    public function render()
+    {
+        return view('livewire.views.contadores.cadastro');
+    }
 
-    $this->usuario->validateOnly('password');
-    $this->usuario->encriptaSenha();
+    public function cadastrar()
+    {
+        $this->contador->limpaCampos();
+        $this->contador->validate();
 
-    $this->usuario->name = $this->contador->nome;
-    $this->usuario->email = $this->contador->email;
-    $this->usuario->role = 'CONTADOR';
+        if (is_null(Contabilidade::query()->find($this->contador->contabilidade_id))) {
+            return $this->addError('contador.contabilidade_id', 'A contabilidade deve ser informada.');
+        }
+        if (! is_null(Contador::whereEmail($this->contador->email)->first())) {
+            return $this->addError('contador.email', 'O email já existe no sistema');
+        }
+        if (! is_null(Contador::whereCpf($this->contador->cpf)->first())) {
+            return $this->addError('contador.cpf', 'O CPF já existe no sistema');
+        }
 
-    $usuario = User::create($this->usuario->all());
+        $this->usuario->validateOnly('password');
+        $this->usuario->encriptaSenha();
 
-    $this->contador->usuario_id = $usuario->getAttribute('id');
+        $this->usuario->name = $this->contador->nome;
+        $this->usuario->email = $this->contador->email;
+        $this->usuario->role = 'CONTADOR';
 
-    Contador::create($this->contador->all());
+        $usuario = User::create($this->usuario->all());
 
-    $this->success('Contador cadastrado com sucesso', redirectTo: route('contadores'));
-  }
+        $this->contador->usuario_id = $usuario->getAttribute('id');
 
-  public function voltar(): void
-  {
-    redirect('contadores/');
-  }
+        Contador::create($this->contador->all());
 
-  public function search(?string $valor = null): void {
-    $this->contabilidades = Contabilidade::query()->where('social', 'like', "%$valor%")->orderBy('social')->get();
-  }
+        $this->success('Contador cadastrado com sucesso', redirectTo: route('contadores'));
+    }
+
+    public function voltar(): void
+    {
+        redirect('contadores/');
+    }
+
+    public function search(?string $valor = null): void
+    {
+        $this->contabilidades = Contabilidade::query()->where('social', 'like', "%$valor%")->orderBy('social')->get();
+    }
 }

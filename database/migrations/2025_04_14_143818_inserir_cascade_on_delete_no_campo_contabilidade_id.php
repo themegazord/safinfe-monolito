@@ -6,25 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-  /**
-   * Run the migrations.
-   */
-  public function up(): void
-  {
-    Schema::table('empcont', function (Blueprint $table) {
-      $table->dropForeign('empcont_contabilidade_id_foreign');
-      $table->foreign('contabilidade_id')->references('contabilidade_id')->on('contabilidades')->cascadeOnDelete();
-    });
-  }
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('empcont', function (Blueprint $table) {
+            $table->dropForeign('empcont_contabilidade_id_foreign');
+            $table->foreign('contabilidade_id')->references('contabilidade_id')->on('contabilidades')->cascadeOnDelete();
+        });
+    }
 
-  /**
-   * Reverse the migrations.
-   */
-  public function down(): void
-  {
-    Schema::table('empcont', function (Blueprint $table) {
-      $table->dropForeign('empcont_contabilidade_id_foreign');
-      $table->foreign('contabilidade_id')->references('contabilidade_id')->on('contabilidades');
-    });
-  }
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('empcont', function (Blueprint $table) {
+            $table->dropForeign('empcont_contabilidade_id_foreign');
+            $table->foreign('contabilidade_id')->references('contabilidade_id')->on('contabilidades');
+        });
+    }
 };

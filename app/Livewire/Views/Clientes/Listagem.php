@@ -13,43 +13,51 @@ use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination, WithoutUrlPagination, Toast;
+    use Toast, WithoutUrlPagination, WithPagination;
 
-  public ?string $pesquisa = null;
-  public int $porPagina = 10;
-  public bool $estaAtivo = true;
-  public bool $modalConfirmandoInativacaoCliente = false;
-  public ?Cliente $clienteAtual;
+    public ?string $pesquisa = null;
 
-  #[Title('SAFI NFE - Listagem de Clientes')]
-  #[Layout('components.layouts.main')]
-  public function render(ClienteRepository $clienteRepository)
-  {
-    return view('livewire.views.clientes.listagem');
-  }
+    public int $porPagina = 10;
 
-  public function irCadastrar(): void {
-    redirect('/clientes/cadastro');
-  }
+    public bool $estaAtivo = true;
 
-  public function irEdicaoCliente(int $cliente_id): void {
-    redirect("/clientes/edicao/$cliente_id");
-  }
+    public bool $modalConfirmandoInativacaoCliente = false;
 
-  public function inativarCliente(): void {
-    if ($this->clienteAtual->trashed()) {
-      $this->clienteAtual->restore();
-      $this->success('Cliente ativado com sucesso');
-    } else {
-      $this->clienteAtual->delete();
-      $this->success('Cliente inativado com sucesso');
+    public ?Cliente $clienteAtual;
+
+    #[Title('SAFI NFE - Listagem de Clientes')]
+    #[Layout('components.layouts.main')]
+    public function render(ClienteRepository $clienteRepository)
+    {
+        return view('livewire.views.clientes.listagem');
     }
-    $this->modalConfirmandoInativacaoCliente = !$this->modalConfirmandoInativacaoCliente;
-    $this->estaAtivo = true;
-  }
 
-  public function setInativacaoCliente(int $cliente_id): void {
-    $this->clienteAtual = Cliente::withTrashed()->find($cliente_id);
-    $this->modalConfirmandoInativacaoCliente = !$this->modalConfirmandoInativacaoCliente;
-  }
+    public function irCadastrar(): void
+    {
+        redirect('/clientes/cadastro');
+    }
+
+    public function irEdicaoCliente(int $cliente_id): void
+    {
+        redirect("/clientes/edicao/$cliente_id");
+    }
+
+    public function inativarCliente(): void
+    {
+        if ($this->clienteAtual->trashed()) {
+            $this->clienteAtual->restore();
+            $this->success('Cliente ativado com sucesso');
+        } else {
+            $this->clienteAtual->delete();
+            $this->success('Cliente inativado com sucesso');
+        }
+        $this->modalConfirmandoInativacaoCliente = ! $this->modalConfirmandoInativacaoCliente;
+        $this->estaAtivo = true;
+    }
+
+    public function setInativacaoCliente(int $cliente_id): void
+    {
+        $this->clienteAtual = Cliente::withTrashed()->find($cliente_id);
+        $this->modalConfirmandoInativacaoCliente = ! $this->modalConfirmandoInativacaoCliente;
+    }
 }

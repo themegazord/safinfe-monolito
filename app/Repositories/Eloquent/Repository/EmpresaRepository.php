@@ -10,84 +10,85 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class EmpresaRepository implements IEmpresa
 {
-  public function paginacaoEmpresas(int $perPage = 10, string $consulta): LengthAwarePaginator
-  {
-    return Empresa::query()
-      ->orWhere('fantasia', 'like', '%' . $consulta . '%')
-      ->orWhere('social', 'like', '%' . $consulta . '%')
-      ->orWhere('cnpj', 'like', '%' . $consulta . '%')
-      ->orWhere('ie', 'like', '%' . $consulta . '%')
-      ->orWhere('email_contato', 'like', '%' . $consulta . '%')
-      ->paginate(10, [
-        'empresa_id',
-        'fantasia',
-        'social',
-        'cnpj',
-        'ie',
-        'email_contato'
-      ]);
-  }
+    public function paginacaoEmpresas(int $perPage, string $consulta): LengthAwarePaginator
+    {
+        return Empresa::query()
+            ->orWhere('fantasia', 'like', '%'.$consulta.'%')
+            ->orWhere('social', 'like', '%'.$consulta.'%')
+            ->orWhere('cnpj', 'like', '%'.$consulta.'%')
+            ->orWhere('ie', 'like', '%'.$consulta.'%')
+            ->orWhere('email_contato', 'like', '%'.$consulta.'%')
+            ->paginate(10, [
+                'empresa_id',
+                'fantasia',
+                'social',
+                'cnpj',
+                'ie',
+                'email_contato',
+            ]);
+    }
 
-  public function listagemEmpresas(): Collection {
-    return Empresa::query()
-      ->get([
-        'empresa_id',
-        'cnpj',
-        'fantasia',
-      ]);
-  }
+    public function listagemEmpresas(): Collection
+    {
+        return Empresa::query()
+            ->get([
+                'empresa_id',
+                'cnpj',
+                'fantasia',
+            ]);
+    }
 
-  public function cadastroEmpresa(array $dados): Model
-  {
-    return Empresa::query()
-      ->create($dados);
-  }
+    public function cadastroEmpresa(array $dados): Model
+    {
+        return Empresa::query()
+            ->create($dados);
+    }
 
-  public function consultaEmpresa(int $empresa_id): ?Model
-  {
-    return Empresa::query()
-      ->where('empresa_id', $empresa_id)
-      ->first([
-        'empresa_id',
-        'endereco_id',
-        'fantasia',
-        'social',
-        'cnpj',
-        'ie',
-        'email_contato',
-        'telefone_contato',
-        'telefone_reserva',
-      ]);
-  }
+    public function consultaEmpresa(int $empresa_id): ?Model
+    {
+        return Empresa::query()
+            ->where('empresa_id', $empresa_id)
+            ->first([
+                'empresa_id',
+                'endereco_id',
+                'fantasia',
+                'social',
+                'cnpj',
+                'ie',
+                'email_contato',
+                'telefone_contato',
+                'telefone_reserva',
+            ]);
+    }
 
-  public function consultaEmpresaPorCNPJ(string $cnpj): ?Model
-  {
-    return Empresa::query()
-      ->where('cnpj', $cnpj)
-      ->first([
-        'empresa_id',
-        'endereco_id',
-        'fantasia',
-        'social',
-        'cnpj',
-        'ie',
-        'email_contato',
-        'telefone_contato',
-        'telefone_reserva',
-      ]);
-  }
+    public function consultaEmpresaPorCNPJ(string $cnpj): ?Model
+    {
+        return Empresa::query()
+            ->where('cnpj', $cnpj)
+            ->first([
+                'empresa_id',
+                'endereco_id',
+                'fantasia',
+                'social',
+                'cnpj',
+                'ie',
+                'email_contato',
+                'telefone_contato',
+                'telefone_reserva',
+            ]);
+    }
 
-  public function editaEmpresa(array $dados): int
-  {
-    return Empresa::query()
-      ->where('empresa_id', $dados['empresa_id'])
-      ->update($dados);
-  }
+    public function editaEmpresa(array $dados): int
+    {
+        return Empresa::query()
+            ->where('empresa_id', $dados['empresa_id'])
+            ->update($dados);
+    }
 
-  public function removeEmpresa(int $empresa_id): mixed
-  {
-    return Empresa::query()
-      ->where('empresa_id', $empresa_id)
-      ->delete();
-  }
+    public function removeEmpresa(int $empresa_id): mixed
+    {
+        return Empresa::query()
+            ->where('empresa_id', $empresa_id)
+            ->delete();
+    }
 }

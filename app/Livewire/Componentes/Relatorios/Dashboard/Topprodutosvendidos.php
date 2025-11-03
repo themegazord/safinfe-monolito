@@ -6,57 +6,58 @@ use Livewire\Component;
 
 class Topprodutosvendidos extends Component
 {
-  public array $dadosTopProdutosVendidos = [];
-  public array $graficoTopProdutosVendidos = [];
+    public array $dadosTopProdutosVendidos = [];
 
-  public function mount(array $dados): void
-  {
-    $this->dadosTopProdutosVendidos = [];
+    public array $graficoTopProdutosVendidos = [];
 
-    $labels = [];
-    $values = [];
+    public function mount(array $dados): void
+    {
+        $this->dadosTopProdutosVendidos = [];
 
-    foreach ($dados as $dado) {
-      $nomeProduto = $dado['Nome Produto'];
-      $quantidade = $dado['Quantidade'];
+        $labels = [];
+        $values = [];
 
-      $labels[] = $nomeProduto;
-      $values[] = $quantidade;
+        foreach ($dados as $dado) {
+            $nomeProduto = $dado['Nome Produto'];
+            $quantidade = $dado['Quantidade'];
 
-      $this->dadosTopProdutosVendidos[] = [
-        'y' => $nomeProduto,
-        'value' => $quantidade,
-      ];
+            $labels[] = $nomeProduto;
+            $values[] = $quantidade;
+
+            $this->dadosTopProdutosVendidos[] = [
+                'y' => $nomeProduto,
+                'value' => $quantidade,
+            ];
+        }
+
+        $this->graficoTopProdutosVendidos = [
+            'type' => 'bar',
+            'data' => [
+                'labels' => $labels,
+                'datasets' => [
+                    [
+                        'label' => 'Top produtos vendidos',
+                        'data' => $values,
+                        'borderWidth' => 1,
+                        'backgroundColor' => 'rgba(59, 130, 246, 0.7)', // azul padrão Tailwind
+                    ],
+                ],
+            ],
+            'options' => [
+                'responsive' => true,
+                'scales' => [
+                    'y' => [
+                        'beginAtZero' => true,
+                    ],
+                ],
+            ],
+        ];
     }
 
-    $this->graficoTopProdutosVendidos = [
-      'type' => 'bar',
-      'data' => [
-        'labels' => $labels,
-        'datasets' => [
-          [
-            'label' => 'Top produtos vendidos',
-            'data' => $values,
-            'borderWidth' => 1,
-            'backgroundColor' => 'rgba(59, 130, 246, 0.7)', // azul padrão Tailwind
-          ],
-        ],
-      ],
-      'options' => [
-        'responsive' => true,
-        'scales' => [
-          'y' => [
-            'beginAtZero' => true,
-          ],
-        ],
-      ],
-    ];
-  }
-
-  public function render()
-  {
-    return <<<'HTML'
+    public function render()
+    {
+        return <<<'HTML'
       <x-chart wire:model="graficoTopProdutosVendidos" />
     HTML;
-  }
+    }
 }

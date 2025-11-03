@@ -15,39 +15,47 @@ use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination, WithoutUrlPagination, Toast;
+    use Toast, WithoutUrlPagination, WithPagination;
 
-  public LengthAwarePaginator $empresas;
-  public ?Empresa $empresaAtual = null;
-  public string $consulta = '';
-  public int $porPagina = 10;
-  public bool $modalConfirmandoRemocaoEmpresa = false;
+    public LengthAwarePaginator $empresas;
 
-  #[Layout('components.layouts.main')]
-  #[Title('SAFI NFE - Listagem de Empresas')]
-  public function render()
-  {
-    return view('livewire.views.empresas.listagem');
-  }
+    public ?Empresa $empresaAtual = null;
 
-  public function irCadastrar(): void {
-    redirect('/empresas/cadastro');
-  }
+    public string $consulta = '';
 
-  public function excluirEmpresa(): void {
-    $this->empresaAtual->endereco()->first()->delete();
-    $this->empresaAtual->delete();
+    public int $porPagina = 10;
 
-    $this->success('Empresa removida com sucesso.');
-    $this->modalConfirmandoRemocaoEmpresa = false;
-  }
+    public bool $modalConfirmandoRemocaoEmpresa = false;
 
-  public function setRemocaoEmpresa(?int $empresa_id): void {
-    $this->empresaAtual = Empresa::find($empresa_id);
-    $this->modalConfirmandoRemocaoEmpresa = true;
-  }
+    #[Layout('components.layouts.main')]
+    #[Title('SAFI NFE - Listagem de Empresas')]
+    public function render()
+    {
+        return view('livewire.views.empresas.listagem');
+    }
 
-  public function irEdicaoEmpresa(int $empresa_id): Redirector|RedirectResponse {
-    return redirect("/empresas/edicao/{$empresa_id}");
-  }
+    public function irCadastrar(): void
+    {
+        redirect('/empresas/cadastro');
+    }
+
+    public function excluirEmpresa(): void
+    {
+        $this->empresaAtual->endereco()->first()->delete();
+        $this->empresaAtual->delete();
+
+        $this->success('Empresa removida com sucesso.');
+        $this->modalConfirmandoRemocaoEmpresa = false;
+    }
+
+    public function setRemocaoEmpresa(?int $empresa_id): void
+    {
+        $this->empresaAtual = Empresa::find($empresa_id);
+        $this->modalConfirmandoRemocaoEmpresa = true;
+    }
+
+    public function irEdicaoEmpresa(int $empresa_id): Redirector|RedirectResponse
+    {
+        return redirect("/empresas/edicao/{$empresa_id}");
+    }
 }

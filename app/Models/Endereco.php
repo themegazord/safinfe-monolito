@@ -7,17 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Endereco extends Model
 {
-  use HasFactory;
+    use HasFactory;
 
-  protected $primaryKey = 'endereco_id';
+    protected $primaryKey = 'endereco_id';
 
-  protected $fillable = [
-    'rua',
-    'numero',
-    'cep',
-    'bairro',
-    'complemento',
-    'cidade',
-    'estado',
-  ];
+    protected $fillable = [
+        'rua',
+        'numero',
+        'cep',
+        'bairro',
+        'complemento',
+        'cidade',
+        'estado',
+    ];
 }

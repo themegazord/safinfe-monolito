@@ -15,69 +15,80 @@ use Mary\Traits\Toast;
 
 class Edicao extends Component
 {
-  use Toast, EnviaEmailResetSenhaTrait;
+    use EnviaEmailResetSenhaTrait, Toast;
 
-  public ?Contador $contadorAtual;
-  public ?string $novaSenha = null;
-  public Collection $contabilidades;
-  public ContadorForm $contador;
+    public ?Contador $contadorAtual;
 
-  public function mount(
-    int $contador_id
-  ): void {
-    $this->contabilidades = Contabilidade::all();
-    $this->contadorAtual = Contador::find($contador_id);
-    $this->contador->contabilidade_id = $this->contadorAtual->contabilidade_id;
-  }
+    public ?string $novaSenha = null;
 
-  #[Title('SAFI NFE - Edição de Contadors')]
-  #[Layout('components.layouts.main')]
-  public function render()
-  {
-    return view('livewire.views.contadores.edicao');
-  }
+    public Collection $contabilidades;
 
-  public function editar(): void {
-    $this->contador->limpaCampos();
-    $this->contador->validate();
+    public ContadorForm $contador;
 
-    $this->contador->usuario_id = $this->contadorAtual['usuario_id'];
-    $contadorAtualizado = array_diff($this->contador->all(), $this->contadorAtual->toArray());
-
-    // Valida se existe email cadastrado em outro usuario.
-    $contadorValidadoEmail = Contador::whereEmail($this->contador->email)->first();
-    $contadorValidadeCPF = Contador::whereCpf($this->contador->cpf)->first();
-    if (!is_null($contadorValidadoEmail) && $this->contadorAtual['contador_id'] !== $contadorValidadoEmail->getAttribute('contador_id')) {
-      $this->addError('contador.email', 'O email já está sendo usado por outro usuario, escolha outro.');
-      return;
-    }
-    if (!is_null($contadorValidadeCPF) && $this->contadorAtual['contador_id'] !== $contadorValidadeCPF->getAttribute('contador_id')) {
-      $this->addError('contador.cpf', 'O CPF já está sendo usado por outro usuario, escolha outro.');
-      return;
+    public function mount(
+        int $contador_id
+    ): void {
+        $this->contabilidades = Contabilidade::all();
+        $this->contadorAtual = Contador::find($contador_id);
+        $this->contador->contabilidade_id = $this->contadorAtual->contabilidade_id;
     }
 
-    // Pega somente as informações alteradas na edição do contador para ser alterado no cadastro de usuários.
-    $usuarioAtualizado = [];
-    if (isset($contadorAtualizado['nome'])) $usuarioAtualizado['name'] = $contadorAtualizado['nome'];
-    if (isset($contadorAtualizado['email'])) $usuarioAtualizado['email'] = $contadorAtualizado['email'];
+    #[Title('SAFI NFE - Edição de Contadors')]
+    #[Layout('components.layouts.main')]
+    public function render()
+    {
+        return view('livewire.views.contadores.edicao');
+    }
 
-    $usuarioAtualizado['id'] = $this->contadorAtual['usuario_id'];
-    $contadorAtualizado['contador_id'] = $this->contadorAtual['contador_id'];
+    public function editar(): void
+    {
+        $this->contador->limpaCampos();
+        $this->contador->validate();
 
-    User::where('id', $usuarioAtualizado['id'])->update($usuarioAtualizado);
-    Contador::where('contador_id', $contadorAtualizado['contador_id'])->update($contadorAtualizado);
+        $this->contador->usuario_id = $this->contadorAtual['usuario_id'];
+        $contadorAtualizado = array_diff($this->contador->all(), $this->contadorAtual->toArray());
 
-    $this->success('Contador editado com sucesso', redirectTo: route('contadores'));
-  }
+        // Valida se existe email cadastrado em outro usuario.
+        $contadorValidadoEmail = Contador::whereEmail($this->contador->email)->first();
+        $contadorValidadeCPF = Contador::whereCpf($this->contador->cpf)->first();
+        if (! is_null($contadorValidadoEmail) && $this->contadorAtual['contador_id'] !== $contadorValidadoEmail->getAttribute('contador_id')) {
+            $this->addError('contador.email', 'O email já está sendo usado por outro usuario, escolha outro.');
 
-  public function voltar(): void
-  {
-    redirect('contadores/');
-  }
+            return;
+        }
+        if (! is_null($contadorValidadeCPF) && $this->contadorAtual['contador_id'] !== $contadorValidadeCPF->getAttribute('contador_id')) {
+            $this->addError('contador.cpf', 'O CPF já está sendo usado por outro usuario, escolha outro.');
 
-  public function enviaEmailTrocaSenha(): void {
-    $this->enviaEmail($this->contadorAtual->email);
+            return;
+        }
 
-    $this->success('Email enviado com sucesso');
-  }
+        // Pega somente as informações alteradas na edição do contador para ser alterado no cadastro de usuários.
+        $usuarioAtualizado = [];
+        if (isset($contadorAtualizado['nome'])) {
+            $usuarioAtualizado['name'] = $contadorAtualizado['nome'];
+        }
+        if (isset($contadorAtualizado['email'])) {
+            $usuarioAtualizado['email'] = $contadorAtualizado['email'];
+        }
+
+        $usuarioAtualizado['id'] = $this->contadorAtual['usuario_id'];
+        $contadorAtualizado['contador_id'] = $this->contadorAtual['contador_id'];
+
+        User::where('id', $usuarioAtualizado['id'])->update($usuarioAtualizado);
+        Contador::where('contador_id', $contadorAtualizado['contador_id'])->update($contadorAtualizado);
+
+        $this->success('Contador editado com sucesso', redirectTo: route('contadores'));
+    }
+
+    public function voltar(): void
+    {
+        redirect('contadores/');
+    }
+
+    public function enviaEmailTrocaSenha(): void
+    {
+        $this->enviaEmail($this->contadorAtual->email);
+
+        $this->success('Email enviado com sucesso');
+    }
 }

@@ -15,61 +15,71 @@ use Mary\Traits\Toast;
 
 class Edicao extends Component
 {
-  use Toast, EnviaEmailResetSenhaTrait;
+    use EnviaEmailResetSenhaTrait, Toast;
 
-  public ?Cliente $clienteAtual;
-  public Collection $empresas;
-  public ClienteForm $cliente;
+    public ?Cliente $clienteAtual;
 
-  public function mount(
-    int $cliente_id,
-  ): void {
-    $this->empresas = Empresa::all();
-    $this->clienteAtual = Cliente::find($cliente_id);
-    $this->cliente->empresa_id = $this->clienteAtual->empresa->empresa_id;
-  }
+    public Collection $empresas;
 
-  #[Title('SAFI NFE - Edição de Clientes')]
-  #[Layout('components.layouts.main')]
-  public function render()
-  {
-    return view('livewire.views.clientes.edicao');
-  }
+    public ClienteForm $cliente;
 
-  public function editar(): void {
-    $this->cliente->validate();
+    public function mount(
+        int $cliente_id,
+    ): void {
+        $this->empresas = Empresa::all();
+        $this->clienteAtual = Cliente::find($cliente_id);
+        $this->cliente->empresa_id = $this->clienteAtual->empresa->empresa_id;
+    }
 
-    $this->cliente->usuario_id = $this->clienteAtual['usuario_id'];
-    $clienteAtualizado = array_diff($this->cliente->all(), $this->clienteAtual->toArray());
+    #[Title('SAFI NFE - Edição de Clientes')]
+    #[Layout('components.layouts.main')]
+    public function render()
+    {
+        return view('livewire.views.clientes.edicao');
+    }
 
-    // Valida se existe email cadastrado em outro usuario.
-    $clienteValidadoEmail = Cliente::whereEmail($this->cliente->email)->first();
-    if (!is_null($clienteValidadoEmail) && $this->clienteAtual['cliente_id'] !== $clienteValidadoEmail->getAttribute('cliente_id')) {
-      $this->addError('cliente.email', 'O email já está sendo usado por outro usuario, escolha outro.');
-      return;
-    };
+    public function editar(): void
+    {
+        $this->cliente->validate();
 
-    // Pega somente as informações alteradas na edição do cliente para ser alterado no cadastro de usuários.
-    $usuarioAtualizado = [];
-    if (isset($clienteAtualizado['nome'])) $usuarioAtualizado['name'] = $clienteAtualizado['nome'];
-    if (isset($clienteAtualizado['email'])) $usuarioAtualizado['email'] = $clienteAtualizado['email'];
+        $this->cliente->usuario_id = $this->clienteAtual['usuario_id'];
+        $clienteAtualizado = array_diff($this->cliente->all(), $this->clienteAtual->toArray());
 
-    $usuarioAtualizado['id'] = $this->clienteAtual['usuario_id'];
-    $clienteAtualizado['cliente_id'] = $this->clienteAtual['cliente_id'];
+        // Valida se existe email cadastrado em outro usuario.
+        $clienteValidadoEmail = Cliente::whereEmail($this->cliente->email)->first();
+        if (! is_null($clienteValidadoEmail) && $this->clienteAtual['cliente_id'] !== $clienteValidadoEmail->getAttribute('cliente_id')) {
+            $this->addError('cliente.email', 'O email já está sendo usado por outro usuario, escolha outro.');
 
-    User::where('id', $usuarioAtualizado['id'])->update($usuarioAtualizado);
-    Cliente::where('cliente_id', $clienteAtualizado['cliente_id'])->update($clienteAtualizado);
+            return;
+        }
 
-    $this->success('Cliente editado com sucesso.', redirectTo: route('clientes'));
-  }
+        // Pega somente as informações alteradas na edição do cliente para ser alterado no cadastro de usuários.
+        $usuarioAtualizado = [];
+        if (isset($clienteAtualizado['nome'])) {
+            $usuarioAtualizado['name'] = $clienteAtualizado['nome'];
+        }
+        if (isset($clienteAtualizado['email'])) {
+            $usuarioAtualizado['email'] = $clienteAtualizado['email'];
+        }
 
-  public function voltar(): void {
-    redirect('clientes/');
-  }
+        $usuarioAtualizado['id'] = $this->clienteAtual['usuario_id'];
+        $clienteAtualizado['cliente_id'] = $this->clienteAtual['cliente_id'];
 
-  public function enviaEmailTrocaSenha(): void {
-    $this->enviaEmail($this->clienteAtual->email);
+        User::where('id', $usuarioAtualizado['id'])->update($usuarioAtualizado);
+        Cliente::where('cliente_id', $clienteAtualizado['cliente_id'])->update($clienteAtualizado);
 
-    $this->success('Email enviado com sucesso');
-  }
+        $this->success('Cliente editado com sucesso.', redirectTo: route('clientes'));
+    }
+
+    public function voltar(): void
+    {
+        redirect('clientes/');
+    }
+
+    public function enviaEmailTrocaSenha(): void
+    {
+        $this->enviaEmail($this->clienteAtual->email);
+
+        $this->success('Email enviado com sucesso');
+    }
 }

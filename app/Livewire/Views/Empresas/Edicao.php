@@ -9,7 +9,6 @@ use App\Models\Endereco;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -17,50 +16,59 @@ use Mary\Traits\Toast;
 
 class Edicao extends Component
 {
-  use Toast;
+    use Toast;
 
-  public ?Empresa $empresaAtual;
-  public ?Endereco $enderecoAtual;
-  public EmpresaForm $empresa;
-  public EnderecoForm $endereco;
+    public ?Empresa $empresaAtual;
 
-  public function mount(int $empresa_id, EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository): void {
-    $this->empresaAtual = $empresaRepository->consultaEmpresa($empresa_id);
-    $this->enderecoAtual = $enderecoRepository->consultaEndereco($this->empresaAtual->endereco_id);
-    $this->endereco->estado = $this->enderecoAtual->estado;
-  }
+    public ?Endereco $enderecoAtual;
 
-  #[Layout('components.layouts.main')]
-  #[Title('SAFI NFE - Edicao de Empresas')]
-  public function render()
-  {
-    return view('livewire.views.empresas.edicao');
-  }
+    public EmpresaForm $empresa;
 
-  public function editar(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository) {
-    $this->empresa->validate();
-    $this->empresa->tratarCamposSujos();
-    $this->endereco->validate();
-    $this->endereco->tratarCamposSujos();
+    public EnderecoForm $endereco;
 
-    if (!is_null(DB::table('empresas')->where('cnpj', $this->empresa->cnpj)->whereNot('empresa_id', $this->empresaAtual->getAttribute('empresa_id'))->first())) return $this->addError('empresa.cnpj', 'CNPJ já existente.');
-    if (!is_null(DB::table('empresas')->where('ie', $this->empresa->ie)->whereNot('empresa_id', $this->empresaAtual->getAttribute('empresa_id'))->first())) return $this->addError('empresa.ie', 'IE já existente.');
+    public function mount(int $empresa_id, EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository): void
+    {
+        $this->empresaAtual = $empresaRepository->consultaEmpresa($empresa_id);
+        $this->enderecoAtual = $enderecoRepository->consultaEndereco($this->empresaAtual->endereco_id);
+        $this->endereco->estado = $this->enderecoAtual->estado;
+    }
 
+    #[Layout('components.layouts.main')]
+    #[Title('SAFI NFE - Edicao de Empresas')]
+    public function render()
+    {
+        return view('livewire.views.empresas.edicao');
+    }
 
-    $enderecoAtualizado = array_diff($this->endereco->all(), $this->enderecoAtual->toArray());
-    $empresaAtualizado = array_diff($this->empresa->all(), $this->empresaAtual->toArray());
+    public function editar(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository)
+    {
+        $this->empresa->validate();
+        $this->empresa->tratarCamposSujos();
+        $this->endereco->validate();
+        $this->endereco->tratarCamposSujos();
 
-    $enderecoAtualizado['endereco_id'] = $this->enderecoAtual->getAttribute('endereco_id');
-    $empresaAtualizado['endereco_id'] = $this->enderecoAtual->getAttribute('endereco_id');
-    $empresaAtualizado['empresa_id'] = $this->empresaAtual->getAttribute('empresa_id');
+        if (! is_null(DB::table('empresas')->where('cnpj', $this->empresa->cnpj)->whereNot('empresa_id', $this->empresaAtual->getAttribute('empresa_id'))->first())) {
+            return $this->addError('empresa.cnpj', 'CNPJ já existente.');
+        }
+        if (! is_null(DB::table('empresas')->where('ie', $this->empresa->ie)->whereNot('empresa_id', $this->empresaAtual->getAttribute('empresa_id'))->first())) {
+            return $this->addError('empresa.ie', 'IE já existente.');
+        }
 
-    $empresaRepository->editaEmpresa($empresaAtualizado);
-    $enderecoRepository->editaEndereco($enderecoAtualizado);
+        $enderecoAtualizado = array_diff($this->endereco->all(), $this->enderecoAtual->toArray());
+        $empresaAtualizado = array_diff($this->empresa->all(), $this->empresaAtual->toArray());
 
-    $this->success('Empresa editada com sucesso', redirectTo: route('empresas'));
-  }
+        $enderecoAtualizado['endereco_id'] = $this->enderecoAtual->getAttribute('endereco_id');
+        $empresaAtualizado['endereco_id'] = $this->enderecoAtual->getAttribute('endereco_id');
+        $empresaAtualizado['empresa_id'] = $this->empresaAtual->getAttribute('empresa_id');
 
-  public function voltar(): void {
-    redirect('/empresas');
-  }
+        $empresaRepository->editaEmpresa($empresaAtualizado);
+        $enderecoRepository->editaEndereco($enderecoAtualizado);
+
+        $this->success('Empresa editada com sucesso', redirectTo: route('empresas'));
+    }
+
+    public function voltar(): void
+    {
+        redirect('/empresas');
+    }
 }

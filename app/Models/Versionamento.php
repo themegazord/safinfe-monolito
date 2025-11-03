@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Versionamento extends Model
 {
-  use HasFactory;
+    use HasFactory;
 
-  protected $primaryKey = 'versionamento_id';
-  protected $table = 'versionamento';
-  protected $fillable = [
-    'patch',
-    'detalhe'
-  ];
+    protected $primaryKey = 'versionamento_id';
+
+    protected $table = 'versionamento';
+
+    protected $fillable = [
+        'patch',
+        'detalhe',
+    ];
 }

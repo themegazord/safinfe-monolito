@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\Empresa;
 use App\Services\DadosXMLService;
 use App\Services\XMLService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,84 +16,86 @@ use ZipArchive;
 
 class ImportaXMLsJob implements ShouldQueue
 {
-  use Queueable, Toast;
+    use Queueable, Toast;
 
-  protected ?int $usuario_id = null;
-  public string $xmlNomeAtual = '';
-  /**
-   * Create a new job instance.
-   */
-  public function __construct(protected string $pathArquivo, protected string $cnpj)
-  {
-    $this->usuario_id = Auth::user()->id;
-  }
+    protected ?int $usuario_id = null;
 
-  /**
-   * Execute the job.
-   */
-  public function handle(XMLService $xmlService, DadosXMLService $dadosXMLService): void
-  {
-    $pathXMLUsuario = storage_path('app/tempXML/' . $this->usuario_id);
+    public string $xmlNomeAtual = '';
 
-    if (!is_dir($pathXMLUsuario)) {
-      mkdir($pathXMLUsuario, 0777, true);
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(protected string $pathArquivo, protected string $cnpj)
+    {
+        $this->usuario_id = Auth::user()->id;
     }
 
-    $zip = new ZipArchive();
+    /**
+     * Execute the job.
+     */
+    public function handle(XMLService $xmlService, DadosXMLService $dadosXMLService): void
+    {
+        $pathXMLUsuario = storage_path('app/tempXML/'.$this->usuario_id);
 
-    if ($zip->open($this->pathArquivo) === TRUE) {
-
-      $zip->extractTo($pathXMLUsuario);
-      $zip->close();
-
-      $arquivos = array_filter(scandir($pathXMLUsuario), fn ($f) => $f !== '.' && $f !== '..');
-
-      DB::beginTransaction();
-
-      foreach ($arquivos as $arquivo) {
-        try {
-          $this->xmlNomeAtual = $arquivo;
-          $path = "{$pathXMLUsuario}/{$arquivo}";
-          $this->defineGravaXML($path, $xmlService, $dadosXMLService);
-          DB::commit();
-        } catch (\Throwable $e) {
-          DB::rollBack();
-          Log::warning("{$e->getMessage()} => XML com erro: $this->xmlNomeAtual");
-          $this->warning("{$e->getMessage()} => XML com erro: $this->xmlNomeAtual", redirectTo: route('importacao'));
-        } finally {
+        if (! is_dir($pathXMLUsuario)) {
+            mkdir($pathXMLUsuario, 0777, true);
         }
-      }
 
-      Cache::forget("importacao_progress_{$this->usuario_id}");
-      unlink($this->pathArquivo);
-      File::deleteDirectory($pathXMLUsuario);
+        $zip = new ZipArchive;
+
+        if ($zip->open($this->pathArquivo) === true) {
+
+            $zip->extractTo($pathXMLUsuario);
+            $zip->close();
+
+            $arquivos = array_filter(scandir($pathXMLUsuario), fn ($f) => $f !== '.' && $f !== '..');
+
+            DB::beginTransaction();
+
+            foreach ($arquivos as $arquivo) {
+                try {
+                    $this->xmlNomeAtual = $arquivo;
+                    $path = "{$pathXMLUsuario}/{$arquivo}";
+                    $this->defineGravaXML($path, $xmlService, $dadosXMLService);
+                    DB::commit();
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    Log::warning("{$e->getMessage()} => XML com erro: $this->xmlNomeAtual");
+                    $this->warning("{$e->getMessage()} => XML com erro: $this->xmlNomeAtual", redirectTo: route('importacao'));
+                } finally {
+                }
+            }
+
+            Cache::forget("importacao_progress_{$this->usuario_id}");
+            unlink($this->pathArquivo);
+            File::deleteDirectory($pathXMLUsuario);
+        }
     }
-  }
 
-  private function defineGravaXML(string $caminho, XMLService $xmlService, DadosXMLService $dadosXMLService): void
-  {
-    $xmlConsultado = $dadosXMLService->consultaDadosXMLPorChave(str_replace('-', '', filter_var($this->xmlNomeAtual, FILTER_SANITIZE_NUMBER_INT)));
+    private function defineGravaXML(string $caminho, XMLService $xmlService, DadosXMLService $dadosXMLService): void
+    {
+        $xmlConsultado = $dadosXMLService->consultaDadosXMLPorChave(str_replace('-', '', filter_var($this->xmlNomeAtual, FILTER_SANITIZE_NUMBER_INT)));
 
-    if (str_contains($this->xmlNomeAtual, 'ProcNfe')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'AUTORIZADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastro($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->cnpj);
-      }
+        if (str_contains($this->xmlNomeAtual, 'ProcNfe')) {
+            if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'AUTORIZADO') {
+                $xmlGravado = $xmlService->cadastro($caminho);
+                $dadosXMLService->cadastro($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->cnpj);
+            }
+        }
+
+        if (str_contains($this->xmlNomeAtual, 'Can')) {
+            if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'CANCELADO') {
+                $xmlGravado = $xmlService->cadastro($caminho);
+                $dadosXMLService->cadastroCancelado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->cnpj);
+            }
+        }
+        if (str_contains($this->xmlNomeAtual, 'inu')) {
+            if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'INUTILIZADO') {
+                $xmlGravado = $xmlService->cadastro($caminho);
+                $dadosXMLService->cadastroInutilizado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->cnpj, $this->xmlNomeAtual);
+            }
+        }
+
+        unlink($caminho);
     }
-
-    if (str_contains($this->xmlNomeAtual, 'Can')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'CANCELADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastroCancelado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->cnpj);
-      }
-    }
-    if (str_contains($this->xmlNomeAtual, 'inu')) {
-      if (is_null($xmlConsultado) || $xmlConsultado->getAttribute('status') !== 'INUTILIZADO') {
-        $xmlGravado = $xmlService->cadastro($caminho);
-        $dadosXMLService->cadastroInutilizado($xmlGravado->getAttribute('xml'), $xmlGravado->getAttribute('xml_id'), $this->cnpj, $this->xmlNomeAtual);
-      }
-    }
-
-    unlink($caminho);
-  }
 }
