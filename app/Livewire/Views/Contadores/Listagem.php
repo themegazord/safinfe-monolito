@@ -12,44 +12,51 @@ use Mary\Traits\Toast;
 
 class Listagem extends Component
 {
-  use WithPagination, Toast, WithoutUrlPagination;
+    use Toast, WithoutUrlPagination, WithPagination;
 
-  public ?string $pesquisa = null;
-  public bool $estaAtivo = true;
-  public int $porPagina = 10;
-  public ?Contador $contadorAtual;
-  public bool $modalConfirmandoInativacaoContador = false;
+    public ?string $pesquisa = null;
 
+    public bool $estaAtivo = true;
 
-  #[Title('SAFI NFE - Listagem de Contadores')]
-  #[Layout('components.layouts.main')]
-  public function render()
-  {
-    return view('livewire.views.contadores.listagem');
-  }
+    public int $porPagina = 10;
 
-  public function irEdicaoContador(int $contador_id): void {
-    redirect("/contadores/edicao/$contador_id");
-  }
+    public ?Contador $contadorAtual;
 
-  public function irCadastrar(): void {
-    redirect('/contadores/cadastro');
-  }
+    public bool $modalConfirmandoInativacaoContador = false;
 
-  public function setInativacaoContador(int $contador_id): void {
-    $this->contadorAtual = Contador::withTrashed()->find($contador_id);
-    $this->modalConfirmandoInativacaoContador = !$this->modalConfirmandoInativacaoContador;
-  }
-
-  public function inativarContador(): void {
-    if ($this->contadorAtual->trashed()) {
-      $this->contadorAtual->restore();
-      $this->success('Contador ativado com sucesso');
-    } else {
-      $this->contadorAtual->delete();
-      $this->success('Contador inativado com sucesso');
+    #[Title('SAFI NFE - Listagem de Contadores')]
+    #[Layout('components.layouts.main')]
+    public function render()
+    {
+        return view('livewire.views.contadores.listagem');
     }
-    $this->modalConfirmandoInativacaoContador = !$this->modalConfirmandoInativacaoContador;
-    $this->estaAtivo = true;
-  }
+
+    public function irEdicaoContador(int $contador_id): void
+    {
+        redirect("/contadores/edicao/$contador_id");
+    }
+
+    public function irCadastrar(): void
+    {
+        redirect('/contadores/cadastro');
+    }
+
+    public function setInativacaoContador(int $contador_id): void
+    {
+        $this->contadorAtual = Contador::withTrashed()->find($contador_id);
+        $this->modalConfirmandoInativacaoContador = ! $this->modalConfirmandoInativacaoContador;
+    }
+
+    public function inativarContador(): void
+    {
+        if ($this->contadorAtual->trashed()) {
+            $this->contadorAtual->restore();
+            $this->success('Contador ativado com sucesso');
+        } else {
+            $this->contadorAtual->delete();
+            $this->success('Contador inativado com sucesso');
+        }
+        $this->modalConfirmandoInativacaoContador = ! $this->modalConfirmandoInativacaoContador;
+        $this->estaAtivo = true;
+    }
 }

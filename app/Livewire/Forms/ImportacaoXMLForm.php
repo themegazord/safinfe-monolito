@@ -6,13 +6,14 @@ use Livewire\Attributes\Validate;
 use Livewire\Form;
 
 #[Validate(rule: [
-  'cnpj' => 'required',
-  'arquivo' => 'required'
+    'cnpj' => 'required',
+    'arquivo' => 'required',
 ], message: [
-  'required' => 'Campo obrigatorio.',
+    'required' => 'Campo obrigatorio.',
 ])]
 class ImportacaoXMLForm extends Form
 {
-  public ?string $cnpj = null;
-  public $arquivo;
+    public ?string $cnpj = null;
+
+    public $arquivo;
 }

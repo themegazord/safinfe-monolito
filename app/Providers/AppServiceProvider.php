@@ -19,45 +19,49 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-  /**
-   * Register any application services.
-   */
-  public function register(): void
-  {
-    $this->app->scoped(DadosXMLService::class, function (Application $app) {
-      $dadosXMLRepository = $app->make(IDadosXML::class);
-      $empresaRepository = $app->make(IEmpresa::class);
-      return new DadosXMLService($dadosXMLRepository, $empresaRepository);
-    });
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        $this->app->scoped(DadosXMLService::class, function (Application $app) {
+            $dadosXMLRepository = $app->make(IDadosXML::class);
+            $empresaRepository = $app->make(IEmpresa::class);
 
-    $this->app->scoped(XMLService::class, function (Application $app) {
-      $xmlRepository = $app->make(IXML::class);
-      $empresaRepository = $app->make(IEmpresa::class);
-      $dadosXMLRepository = $app->make(IDadosXML::class);
-      return new XMLService($xmlRepository, $empresaRepository, $dadosXMLRepository);
-    });
+            return new DadosXMLService($dadosXMLRepository, $empresaRepository);
+        });
 
-    $this->app->scoped(AutenticacaoController::class, function (Application $app) {
-      $usuarioRepository = $app->make(IUsuario::class);
-      return new AutenticacaoController($usuarioRepository);
-    });
+        $this->app->scoped(XMLService::class, function (Application $app) {
+            $xmlRepository = $app->make(IXML::class);
+            $empresaRepository = $app->make(IEmpresa::class);
+            $dadosXMLRepository = $app->make(IDadosXML::class);
 
-    $this->app->scoped(XMLController::class, function (Application $app) {
-      $xmlService = $app->make(XMLService::class);
-      $dadosXMLService = $app->make(DadosXMLService::class);
-      $dadosXMLRepository = $app->make(IDadosXML::class);
-      return new XMLController($xmlService, $dadosXMLService, $dadosXMLRepository);
-    });
-  }
+            return new XMLService($xmlRepository, $empresaRepository, $dadosXMLRepository);
+        });
 
-  /**
-   * Bootstrap any application services.
-   */
-  public function boot(): void
-  {
-    $this->app->bind(IUsuario::class, UsuarioRepository::class);
-    $this->app->bind(IDadosXML::class, DadosXMLRepository::class);
-    $this->app->bind(IEmpresa::class, EmpresaRepository::class);
-    $this->app->bind(IXML::class, XMLRepository::class);
-  }
+        $this->app->scoped(AutenticacaoController::class, function (Application $app) {
+            $usuarioRepository = $app->make(IUsuario::class);
+
+            return new AutenticacaoController($usuarioRepository);
+        });
+
+        $this->app->scoped(XMLController::class, function (Application $app) {
+            $xmlService = $app->make(XMLService::class);
+            $dadosXMLService = $app->make(DadosXMLService::class);
+            $dadosXMLRepository = $app->make(IDadosXML::class);
+
+            return new XMLController($xmlService, $dadosXMLService, $dadosXMLRepository);
+        });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        $this->app->bind(IUsuario::class, UsuarioRepository::class);
+        $this->app->bind(IDadosXML::class, DadosXMLRepository::class);
+        $this->app->bind(IEmpresa::class, EmpresaRepository::class);
+        $this->app->bind(IXML::class, XMLRepository::class);
+    }
 }

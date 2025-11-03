@@ -15,53 +15,59 @@ use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
-  use Toast;
+    use Toast;
 
-  public ClienteForm $cliente;
-  public UsuarioForm $usuario;
-  public Collection $empresas;
+    public ClienteForm $cliente;
 
-  public function mount(): void {
-    $this->search();
-  }
+    public UsuarioForm $usuario;
 
-  #[Title('SAFI NFE - Cadastro de Clientes')]
-  #[Layout('components.layouts.main')]
-  public function render()
-  {
-    return view('livewire.views.clientes.cadastro');
-  }
+    public Collection $empresas;
 
-  public function cadastrar(): void {
-    $this->cliente->validate();
-
-    if (!is_null(Cliente::whereEmail($this->cliente->email)->first())) {
-      $this->addError('cliente.email', 'O email já existe no sistema');
-      return;
+    public function mount(): void
+    {
+        $this->search();
     }
 
-    $this->usuario->validateOnly('password');
-    $this->usuario->encriptaSenha();
+    #[Title('SAFI NFE - Cadastro de Clientes')]
+    #[Layout('components.layouts.main')]
+    public function render()
+    {
+        return view('livewire.views.clientes.cadastro');
+    }
 
-    $this->usuario->name = $this->cliente->nome;
-    $this->usuario->email = $this->cliente->email;
-    $this->usuario->role = 'CLIENTE';
+    public function cadastrar(): void
+    {
+        $this->cliente->validate();
 
-    $usuario = User::create($this->usuario->all());
+        if (! is_null(Cliente::whereEmail($this->cliente->email)->first())) {
+            $this->addError('cliente.email', 'O email já existe no sistema');
 
-    $this->cliente->usuario_id = $usuario->getAttribute('id');
+            return;
+        }
 
-    Cliente::create($this->cliente->all());
+        $this->usuario->validateOnly('password');
+        $this->usuario->encriptaSenha();
 
-    $this->success('Cliente cadastrado com sucesso', redirectTo: route('clientes'));
-  }
+        $this->usuario->name = $this->cliente->nome;
+        $this->usuario->email = $this->cliente->email;
+        $this->usuario->role = 'CLIENTE';
 
-  public function voltar(): void
-  {
-    redirect('contadores/');
-  }
+        $usuario = User::create($this->usuario->all());
 
-  public function search(?string $valor = null): void {
-    $this->empresas = Empresa::query()->where('fantasia', 'like', "%$valor%")->orderBy('fantasia')->get();
-  }
+        $this->cliente->usuario_id = $usuario->getAttribute('id');
+
+        Cliente::create($this->cliente->all());
+
+        $this->success('Cliente cadastrado com sucesso', redirectTo: route('clientes'));
+    }
+
+    public function voltar(): void
+    {
+        redirect('contadores/');
+    }
+
+    public function search(?string $valor = null): void
+    {
+        $this->empresas = Empresa::query()->where('fantasia', 'like', "%$valor%")->orderBy('fantasia')->get();
+    }
 }

@@ -6,8 +6,8 @@ use Livewire\Component;
 
 class TopNavBar extends Component
 {
-  public function render()
-  {
-    return view('livewire.componentes.utils.navbar.top-nav-bar');
-  }
+    public function render()
+    {
+        return view('livewire.componentes.utils.navbar.top-nav-bar');
+    }
 }

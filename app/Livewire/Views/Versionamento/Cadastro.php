@@ -11,29 +11,35 @@ use Mary\Traits\Toast;
 
 class Cadastro extends Component
 {
-  use Toast;
-  public VersaoForm $versao;
+    use Toast;
 
-  #[Layout('components.layouts.main')]
-  #[Title('SAFI NFE - Versionamento')]
-  public function render()
-  {
-    return view('livewire.views.versionamento.cadastro');
-  }
+    public VersaoForm $versao;
 
-  public function cadastrar() {
-    $this->versao->validate();
-    if (!is_null(Versionamento::wherePatch($this->versao->patch)->first())) return $this->addError('versao.patch', 'A versão já existe');
-    Versionamento::create($this->versao->all());
+    #[Layout('components.layouts.main')]
+    #[Title('SAFI NFE - Versionamento')]
+    public function render()
+    {
+        return view('livewire.views.versionamento.cadastro');
+    }
 
-    $this->success("Versão cadastrada com sucesso.", redirectTo: route('versionamento'));
-  }
+    public function cadastrar()
+    {
+        $this->versao->validate();
+        if (! is_null(Versionamento::wherePatch($this->versao->patch)->first())) {
+            return $this->addError('versao.patch', 'A versão já existe');
+        }
+        Versionamento::create($this->versao->all());
 
-  public function voltar(): void {
-    redirect('versionamento');
-  }
+        $this->success('Versão cadastrada com sucesso.', redirectTo: route('versionamento'));
+    }
 
-  public function mostrarPreview(): void {
-    $this->versao->detalhe = $this->versao->detalhe;
-  }
+    public function voltar(): void
+    {
+        redirect('versionamento');
+    }
+
+    public function mostrarPreview(): void
+    {
+        $this->versao->detalhe = $this->versao->detalhe;
+    }
 }

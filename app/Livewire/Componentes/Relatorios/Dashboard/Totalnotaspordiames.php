@@ -2,60 +2,60 @@
 
 namespace App\Livewire\Componentes\Relatorios\Dashboard;
 
-use Livewire\Attributes\Reactive;
 use Livewire\Component;
 
 class Totalnotaspordiames extends Component
 {
-  public array $dadosAtual = [];
-  public array $relatorioTotalNotasPorDiaMes = [];
+    public array $dadosAtual = [];
 
-  public function mount(array $dados): void
-  {
-    $this->dadosAtual = [];
+    public array $relatorioTotalNotasPorDiaMes = [];
 
-    $labels = [];
-    $values = [];
+    public function mount(array $dados): void
+    {
+        $this->dadosAtual = [];
 
-    foreach ($dados as $key => $dado) {
-      $dataFormatada = date('d/m/Y', strtotime($key));
-      $labels[] = $dataFormatada;
-      $values[] = $dado;
+        $labels = [];
+        $values = [];
 
-      $this->dadosAtual[] = [
-        'y' => $dataFormatada,
-        'value' => $dado,
-      ];
+        foreach ($dados as $key => $dado) {
+            $dataFormatada = date('d/m/Y', strtotime($key));
+            $labels[] = $dataFormatada;
+            $values[] = $dado;
+
+            $this->dadosAtual[] = [
+                'y' => $dataFormatada,
+                'value' => $dado,
+            ];
+        }
+
+        $this->relatorioTotalNotasPorDiaMes = [
+            'type' => 'bar',
+            'data' => [
+                'labels' => $labels,
+                'datasets' => [
+                    [
+                        'label' => 'Total de vendas por dia',
+                        'data' => $values,
+                        'borderWidth' => 1,
+                    ],
+                ],
+            ],
+            'options' => [
+                'responsive' => true,
+                'scales' => [
+                    'y' => [
+                        'beginAtZero' => true,
+                    ],
+                ],
+            ],
+        ];
     }
 
-    $this->relatorioTotalNotasPorDiaMes = [
-      'type' => 'bar',
-      'data' => [
-        'labels' => $labels,
-        'datasets' => [
-          [
-            'label' => 'Total de vendas por dia',
-            'data' => $values,
-            'borderWidth' => 1,
-          ],
-        ],
-      ],
-      'options' => [
-        'responsive' => true,
-        'scales' => [
-          'y' => [
-            'beginAtZero' => true,
-          ],
-        ],
-      ],
-    ];
-  }
+    public function render()
+    {
 
-  public function render()
-  {
-
-    return <<<'HTML'
+        return <<<'HTML'
         <x-chart wire:model="relatorioTotalNotasPorDiaMes" />
         HTML;
-  }
+    }
 }

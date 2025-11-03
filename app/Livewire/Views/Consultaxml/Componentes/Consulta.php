@@ -10,29 +10,38 @@ use Livewire\Component;
 
 class Consulta extends Component
 {
-  public ?string $modelPrefix = null;
-  public ?array $status = null;
-  public ?array $modelos = null;
-  public ?array $config = null;
-  public ?bool $empresaSelector = null;
-  public ?Collection $empresas;
-  public ConsultaContadorXMLForm $consultaContador;
-  public ConsultaClienteXMLForm $consultaCliente;
-  public ConsultaAdminXMLForm $consultaAdmin;
+    public ?string $modelPrefix = null;
 
-  public function mount(?string $modelPrefix, ?array $status, ?array $modelos, ?array $config, ?bool $empresaSelector, ?Collection $empresas) {
-    $this->modelPrefix = $modelPrefix;
-    $this->status = $status;
-    $this->modelos = $modelos;
-    $this->config = $config;
-    $this->empresaSelector = $empresaSelector;
-    $this->empresas = $empresas;
-  }
+    public ?array $status = null;
 
-  public function render()
-  {
-    return
-      <<<'HTML'
+    public ?array $modelos = null;
+
+    public ?array $config = null;
+
+    public ?bool $empresaSelector = null;
+
+    public ?Collection $empresas;
+
+    public ConsultaContadorXMLForm $consultaContador;
+
+    public ConsultaClienteXMLForm $consultaCliente;
+
+    public ConsultaAdminXMLForm $consultaAdmin;
+
+    public function mount(?string $modelPrefix, ?array $status, ?array $modelos, ?array $config, ?bool $empresaSelector, ?Collection $empresas)
+    {
+        $this->modelPrefix = $modelPrefix;
+        $this->status = $status;
+        $this->modelos = $modelos;
+        $this->config = $config;
+        $this->empresaSelector = $empresaSelector;
+        $this->empresas = $empresas;
+    }
+
+    public function render()
+    {
+        return
+          <<<'HTML'
       <form wire:submit="consulta" class="flex flex-col gap-4">
         <div class="flex flex-col md:grid md:grid-cols-4 gap-4">
           <div class="w-full md:col-span-2 md:w-auto">
@@ -79,35 +88,37 @@ class Consulta extends Component
         </div>
       </form>
     HTML;
-  }
+    }
 
-  public function enviaConsulta(): void {
-    $this->{$this->modelPrefix}->validate();
-    $splitData = explode(' até ', $this->{$this->modelPrefix}->data_inicio_fim);
-    $this->{$this->modelPrefix}->data_inicio = $splitData[0];
-    $this->{$this->modelPrefix}->data_fim = $splitData[1];
-    $this->dispatch('envia-consulta', [
-      'tipo' => $this->modelPrefix,
-      ...match ($this->modelPrefix) {
-        'consultaCliente' => $this->consultaCliente->toArray(),
-        'consultaAdmin' => $this->consultaAdmin->toArray(),
-        'consultaContador' => $this->consultaContador->toArray(),
-      },
-    ]);
-  }
+    public function enviaConsulta(): void
+    {
+        $this->{$this->modelPrefix}->validate();
+        $splitData = explode(' até ', $this->{$this->modelPrefix}->data_inicio_fim);
+        $this->{$this->modelPrefix}->data_inicio = $splitData[0];
+        $this->{$this->modelPrefix}->data_fim = $splitData[1];
+        $this->dispatch('envia-consulta', [
+            'tipo' => $this->modelPrefix,
+            ...match ($this->modelPrefix) {
+                'consultaCliente' => $this->consultaCliente->toArray(),
+                'consultaAdmin' => $this->consultaAdmin->toArray(),
+                'consultaContador' => $this->consultaContador->toArray(),
+            },
+        ]);
+    }
 
-  public function solicitaDownload(): void {
-    $this->{$this->modelPrefix}->validate();
-    $splitData = explode(' até ', $this->{$this->modelPrefix}->data_inicio_fim);
-    $this->{$this->modelPrefix}->data_inicio = $splitData[0];
-    $this->{$this->modelPrefix}->data_fim = $splitData[1];
-    $this->dispatch('download-direto', [
-      'tipo' => $this->modelPrefix,
-      ...match ($this->modelPrefix) {
-        'consultaCliente' => $this->consultaCliente->toArray(),
-        'consultaAdmin' => $this->consultaAdmin->toArray(),
-        'consultaContador' => $this->consultaContador->toArray(),
-      },
-    ]);
-  }
+    public function solicitaDownload(): void
+    {
+        $this->{$this->modelPrefix}->validate();
+        $splitData = explode(' até ', $this->{$this->modelPrefix}->data_inicio_fim);
+        $this->{$this->modelPrefix}->data_inicio = $splitData[0];
+        $this->{$this->modelPrefix}->data_fim = $splitData[1];
+        $this->dispatch('download-direto', [
+            'tipo' => $this->modelPrefix,
+            ...match ($this->modelPrefix) {
+                'consultaCliente' => $this->consultaCliente->toArray(),
+                'consultaAdmin' => $this->consultaAdmin->toArray(),
+                'consultaContador' => $this->consultaContador->toArray(),
+            },
+        ]);
+    }
 }

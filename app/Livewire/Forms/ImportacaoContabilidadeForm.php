@@ -6,11 +6,11 @@ use Livewire\Attributes\Validate;
 use Livewire\Form;
 
 #[Validate(rule: [
-  'arquivo' => 'required'
+    'arquivo' => 'required',
 ], message: [
-  'required' => 'Campo obrigatorio'
+    'required' => 'Campo obrigatorio',
 ])]
 class ImportacaoContabilidadeForm extends Form
 {
-  public $arquivo;
+    public $arquivo;
 }

@@ -8,15 +8,18 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class XML extends Model
 {
-  use HasFactory;
+    use HasFactory;
 
-  protected $table = 'xmls';
-  protected $primaryKey = 'xml_id';
-  protected $fillable = [
-    'xml'
-  ];
+    protected $table = 'xmls';
 
-  public function dados(): HasOne {
-    return $this->hasOne(DadosXML::class, 'xml_id', 'xml_id');
-  }
+    protected $primaryKey = 'xml_id';
+
+    protected $fillable = [
+        'xml',
+    ];
+
+    public function dados(): HasOne
+    {
+        return $this->hasOne(DadosXML::class, 'xml_id', 'xml_id');
+    }
 }

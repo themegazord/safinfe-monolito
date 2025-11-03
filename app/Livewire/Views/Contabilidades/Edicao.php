@@ -19,83 +19,94 @@ use Mary\Traits\Toast;
 
 class Edicao extends Component
 {
-  use Toast;
+    use Toast;
 
-  public ContabilidadeForm $contabilidade;
-  public EnderecoForm $endereco;
-  public Endereco $enderecoAtual;
-  public Contabilidade $contabilidadeAtual;
-  public Collection $empresas;
+    public ContabilidadeForm $contabilidade;
 
-  public function mount(
-    int $contabilidade_id,
-  ): void {
-    $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
-    $this->enderecoAtual = Endereco::find($this->contabilidadeAtual->endereco_id);
-    $this->search();
-    foreach($this->contabilidadeAtual->empresas()->get() as $empresa) {
-      array_push($this->contabilidade->empresas, $empresa->empresa_id);
-    }
-  }
+    public EnderecoForm $endereco;
 
-  #[Title("SAFI NFE - Edição de Contabilidades")]
-  #[Layout("components.layouts.main")]
-  public function render()
-  {
-    return view('livewire.views.contabilidades.edicao');
-  }
+    public Endereco $enderecoAtual;
 
-  public function editar(
-    ContabilidadeRepository $contabilidadeRepository,
-    EnderecoRepository $enderecoRepository,
-    EmpContRepository $empContRepository
-  ) {
-    $this->contabilidade->filtraEmpresas();
-    $this->contabilidade->tratarCamposSujos();
-    $this->contabilidade->validate();
+    public Contabilidade $contabilidadeAtual;
 
-    if (!is_null(DB::table('contabilidades')->where('cnpj', $this->contabilidade->documento)->whereNot('contabilidade_id', $this->contabilidadeAtual->getAttribute('contabilidade_id'))->first())) return $this->addError('contabilidade.documento', 'Documento já existente.');
-    if (!is_null(DB::table('contabilidades')->where('email_corporativo', $this->contabilidade->email_corporativo)->whereNot('contabilidade_id', $this->contabilidadeAtual->getAttribute('contabilidade_id'))->first())) return $this->addError('contabilidade.email_corporativo', 'Email corporativo já existente.');
-    if (!is_null(DB::table('contabilidades')->where('email_contato', $this->contabilidade->email_contato)->whereNot('contabilidade_id', $this->contabilidadeAtual->getAttribute('contabilidade_id'))->first())) return $this->addError('contabilidade.email_contato', 'Email de contato já existente.');
+    public Collection $empresas;
 
-    $this->endereco->tratarCamposSujos();
-    $this->contabilidade->validate();
-
-    $empresas = $this->contabilidade->empresas;
-
-    $dadosContabilidade = $this->contabilidade->all();
-
-    unset($dadosContabilidade['empresas']);
-
-    $empContRepository->removeRelacionamentoContabilidade($this->contabilidadeAtual->getAttribute('contabilidade_id'));
-
-    foreach($empresas as $empresa) {
-      $empContRepository->cadastrar([
-        'empresa_id' => $empresa,
-        'contabilidade_id' => $this->contabilidadeAtual->getAttribute('contabilidade_id')
-      ]);
+    public function mount(
+        int $contabilidade_id,
+    ): void {
+        $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+        $this->enderecoAtual = Endereco::find($this->contabilidadeAtual->endereco_id);
+        $this->search();
+        foreach ($this->contabilidadeAtual->empresas()->get() as $empresa) {
+            array_push($this->contabilidade->empresas, $empresa->empresa_id);
+        }
     }
 
-    $enderecoParaAtualizacao = array_diff($this->endereco->all(), $this->enderecoAtual->toArray());
-    $contabilidadeParaAtualizacao = array_diff($dadosContabilidade, $this->contabilidadeAtual->toArray());
+    #[Title('SAFI NFE - Edição de Contabilidades')]
+    #[Layout('components.layouts.main')]
+    public function render()
+    {
+        return view('livewire.views.contabilidades.edicao');
+    }
 
-    $enderecoParaAtualizacao['endereco_id'] = $this->enderecoAtual->getAttribute('endereco_id');
+    public function editar(
+        ContabilidadeRepository $contabilidadeRepository,
+        EnderecoRepository $enderecoRepository,
+        EmpContRepository $empContRepository
+    ) {
+        $this->contabilidade->filtraEmpresas();
+        $this->contabilidade->tratarCamposSujos();
+        $this->contabilidade->validate();
 
-    $contabilidadeParaAtualizacao['endereco_id'] = $enderecoParaAtualizacao['endereco_id'];
-    $contabilidadeParaAtualizacao['contabilidade_id'] = $this->contabilidadeAtual->getAttribute('contabilidade_id');
+        if (! is_null(DB::table('contabilidades')->where('cnpj', $this->contabilidade->documento)->whereNot('contabilidade_id', $this->contabilidadeAtual->getAttribute('contabilidade_id'))->first())) {
+            return $this->addError('contabilidade.documento', 'Documento já existente.');
+        }
+        if (! is_null(DB::table('contabilidades')->where('email_corporativo', $this->contabilidade->email_corporativo)->whereNot('contabilidade_id', $this->contabilidadeAtual->getAttribute('contabilidade_id'))->first())) {
+            return $this->addError('contabilidade.email_corporativo', 'Email corporativo já existente.');
+        }
+        if (! is_null(DB::table('contabilidades')->where('email_contato', $this->contabilidade->email_contato)->whereNot('contabilidade_id', $this->contabilidadeAtual->getAttribute('contabilidade_id'))->first())) {
+            return $this->addError('contabilidade.email_contato', 'Email de contato já existente.');
+        }
 
-    $enderecoRepository->editaEndereco($enderecoParaAtualizacao);
-    $contabilidadeRepository->editaContabilidade($contabilidadeParaAtualizacao);
+        $this->endereco->tratarCamposSujos();
+        $this->contabilidade->validate();
 
+        $empresas = $this->contabilidade->empresas;
 
-    $this->success('Contabilidade editada com sucesso', redirectTo: route('contabilidades'));
-  }
+        $dadosContabilidade = $this->contabilidade->all();
 
-  public function voltar(): void {
-    redirect('/contabilidades');
-  }
+        unset($dadosContabilidade['empresas']);
 
-  public function search(string $valor = ""): void {
-    $this->empresas = Empresa::query()->where('fantasia', 'like', "%$valor%")->orderBy('fantasia')->get();
-  }
+        $empContRepository->removeRelacionamentoContabilidade($this->contabilidadeAtual->getAttribute('contabilidade_id'));
+
+        foreach ($empresas as $empresa) {
+            $empContRepository->cadastrar([
+                'empresa_id' => $empresa,
+                'contabilidade_id' => $this->contabilidadeAtual->getAttribute('contabilidade_id'),
+            ]);
+        }
+
+        $enderecoParaAtualizacao = array_diff($this->endereco->all(), $this->enderecoAtual->toArray());
+        $contabilidadeParaAtualizacao = array_diff($dadosContabilidade, $this->contabilidadeAtual->toArray());
+
+        $enderecoParaAtualizacao['endereco_id'] = $this->enderecoAtual->getAttribute('endereco_id');
+
+        $contabilidadeParaAtualizacao['endereco_id'] = $enderecoParaAtualizacao['endereco_id'];
+        $contabilidadeParaAtualizacao['contabilidade_id'] = $this->contabilidadeAtual->getAttribute('contabilidade_id');
+
+        $enderecoRepository->editaEndereco($enderecoParaAtualizacao);
+        $contabilidadeRepository->editaContabilidade($contabilidadeParaAtualizacao);
+
+        $this->success('Contabilidade editada com sucesso', redirectTo: route('contabilidades'));
+    }
+
+    public function voltar(): void
+    {
+        redirect('/contabilidades');
+    }
+
+    public function search(string $valor = ''): void
+    {
+        $this->empresas = Empresa::query()->where('fantasia', 'like', "%$valor%")->orderBy('fantasia')->get();
+    }
 }

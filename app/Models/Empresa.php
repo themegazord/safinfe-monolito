@@ -10,30 +10,33 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Empresa extends Model
 {
-  use HasFactory;
+    use HasFactory;
 
-  protected $primaryKey = 'empresa_id';
+    protected $primaryKey = 'empresa_id';
 
-  protected $fillable = [
-    'endereco_id',
-    'fantasia',
-    'social',
-    'cnpj',
-    'ie',
-    'email_contato',
-    'telefone_contato',
-    'telefone_reserva',
-  ];
+    protected $fillable = [
+        'endereco_id',
+        'fantasia',
+        'social',
+        'cnpj',
+        'ie',
+        'email_contato',
+        'telefone_contato',
+        'telefone_reserva',
+    ];
 
-  public function endereco(): BelongsTo {
-    return $this->belongsTo(Endereco::class, 'endereco_id', 'endereco_id');
-  }
+    public function endereco(): BelongsTo
+    {
+        return $this->belongsTo(Endereco::class, 'endereco_id', 'endereco_id');
+    }
 
-  public function dadosXML(): HasMany {
-    return $this->hasMany(DadosXML::class, 'dados_id', 'dados_id');
-  }
+    public function dadosXML(): HasMany
+    {
+        return $this->hasMany(DadosXML::class, 'dados_id', 'dados_id');
+    }
 
-  public function contabilidades(): BelongsToMany {
-    return $this->belongsToMany(Contabilidade::class, 'empcont', 'empresa_id', 'contabilidade_id');
-  }
+    public function contabilidades(): BelongsToMany
+    {
+        return $this->belongsToMany(Contabilidade::class, 'empcont', 'empresa_id', 'contabilidade_id');
+    }
 }
