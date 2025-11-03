@@ -38,6 +38,9 @@
         }
     },
     "scripts": {
+        "format": [
+          "./vendor/bin/pint"
+        ],
         "all": [
           "@post-autoload-dump",
           "@post-update-cmd",
