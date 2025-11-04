@@ -263,7 +263,6 @@ class Gerenciar extends Component
                 ]);
 
                 DB::commit();
-                $this->contador();
             } catch (\Exception $e) {
                 $erros[] = ['tipo' => 'Insercao no banco de dados', 'mensagem' => $e->getMessage()];
                 DB::rollBack();
@@ -449,7 +448,6 @@ class Gerenciar extends Component
                 ]);
 
                 DB::commit();
-                $this->contador();
             } catch (\Exception $e) {
                 $erros[] = ['tipo' => 'Insercao no banco de dados', 'mensagem' => $e->getMessage()];
                 DB::rollBack();
