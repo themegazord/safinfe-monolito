@@ -10,7 +10,6 @@ interface ICliente
 {
     public function paginacaoClientes(int $perPage, ?string $pesquisa, bool $status = true): LengthAwarePaginator;
 
-    // public function listagemClientes(): Collection;
     public function cadastroCliente(array $dados): Model;
 
     public function consultaClientePorEmail(string $email): ?Model;

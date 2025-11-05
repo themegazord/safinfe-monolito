@@ -19,30 +19,6 @@ class XMLController extends Controller
         private readonly IDadosXML $dadosXMLRepository
     ) {}
 
-    // Inutilizado
-    // public function store(Request $request): JsonResponse
-    // {
-    //   try {
-    //     $this->xmlService->validaDados($request);
-    //     $path = $request->arquivo->storeAs('public/tempXMLAPI', $request->arquivo->getClientOriginalName());
-    //     $realPath = storage_path('app/' . $path);
-    //     $arquivo = file_get_contents($realPath);
-    //     $xml = $this->xmlService->cadastro($realPath);
-
-    //     match ($request->status) {
-    //       'AUTORIZADO' => $this->dadosXMLService->cadastro($arquivo, $xml->getAttribute('xml_id'), $request->cnpj),
-    //       'CANCELADO' => $this->dadosXMLService->cadastroCancelado($arquivo, $xml->getAttribute('xml_id'), $request->cnpj),
-    //       'INUTILIZADO' => $this->dadosXMLService->cadastroInutilizado($arquivo, $xml->getAttribute('xml_id'), $request->cnpj, $request->arquivo->getClientOriginalName()),
-    //     };
-    //     unlink($realPath);
-
-    //     return response()->json(['mensagem' => 'XML cadastrado com sucesso']);
-    //   } catch (XMLException $xmle) {
-    //     return response()->json(['mensagem' => $xmle->getMessage()], $xmle->getCode());
-    //     unlink($realPath);
-    //   }
-    // }
-
     public function storeTexto(Request $request): JsonResponse
     {
         try {
@@ -79,7 +55,6 @@ class XMLController extends Controller
             return response()->json(['nota' => $nota->toArray()]);
         } catch (XMLException $xmle) {
             return response()->json($xmle->getMessage(), $xmle->getCode());
-            unlink($realPath);
         }
     }
 }

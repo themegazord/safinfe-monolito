@@ -9,7 +9,6 @@ interface IContador
 {
     public function paginacaoContadores(int $perPage, ?string $pesquisa, bool $status = true): LengthAwarePaginator;
 
-    // public function listagemContadors(): Collection;
     public function cadastroContador(array $dados): Model;
 
     public function consultaContadorPorEmail(string $email): ?Model;
