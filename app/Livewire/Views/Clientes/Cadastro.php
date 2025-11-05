@@ -63,7 +63,7 @@ class Cadastro extends Component
 
     public function voltar(): void
     {
-        redirect('contadores/');
+        redirect('clientes/');
     }
 
     public function search(?string $valor = null): void
