@@ -54,6 +54,11 @@ class Edicao extends Component
             return $this->addError('empresa.ie', 'IE já existente.');
         }
 
+        $this->validate(
+            ['empresa.ie' => 'inscricao_estadual:' . $this->endereco->estado],
+            ['empresa.ie.inscricao_estadual' => 'A Inscrição Estadual é inválida para o estado ' . $this->endereco->estado . '.']
+        );
+
         $enderecoAtualizado = array_diff($this->endereco->all(), $this->enderecoAtual->toArray());
         $empresaAtualizado = array_diff($this->empresa->all(), $this->empresaAtual->toArray());
 

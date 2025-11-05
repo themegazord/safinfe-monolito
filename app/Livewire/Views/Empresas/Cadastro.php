@@ -35,20 +35,21 @@ class Cadastro extends Component
     public function cadastrar(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository)
     {
         $this->endereco->tratarCamposSujos();
-
+        $this->empresa->tratarCamposSujos();
+        $this->endereco->validate();
+        $this->empresa->validate();
         if (! is_null(DB::table('empresas')->where('cnpj', $this->empresa->cnpj)->first())) {
             return $this->addError('empresa.cnpj', 'CNPJ já existente.');
         }
         if (! is_null(DB::table('empresas')->where('ie', $this->empresa->ie)->first())) {
             return $this->addError('empresa.ie', 'IE já existente.');
         }
-
-        $this->endereco->validate();
+        $this->validate(
+            ['empresa.ie' => 'inscricao_estadual:' . $this->endereco->estado],
+            ['empresa.ie.inscricao_estadual' => 'A Inscrição Estadual é inválida para o estado ' . $this->endereco->estado . '.']
+        );
 
         $endereco_cadastrado = $enderecoRepository->cadastraEndereco($this->endereco->all());
-
-        $this->empresa->tratarCamposSujos();
-        $this->empresa->validate();
 
         $this->empresa->endereco_id = $endereco_cadastrado->getAttribute('endereco_id');
 

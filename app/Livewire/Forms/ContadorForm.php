@@ -8,7 +8,7 @@ use Livewire\Form;
 #[Validate(rule: [
     'nome' => 'required|max:255',
     'email' => 'required|email|max:255',
-    'cpf' => 'required|size:11',
+    'cpf' => 'required|cpf|size:11',
     'contabilidade_id' => 'required',
 ], message: [
     'required' => 'O campo é obrigatório.',

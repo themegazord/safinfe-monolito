@@ -29,7 +29,6 @@ return new class extends Migration
         });
     }
 
-
     private function addCascadeDeleteToFK(string $table, string $column, string $references, string $referencedColumn, string $constraintName): void
     {
         // Tentar dropar a constraint antiga (se existir)
