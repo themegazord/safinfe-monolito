@@ -24,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
+            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
+            $this->app->register(TelescopeServiceProvider::class);
+        }
+
         $this->app->scoped(DadosXMLService::class, function (Application $app) {
             $dadosXMLRepository = $app->make(IDadosXML::class);
             $empresaRepository = $app->make(IEmpresa::class);
