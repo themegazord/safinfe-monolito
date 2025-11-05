@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
-use App\Traits\ValidacoesTrait;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
@@ -19,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -29,7 +29,7 @@ use Mary\Traits\Toast;
 
 class Gerenciar extends Component
 {
-    use Toast, ValidacoesTrait, WithFileUploads;
+    use Toast, WithFileUploads;
 
     public array $xmls = [];
 
@@ -107,9 +107,9 @@ class Gerenciar extends Component
         ];
 
         $this->importacaoContabilidadeForm->validate();
-        $path = $this->importacaoContabilidadeForm->arquivo->storeAs('importacaoTemp/impcontabilidade'.$this->usuario->getAttribute('id').'.xlsx');
+        $path = $this->importacaoContabilidadeForm->arquivo->storeAs('importacaoTemp/impcontabilidade' . $this->usuario->getAttribute('id') . '.xlsx');
 
-        $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/'.$path))->getActiveSheet();
+        $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/' . $path))->getActiveSheet();
         $data = $planilha->toArray();
         $cabecalho = $data[0];
 
@@ -122,7 +122,7 @@ class Gerenciar extends Component
             $erros[] = ['tipo' => EnumTiposValidacao::ValidacaoDeContagemDeCampos->value, 'mensagem' => 'A quantidade de colunas dos cabecalhos e diferente do que foi esperado.'];
         }
         // Validacao de schema do cabecalho
-        if (count(array_diff($camposCabecalhoEsperados, array_map(fn ($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) {
+        if (count(array_diff($camposCabecalhoEsperados, array_map(fn($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) {
             $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
         }
         // Validacao dos campos obrigatorios
@@ -150,13 +150,21 @@ class Gerenciar extends Component
                         $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O documento limpo da linha {$this->retornaLinha($i + 1)} deve conter 11 (CPF) ou 14 caracteres"];
                     }
                     if (strlen(preg_replace('/[^0-9]/', '', trim($campo))) === 14) {
-                        if (! $this->validar_cnpj($campo)) {
+                        $validatorCnpj = Validator::make(
+                            ['cnpj' => $campo],
+                            ['cnpj' => 'cnpj']
+                        );
+                        if ($validatorCnpj->fails()) {
                             $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
                         }
                     }
 
                     if (strlen(preg_replace('/[^0-9]/', '', trim($campo))) === 11) {
-                        if (! $this->validaCPF($campo)) {
+                        $validatorCpf = Validator::make(
+                            ['cpf' => $campo],
+                            ['cpf' => 'cpf']
+                        );
+                        if ($validatorCpf->fails()) {
                             $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CPF na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
                         }
                     }
@@ -303,9 +311,9 @@ class Gerenciar extends Component
         ];
 
         $this->importacaoEmpresaForm->validate();
-        $path = $this->importacaoEmpresaForm->arquivo->storeAs('importacaoTemp/impempresa'.$this->usuario->getAttribute('id').'.xlsx');
+        $path = $this->importacaoEmpresaForm->arquivo->storeAs('importacaoTemp/impempresa' . $this->usuario->getAttribute('id') . '.xlsx');
 
-        $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/'.$path))->getActiveSheet();
+        $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/' . $path))->getActiveSheet();
         $data = $planilha->toArray();
         $cabecalho = $data[0];
 
@@ -318,7 +326,7 @@ class Gerenciar extends Component
             $erros[] = ['tipo' => EnumTiposValidacao::ValidacaoDeContagemDeCampos->value, 'mensagem' => 'A quantidade de colunas dos cabecalhos e diferente do que foi esperado.'];
         }
         // Validacao de schema do cabecalho
-        if (count(array_diff($camposCabecalhoEsperados, array_map(fn ($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) {
+        if (count(array_diff($camposCabecalhoEsperados, array_map(fn($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) {
             $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
         }
         // Validacao dos campos obrigatorios
@@ -350,7 +358,11 @@ class Gerenciar extends Component
                     if (strlen(preg_replace('/[^0-9]/', '', trim($campo))) !== 14) {
                         $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ limpo da linha {$this->retornaLinha($i + 1)} deve conter 14 caracteres"];
                     }
-                    if (! $this->validar_cnpj($campo)) {
+                    $validatorCnpj = Validator::make(
+                        ['cnpj' => $campo],
+                        ['cnpj' => 'cnpj']
+                    );
+                    if ($validatorCnpj->fails()) {
                         $erros[] = ['tipo' => EnumTiposValidacao::IntegridadeDoCampo->value, 'mensagem' => "O CNPJ na linha {$this->retornaLinha($i + 1)} e matematicamente invalido"];
                     }
                     if (! is_null($empresaRepository->consultaEmpresaPorCNPJ(preg_replace('/[^0-9]/', '', trim($campo))))) {
@@ -477,7 +489,7 @@ class Gerenciar extends Component
     private function recebeRARXMLS(): void
     {
         $path = $this->importacaoXMLForm->arquivo->storeAs('public', $this->importacaoXMLForm->arquivo->getClientOriginalName());
-        $realPath = storage_path('app/'.$path);
+        $realPath = storage_path('app/' . $path);
 
         dispatch(new ImportaXMLsJob($realPath, $this->importacaoXMLForm->cnpj));
 
