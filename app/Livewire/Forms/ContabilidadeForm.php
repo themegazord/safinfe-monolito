@@ -7,7 +7,7 @@ use Livewire\Form;
 
 #[Validate(rule: [
     'social' => 'required|max:255',
-    'documento' => 'required|max:14',
+    'documento' => 'required|max:14|cnpj',
     'telefone_corporativo' => 'required|max:20',
     'email_corporativo' => 'required|max:255',
     'email_contato' => 'required|max:255',
