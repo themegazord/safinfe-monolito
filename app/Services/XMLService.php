@@ -8,6 +8,7 @@ use App\Repositories\Interface\IEmpresa;
 use App\Repositories\Interface\IXML;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class XMLService
 {
@@ -108,6 +109,13 @@ class XMLService
         }
         if (strlen($cnpj) !== 14) {
             return XMLException::empresaComQuantidadeErradaDeCaracteres($cnpj);
+        }
+        $validator = Validator::make(
+            ['cnpj' => $cnpj],
+            ['cnpj' => 'cnpj']
+        );
+        if ($validator->fails()) {
+            return XMLException::cnpjMatematicamenteIncorreto($cnpj);
         }
         $empresa = $this->empresaRepository->consultaEmpresaPorCNPJ($cnpj);
         if (is_null($empresa)) {

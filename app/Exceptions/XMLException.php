@@ -27,6 +27,11 @@ class XMLException extends Exception
         throw new self("O CNPJ informado {$cnpj} não contêm os 14 caracteres válidos para um CNPJ.", Response::HTTP_BAD_REQUEST);
     }
 
+    public static function cnpjMatematicamenteIncorreto(string $cnpj): self
+    {
+        throw new self("O CNPJ informado {$cnpj} é matematicamente incorreto.", Response::HTTP_BAD_REQUEST);
+    }
+
     public static function empresaNaoCadastrada(string $cnpj): self
     {
         throw new self("O CNPJ {$cnpj} não existe na base de dados.", Response::HTTP_NOT_FOUND);
