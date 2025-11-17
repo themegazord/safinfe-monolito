@@ -4,6 +4,8 @@ namespace App\Livewire\Views\Administradores;
 
 use App\Livewire\Forms\UsuarioForm;
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -14,6 +16,16 @@ class Cadastro extends Component
     use Toast;
 
     public UsuarioForm $administrador;
+
+    public User|Authenticatable $usuario;
+
+    public function mount(): void
+    {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('create', \App\Models\User::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
+    }
 
     #[Title('SAFI NFE - Cadastro de Administradores')]
     #[Layout('components.layouts.main')]

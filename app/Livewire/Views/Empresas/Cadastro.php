@@ -4,8 +4,11 @@ namespace App\Livewire\Views\Empresas;
 
 use App\Livewire\Forms\EmpresaForm;
 use App\Livewire\Forms\EnderecoForm;
+use App\Models\User;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -19,6 +22,15 @@ class Cadastro extends Component
     public EnderecoForm $endereco;
 
     public EmpresaForm $empresa;
+
+    public User|Authenticatable $usuario;
+
+    public function mount(): void {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('create', \App\Models\Empresa::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
+    }
 
     #[Layout('components.layouts.main')]
     #[Title('SAFI NFE - Cadastro de Empresas')]

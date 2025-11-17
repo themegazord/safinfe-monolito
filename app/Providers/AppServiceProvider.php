@@ -10,6 +10,7 @@ use App\Models\Contador;
 use App\Models\DadosXML;
 use App\Models\EmpCont;
 use App\Models\Empresa;
+use App\Models\User;
 use App\Models\XML;
 use App\Policies\ClientePolicy;
 use App\Policies\ContabilidadePolicy;
@@ -17,6 +18,7 @@ use App\Policies\ContadorPolicy;
 use App\Policies\DadosXMLPolicy;
 use App\Policies\EmpContPolicy;
 use App\Policies\EmpresaPolicy;
+use App\Policies\UserPolicy;
 use App\Policies\XMLPolicy;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
@@ -93,5 +95,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(EmpCont::class, EmpContPolicy::class);
         Gate::policy(Empresa::class, EmpresaPolicy::class);
         Gate::policy(XML::class, XMLPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
     }
 }

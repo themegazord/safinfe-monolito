@@ -3,6 +3,8 @@
 namespace App\Livewire\Views\Administradores;
 
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -21,6 +23,15 @@ class Listagem extends Component
     public ?User $administradorAtual;
 
     public bool $modalConfirmandoRemocaoAdministrador = false;
+
+    public User|Authenticatable $usuario;
+
+    public function mount(): void {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('viewAny', \App\Models\User::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
+    }
 
     #[Title('SAFI NFE - Listagem de Usuarios')]
     #[Layout('components.layouts.main')]

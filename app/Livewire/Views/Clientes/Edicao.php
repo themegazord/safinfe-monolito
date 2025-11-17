@@ -7,7 +7,9 @@ use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\User;
 use App\Traits\EnviaEmailResetSenhaTrait;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -23,12 +25,18 @@ class Edicao extends Component
 
     public ClienteForm $cliente;
 
+    public User|Authenticatable $usuarioAutenticado;
+
     public function mount(
         int $cliente_id,
     ): void {
         $this->empresas = Empresa::all();
         $this->clienteAtual = Cliente::find($cliente_id);
         $this->cliente->empresa_id = $this->clienteAtual->empresa->empresa_id;
+        $this->usuarioAutenticado = Auth::user();
+        if ($this->usuarioAutenticado->cannot('update', \App\Models\Cliente::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
     }
 
     #[Title('SAFI NFE - Edição de Clientes')]

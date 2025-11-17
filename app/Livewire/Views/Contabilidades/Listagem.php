@@ -3,7 +3,10 @@
 namespace App\Livewire\Views\Contabilidades;
 
 use App\Models\Contabilidade;
+use App\Models\User;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -22,6 +25,15 @@ class Listagem extends Component
     public ?Contabilidade $contabilidadeAtual;
 
     public bool $modalConfirmandoRemocaoContabilidade = false;
+
+    public User|Authenticatable $usuario;
+
+    public function mount(): void {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('viewAny', \App\Models\Contabilidade::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
+    }
 
     #[Title('SAFI NFE - Listagem de Contabilidades')]
     #[Layout('components.layouts.main')]

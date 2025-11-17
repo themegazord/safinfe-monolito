@@ -44,14 +44,29 @@
 
                 <x-menu-item title="Dashboard" icon="o-home" link="{{ route('dashboard') }}" no-wire-navigate />
 
-                @if ($usuario->role === 'ADMIN')
-                <x-menu-item title="Contabilidades" icon="o-building-library" link="{{ route('contabilidades') }}" no-wire-navigate />
-                <x-menu-item title="Contadores" icon="o-identification" link="{{ route('contadores') }}" no-wire-navigate />
-                <x-menu-item title="Clientes" icon="o-users" link="{{ route('clientes') }}" no-wire-navigate />
-                <x-menu-item title="Empresas" icon="o-building-office" link="{{ route('empresas') }}" no-wire-navigate />
-                <x-menu-item title="Administradores" icon="o-shield-check" link="{{ route('administradores') }}" no-wire-navigate />
-                <x-menu-item title="Importação" icon="o-arrow-down-tray" link="{{ route('importacao') }}" no-wire-navigate />
-                @endif
+                @can('viewAny', App\Models\Contabilidade::class)
+                    <x-menu-item title="Contabilidades" icon="o-building-library" link="{{ route('contabilidades') }}" no-wire-navigate />
+                @endcan
+
+                @can('viewAny', App\Models\Contador::class)
+                    <x-menu-item title="Contadores" icon="o-identification" link="{{ route('contadores') }}" no-wire-navigate />
+                @endcan
+
+                @can('viewAny', App\Models\Cliente::class)
+                    <x-menu-item title="Clientes" icon="o-users" link="{{ route('clientes') }}" no-wire-navigate />
+                @endcan
+
+                @can('viewAny', App\Models\Empresa::class)
+                    <x-menu-item title="Empresas" icon="o-building-office" link="{{ route('empresas') }}" no-wire-navigate />
+                @endcan
+
+                @can('viewAny', App\Models\User::class)
+                    <x-menu-item title="Administradores" icon="o-shield-check" link="{{ route('administradores') }}" no-wire-navigate />
+                @endcan
+
+                @can('viewAny', App\Models\User::class)
+                    <x-menu-item title="Importação" icon="o-arrow-down-tray" link="{{ route('importacao') }}" no-wire-navigate />
+                @endcan
 
                 <x-menu-item title="Consulta de XML" icon="o-magnifying-glass" link="{{ route('consultaxml') }}" no-wire-navigate />
                 <x-menu-item title="Versionamento" icon="o-clock" link="{{ route('versionamento') }}" no-wire-navigate />

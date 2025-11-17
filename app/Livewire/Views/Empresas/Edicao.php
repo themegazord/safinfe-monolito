@@ -6,8 +6,11 @@ use App\Livewire\Forms\EmpresaForm;
 use App\Livewire\Forms\EnderecoForm;
 use App\Models\Empresa;
 use App\Models\Endereco;
+use App\Models\User;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -26,11 +29,18 @@ class Edicao extends Component
 
     public EnderecoForm $endereco;
 
+    public User|Authenticatable $usuario;
+
     public function mount(int $empresa_id, EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository): void
     {
         $this->empresaAtual = $empresaRepository->consultaEmpresa($empresa_id);
         $this->enderecoAtual = $enderecoRepository->consultaEndereco($this->empresaAtual->endereco_id);
         $this->endereco->estado = $this->enderecoAtual->estado;
+
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('update', \App\Models\Empresa::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
     }
 
     #[Layout('components.layouts.main')]
@@ -55,8 +65,8 @@ class Edicao extends Component
         }
 
         $this->validate(
-            ['empresa.ie' => 'inscricao_estadual:'.$this->endereco->estado],
-            ['empresa.ie.inscricao_estadual' => 'A Inscrição Estadual é inválida para o estado '.$this->endereco->estado.'.']
+            ['empresa.ie' => 'inscricao_estadual:' . $this->endereco->estado],
+            ['empresa.ie.inscricao_estadual' => 'A Inscrição Estadual é inválida para o estado ' . $this->endereco->estado . '.']
         );
 
         $enderecoAtualizado = array_diff($this->endereco->all(), $this->enderecoAtual->toArray());

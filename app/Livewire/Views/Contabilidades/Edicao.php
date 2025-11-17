@@ -7,10 +7,13 @@ use App\Livewire\Forms\EnderecoForm;
 use App\Models\Contabilidade;
 use App\Models\Empresa;
 use App\Models\Endereco;
+use App\Models\User;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
 use App\Repositories\Eloquent\Repository\EmpContRepository;
 use App\Repositories\Eloquent\Repository\EnderecoRepository;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -31,9 +34,15 @@ class Edicao extends Component
 
     public Collection $empresas;
 
+    public User|Authenticatable $usuario;
+
     public function mount(
         int $contabilidade_id,
     ): void {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('update', \App\Models\Contabilidade::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
         $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
         $this->enderecoAtual = Endereco::find($this->contabilidadeAtual->endereco_id);
         $this->search();

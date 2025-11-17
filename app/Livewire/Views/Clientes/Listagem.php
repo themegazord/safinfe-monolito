@@ -3,7 +3,10 @@
 namespace App\Livewire\Views\Clientes;
 
 use App\Models\Cliente;
+use App\Models\User;
 use App\Repositories\Eloquent\Repository\ClienteRepository;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -24,6 +27,15 @@ class Listagem extends Component
     public bool $modalConfirmandoInativacaoCliente = false;
 
     public ?Cliente $clienteAtual;
+
+    public User|Authenticatable $usuario;
+
+    public function mount(): void {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('viewAny', \App\Models\Cliente::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
+    }
 
     #[Title('SAFI NFE - Listagem de Clientes')]
     #[Layout('components.layouts.main')]
