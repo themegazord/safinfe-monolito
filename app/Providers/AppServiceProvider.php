@@ -4,6 +4,20 @@ namespace App\Providers;
 
 use App\Http\Controllers\AutenticacaoController;
 use App\Http\Controllers\XMLController;
+use App\Models\Cliente;
+use App\Models\Contabilidade;
+use App\Models\Contador;
+use App\Models\DadosXML;
+use App\Models\EmpCont;
+use App\Models\Empresa;
+use App\Models\XML;
+use App\Policies\ClientePolicy;
+use App\Policies\ContabilidadePolicy;
+use App\Policies\ContadorPolicy;
+use App\Policies\DadosXMLPolicy;
+use App\Policies\EmpContPolicy;
+use App\Policies\EmpresaPolicy;
+use App\Policies\XMLPolicy;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
 use App\Repositories\Eloquent\Repository\EmpresaRepository;
 use App\Repositories\Eloquent\Repository\UsuarioRepository;
@@ -15,6 +29,7 @@ use App\Repositories\Interface\IXML;
 use App\Services\DadosXMLService;
 use App\Services\XMLService;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -68,5 +83,15 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IDadosXML::class, DadosXMLRepository::class);
         $this->app->bind(IEmpresa::class, EmpresaRepository::class);
         $this->app->bind(IXML::class, XMLRepository::class);
+
+        //Policies
+
+        Gate::policy(Cliente::class, ClientePolicy::class);
+        Gate::policy(Contabilidade::class, ContabilidadePolicy::class);
+        Gate::policy(Contador::class, ContadorPolicy::class);
+        Gate::policy(DadosXML::class, DadosXMLPolicy::class);
+        Gate::policy(EmpCont::class, EmpContPolicy::class);
+        Gate::policy(Empresa::class, EmpresaPolicy::class);
+        Gate::policy(XML::class, XMLPolicy::class);
     }
 }
