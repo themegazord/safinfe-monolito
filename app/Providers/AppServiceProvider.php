@@ -84,7 +84,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IEmpresa::class, EmpresaRepository::class);
         $this->app->bind(IXML::class, XMLRepository::class);
 
-        //Policies
+        // Policies
 
         Gate::policy(Cliente::class, ClientePolicy::class);
         Gate::policy(Contabilidade::class, ContabilidadePolicy::class);

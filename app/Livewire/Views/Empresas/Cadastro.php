@@ -45,8 +45,8 @@ class Cadastro extends Component
             return $this->addError('empresa.ie', 'IE já existente.');
         }
         $this->validate(
-            ['empresa.ie' => 'inscricao_estadual:' . $this->endereco->estado],
-            ['empresa.ie.inscricao_estadual' => 'A Inscrição Estadual é inválida para o estado ' . $this->endereco->estado . '.']
+            ['empresa.ie' => 'inscricao_estadual:'.$this->endereco->estado],
+            ['empresa.ie.inscricao_estadual' => 'A Inscrição Estadual é inválida para o estado '.$this->endereco->estado.'.']
         );
 
         $endereco_cadastrado = $enderecoRepository->cadastraEndereco($this->endereco->all());
