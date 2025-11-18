@@ -7,7 +7,9 @@ use App\Livewire\Forms\UsuarioForm;
 use App\Models\Contabilidade;
 use App\Models\Contador;
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -23,8 +25,14 @@ class Cadastro extends Component
 
     public Collection $contabilidades;
 
+    public User|Authenticatable $usuarioAutenticado;
+
     public function mount(): void
     {
+        $this->usuarioAutenticado = Auth::user();
+        if ($this->usuarioAutenticado->cannot('create', \App\Models\Contador::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
         $this->search();
     }
 

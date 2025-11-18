@@ -3,7 +3,10 @@
 namespace App\Livewire\Views\Contabilidades;
 
 use App\Models\Contabilidade;
+use App\Models\User;
 use App\Repositories\Eloquent\Repository\ContabilidadeRepository;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -23,6 +26,16 @@ class Listagem extends Component
 
     public bool $modalConfirmandoRemocaoContabilidade = false;
 
+    public User|Authenticatable $usuario;
+
+    public function mount(): void
+    {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('viewAny', \App\Models\Contabilidade::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
+    }
+
     #[Title('SAFI NFE - Listagem de Contabilidades')]
     #[Layout('components.layouts.main')]
     public function render(ContabilidadeRepository $contabilidadeRepository)
@@ -32,22 +45,39 @@ class Listagem extends Component
 
     public function irCadastrar(): void
     {
+        if ($this->usuario->cannot('create', \App\Models\Contabilidade::class)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect('/contabilidades/cadastro');
     }
 
     public function irEdicaoContabilidade(int $contabilidade_id): void
     {
+        $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+        if ($this->usuario->cannot('delete', $this->contabilidadeAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect("/contabilidades/edicao/{$contabilidade_id}");
     }
 
     public function setRemocaoContabilidade(int $contabilidade_id): void
     {
         $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+        if ($this->usuario->cannot('delete', $this->contabilidadeAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         $this->modalConfirmandoRemocaoContabilidade = true;
     }
 
     public function excluirContabilidade(): void
     {
+        if ($this->usuario->cannot('delete', $this->contabilidadeAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         if (is_null($this->contabilidadeAtual)) {
             $this->error('Contabilidade inexistente.');
         }

@@ -8,7 +8,10 @@ use App\Models\Contabilidade;
 use App\Models\EmpCont;
 use App\Models\Empresa;
 use App\Models\Endereco;
+use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -27,8 +30,14 @@ class Cadastro extends Component
 
     public string $dadosContabilidadeTab = 'dadosContabilidade-tab';
 
+    public User|Authenticatable $usuario;
+
     public function mount(): void
     {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('create', \App\Models\Contabilidade::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
         $this->search();
     }
 

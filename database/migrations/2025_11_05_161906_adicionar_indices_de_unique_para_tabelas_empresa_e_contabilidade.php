@@ -24,8 +24,8 @@ return new class extends Migration
             ->get()
             ->toArray();
 
-        if (!empty(array_filter($empresas, fn ($e) => $e->contagem_cnpj > 1)) || !empty(array_filter($contabilidades, fn ($e) => $e->contagem_cnpj > 1))) {
-            throw new Exception("Existem empresas ou contabilidades cadastradas com o mesmo CNPJ");
+        if (! empty(array_filter($empresas, fn ($e) => $e->contagem_cnpj > 1)) || ! empty(array_filter($contabilidades, fn ($e) => $e->contagem_cnpj > 1))) {
+            throw new Exception('Existem empresas ou contabilidades cadastradas com o mesmo CNPJ');
         }
 
         Schema::table('empresas', function (Blueprint $table) {

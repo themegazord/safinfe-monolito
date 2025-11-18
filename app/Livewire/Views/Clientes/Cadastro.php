@@ -7,7 +7,9 @@ use App\Livewire\Forms\UsuarioForm;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -21,10 +23,16 @@ class Cadastro extends Component
 
     public UsuarioForm $usuario;
 
+    public User|Authenticatable $usuarioAutenticado;
+
     public Collection $empresas;
 
     public function mount(): void
     {
+        $this->usuarioAutenticado = Auth::user();
+        if ($this->usuarioAutenticado->cannot('create', \App\Models\Cliente::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
         $this->search();
     }
 
@@ -37,6 +45,7 @@ class Cadastro extends Component
 
     public function cadastrar(): void
     {
+
         $this->cliente->validate();
 
         if (! is_null(Cliente::whereEmail($this->cliente->email)->first())) {

@@ -5,6 +5,8 @@ namespace App\Livewire\Views\Administradores;
 use App\Livewire\Forms\UsuarioForm;
 use App\Models\User;
 use App\Traits\EnviaEmailResetSenhaTrait;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -18,9 +20,15 @@ class Edicao extends Component
 
     public UsuarioForm $administrador;
 
+    public User|Authenticatable $usuario;
+
     public function mount(
         int $administrador_id
     ): void {
+        $this->usuario = Auth::user();
+        if ($this->usuario->cannot('update', \App\Models\User::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
         $this->administradorAtual = User::find($administrador_id);
     }
 

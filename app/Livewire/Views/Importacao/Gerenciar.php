@@ -59,6 +59,9 @@ class Gerenciar extends Component
     {
         $this->empresas = $empresaRepository->listagemEmpresas();
         $this->usuario = Auth::user();
+        if ($this->usuario->cannot('viewAny', \App\Models\User::class)) {
+            abort('401', 'Você não tem permissão para acessar essa página');
+        }
     }
 
     #[Title('SAFI NFE - Importação de XML')]
@@ -107,9 +110,9 @@ class Gerenciar extends Component
         ];
 
         $this->importacaoContabilidadeForm->validate();
-        $path = $this->importacaoContabilidadeForm->arquivo->storeAs('importacaoTemp/impcontabilidade' . $this->usuario->getAttribute('id') . '.xlsx');
+        $path = $this->importacaoContabilidadeForm->arquivo->storeAs('importacaoTemp/impcontabilidade'.$this->usuario->getAttribute('id').'.xlsx');
 
-        $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/' . $path))->getActiveSheet();
+        $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/'.$path))->getActiveSheet();
         $data = $planilha->toArray();
         $cabecalho = $data[0];
 
@@ -122,7 +125,7 @@ class Gerenciar extends Component
             $erros[] = ['tipo' => EnumTiposValidacao::ValidacaoDeContagemDeCampos->value, 'mensagem' => 'A quantidade de colunas dos cabecalhos e diferente do que foi esperado.'];
         }
         // Validacao de schema do cabecalho
-        if (count(array_diff($camposCabecalhoEsperados, array_map(fn($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) {
+        if (count(array_diff($camposCabecalhoEsperados, array_map(fn ($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) {
             $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
         }
         // Validacao dos campos obrigatorios
@@ -311,9 +314,9 @@ class Gerenciar extends Component
         ];
 
         $this->importacaoEmpresaForm->validate();
-        $path = $this->importacaoEmpresaForm->arquivo->storeAs('importacaoTemp/impempresa' . $this->usuario->getAttribute('id') . '.xlsx');
+        $path = $this->importacaoEmpresaForm->arquivo->storeAs('importacaoTemp/impempresa'.$this->usuario->getAttribute('id').'.xlsx');
 
-        $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/' . $path))->getActiveSheet();
+        $planilha = \PhpOffice\PhpSpreadsheet\IOFactory::load(storage_path('app/'.$path))->getActiveSheet();
         $data = $planilha->toArray();
         $cabecalho = $data[0];
 
@@ -326,7 +329,7 @@ class Gerenciar extends Component
             $erros[] = ['tipo' => EnumTiposValidacao::ValidacaoDeContagemDeCampos->value, 'mensagem' => 'A quantidade de colunas dos cabecalhos e diferente do que foi esperado.'];
         }
         // Validacao de schema do cabecalho
-        if (count(array_diff($camposCabecalhoEsperados, array_map(fn($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) {
+        if (count(array_diff($camposCabecalhoEsperados, array_map(fn ($campo) => trim(str_replace('*', '', $campo)), $cabecalho)))) {
             $erros[] = ['tipo' => 'Alteracao no schema do XLSX', 'mensagem' => 'O schema do cabecalho foi alterado.'];
         }
         // Validacao dos campos obrigatorios
@@ -489,7 +492,7 @@ class Gerenciar extends Component
     private function recebeRARXMLS(): void
     {
         $path = $this->importacaoXMLForm->arquivo->storeAs('public', $this->importacaoXMLForm->arquivo->getClientOriginalName());
-        $realPath = storage_path('app/' . $path);
+        $realPath = storage_path('app/'.$path);
 
         dispatch(new ImportaXMLsJob($realPath, $this->importacaoXMLForm->cnpj));
 
