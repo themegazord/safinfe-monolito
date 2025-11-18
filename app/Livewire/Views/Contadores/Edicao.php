@@ -6,7 +6,7 @@ use App\Livewire\Forms\ContadorForm;
 use App\Models\Contabilidade;
 use App\Models\Contador;
 use App\Models\User;
-use App\Traits\EnviaEmailResetSenhaTrait;
+use App\Trait\EnviaEmailResetSenhaTrait;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;

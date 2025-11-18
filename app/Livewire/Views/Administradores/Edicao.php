@@ -4,7 +4,7 @@ namespace App\Livewire\Views\Administradores;
 
 use App\Livewire\Forms\UsuarioForm;
 use App\Models\User;
-use App\Traits\EnviaEmailResetSenhaTrait;
+use App\Trait\EnviaEmailResetSenhaTrait;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;

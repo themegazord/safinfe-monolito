@@ -6,7 +6,7 @@ use App\Livewire\Forms\ClienteForm;
 use App\Models\Cliente;
 use App\Models\Empresa;
 use App\Models\User;
-use App\Traits\EnviaEmailResetSenhaTrait;
+use App\Trait\EnviaEmailResetSenhaTrait;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;

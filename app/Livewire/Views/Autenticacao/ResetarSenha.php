@@ -3,7 +3,7 @@
 namespace App\Livewire\Views\Autenticacao;
 
 use App\Livewire\Forms\ResetarSenhaForm;
-use App\Traits\EnviaEmailResetSenhaTrait;
+use App\Trait\EnviaEmailResetSenhaTrait;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
