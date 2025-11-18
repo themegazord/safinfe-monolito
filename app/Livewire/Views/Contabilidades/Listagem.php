@@ -45,22 +45,39 @@ class Listagem extends Component
 
     public function irCadastrar(): void
     {
+        if ($this->usuario->cannot('create', \App\Models\Contabilidade::class)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect('/contabilidades/cadastro');
     }
 
     public function irEdicaoContabilidade(int $contabilidade_id): void
     {
+        $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+        if ($this->usuario->cannot('delete', $this->contabilidadeAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect("/contabilidades/edicao/{$contabilidade_id}");
     }
 
     public function setRemocaoContabilidade(int $contabilidade_id): void
     {
         $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+        if ($this->usuario->cannot('delete', $this->contabilidadeAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         $this->modalConfirmandoRemocaoContabilidade = true;
     }
 
     public function excluirContabilidade(): void
     {
+        if ($this->usuario->cannot('delete', $this->contabilidadeAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         if (is_null($this->contabilidadeAtual)) {
             $this->error('Contabilidade inexistente.');
         }

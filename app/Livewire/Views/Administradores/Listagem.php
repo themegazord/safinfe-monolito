@@ -43,16 +43,30 @@ class Listagem extends Component
 
     public function irCadastrar(): void
     {
+        if ($this->usuario->cannot('create', \App\Models\User::class)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect('/administradores/cadastro');
     }
 
     public function irEdicaoAdministrador(int $administrador_id): void
     {
+        $this->administradorAtual = User::find($administrador_id);
+        if ($this->usuario->cannot('update', $this->administradorAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect("/administradores/edicao/$administrador_id");
     }
 
     public function removerAdministrador(): void
     {
+        if ($this->usuario->cannot('delete', $this->administradorAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
+
         if (is_null($this->administradorAtual)) {
             $this->warning('O administrador não existe.');
         }
@@ -66,6 +80,10 @@ class Listagem extends Component
     public function setRemoverAdministrador(int $administrador_id): void
     {
         $this->administradorAtual = User::find($administrador_id);
+        if ($this->usuario->cannot('delete', $this->administradorAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         $this->modalConfirmandoRemocaoAdministrador = ! $this->modalConfirmandoRemocaoAdministrador;
     }
 }

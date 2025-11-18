@@ -47,30 +47,52 @@ class Listagem extends Component
 
     public function irCadastrar(): void
     {
+        if ($this->usuario->cannot('create', \App\Models\Cliente::class)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect('/clientes/cadastro');
     }
 
     public function irEdicaoCliente(int $cliente_id): void
     {
+        $this->clienteAtual = Cliente::withTrashed()->find($cliente_id);
+        if ($this->usuario->cannot('update', $this->clienteAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect("/clientes/edicao/$cliente_id");
     }
 
     public function inativarCliente(): void
     {
-        if ($this->clienteAtual->trashed()) {
-            $this->clienteAtual->restore();
-            $this->success('Cliente ativado com sucesso');
-        } else {
-            $this->clienteAtual->delete();
-            $this->success('Cliente inativado com sucesso');
+        $estaInativo = $this->clienteAtual->trashed();
+        $acao = $estaInativo ? 'restore' : 'delete';
+
+        if ($this->usuario->cannot($acao, $this->clienteAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
         }
-        $this->modalConfirmandoInativacaoCliente = ! $this->modalConfirmandoInativacaoCliente;
+
+        $estaInativo ? $this->clienteAtual->restore() : $this->clienteAtual->delete();
+
+        $mensagem = $estaInativo ? 'Cliente ativado com sucesso' : 'Cliente inativado com sucesso';
+        $this->success($mensagem);
+
+        $this->modalConfirmandoInativacaoCliente = false;
         $this->estaAtivo = true;
     }
 
     public function setInativacaoCliente(int $cliente_id): void
     {
         $this->clienteAtual = Cliente::withTrashed()->find($cliente_id);
+
+        $acao = $this->clienteAtual->trashed() ? 'restore' : 'delete';
+
+        if ($this->usuario->cannot($acao, $this->clienteAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         $this->modalConfirmandoInativacaoCliente = ! $this->modalConfirmandoInativacaoCliente;
     }
 }

@@ -49,11 +49,19 @@ class Listagem extends Component
 
     public function irCadastrar(): void
     {
+        if ($this->usuario->cannot('create', \App\Models\Empresa::class)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         redirect('/empresas/cadastro');
     }
 
     public function excluirEmpresa(): void
     {
+        if ($this->usuario->cannot('delete', $this->empresaAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         $this->empresaAtual->endereco()->first()->delete();
         $this->empresaAtual->delete();
 
@@ -64,11 +72,20 @@ class Listagem extends Component
     public function setRemocaoEmpresa(?int $empresa_id): void
     {
         $this->empresaAtual = Empresa::find($empresa_id);
+        if ($this->usuario->cannot('delete', $this->empresaAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
         $this->modalConfirmandoRemocaoEmpresa = true;
     }
 
-    public function irEdicaoEmpresa(int $empresa_id): Redirector|RedirectResponse
+    public function irEdicaoEmpresa(int $empresa_id): void
     {
-        return redirect("/empresas/edicao/{$empresa_id}");
+        $this->empresaAtual = Empresa::find($empresa_id);
+        if ($this->usuario->cannot('update', $this->empresaAtual)) {
+            $this->error('Você não tem permissão para fazer isso.');
+            return;
+        }
+        redirect("/empresas/edicao/{$empresa_id}");
     }
 }
