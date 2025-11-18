@@ -94,7 +94,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(DadosXML::class, DadosXMLPolicy::class);
         Gate::policy(EmpCont::class, EmpContPolicy::class);
         Gate::policy(Empresa::class, EmpresaPolicy::class);
-        Gate::policy(XML::class, XMLPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
     }
 }
