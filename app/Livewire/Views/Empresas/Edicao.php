@@ -65,8 +65,8 @@ class Edicao extends Component
         }
 
         $this->validate(
-            ['empresa.ie' => 'inscricao_estadual:' . $this->endereco->estado],
-            ['empresa.ie.inscricao_estadual' => 'A Inscrição Estadual é inválida para o estado ' . $this->endereco->estado . '.']
+            ['empresa.ie' => 'inscricao_estadual:'.$this->endereco->estado],
+            ['empresa.ie.inscricao_estadual' => 'A Inscrição Estadual é inválida para o estado '.$this->endereco->estado.'.']
         );
 
         $enderecoAtualizado = array_diff($this->endereco->all(), $this->enderecoAtual->toArray());

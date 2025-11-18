@@ -26,7 +26,8 @@ class Listagem extends Component
 
     public User|Authenticatable $usuario;
 
-    public function mount(): void {
+    public function mount(): void
+    {
         $this->usuario = Auth::user();
         if ($this->usuario->cannot('viewAny', \App\Models\User::class)) {
             abort('401', 'Você não tem permissão para acessar essa página');

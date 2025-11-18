@@ -12,6 +12,7 @@ use Livewire\Component;
 class ListagemErros extends Component
 {
     public array $erros = [];
+
     public User|Authenticatable $usuario;
 
     public function mount(): void
