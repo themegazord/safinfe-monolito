@@ -6,7 +6,7 @@
     <x-input label="Insira o email do contador" value="{{ $contadorAtual->email }}" placeholder="Insira o email do contador..." wire:model.fill="contador.email" inline />
     <div class="flex flex-col md:grid md:grid-cols-2 gap-4">
       <div class="col-span-1">
-        <x-input label="Insira o CPF do contador" placeholder="Insira o CPF do contador..." value="{{ $contadorAtual->cpf }}" wire:model.fill="contador.cpf" inline />
+        <x-input label="Insira o CPF do contador" placeholder="Insira o CPF do contador..." value="{{ $contadorAtual->cpf }}" wire:model.fill="contador.cpf" x-mask="999.999.999-99" inline />
       </div>
       <div class="col-span-1">
         <x-button wire:click="enviaEmailTrocaSenha" class="btn btn-primary w-full" label="Trocar senha" wire:loading.attr="disabled" spinner="enviaEmailTrocaSenha"/>
