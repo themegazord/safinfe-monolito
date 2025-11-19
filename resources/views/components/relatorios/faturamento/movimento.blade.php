@@ -49,7 +49,7 @@
                         <td class="border px-1 py-0.5">{{ $dado['situacao'] }}</td>
                     </tr>
                 @endforeach
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-50">
                     <td colspan="100%" class="px-2 py-1 text-left font-bold text-lg text-black">
                         <div class="grid grid-cols-5 gap-4">
                             <div class="flex flex-col justify-center">
