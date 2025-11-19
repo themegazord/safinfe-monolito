@@ -14,7 +14,7 @@
                 <th class="border px-1 py-0.5" rowspan="2">Valor Total</th>
                 <th class="border px-1 py-0.5" rowspan="2">Situação NFe</th>
             </tr>
-            <tr class="bg-gray-50 text-black/90">
+            <tr class="bg-gray-50 text-black">
                 <th class="border px-1 py-0.5">Vr. IP</th>
                 <th class="border px-1 py-0.5">Vr. Base ICMS</th>
                 <th class="border px-1 py-0.5">Vr. ICMS</th>
