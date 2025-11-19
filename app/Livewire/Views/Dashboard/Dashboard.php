@@ -97,17 +97,6 @@ class Dashboard extends Component
         $xmlIds = $this->dadosXML->pluck('xml_id');
 
         $this->XMLs = XML::whereIn('xml_id', $xmlIds)->pluck('xml');
-
-        $this->montaFaturamentoMovimento();
-    }
-
-    public function montaFaturamentoMovimento(): void
-    {
-        if (is_null($this->XMLs)) {
-            return;
-        }
-
-        dd($this->dadosXML);
     }
 
     private function zeraInformacoesRelatorios(): void
