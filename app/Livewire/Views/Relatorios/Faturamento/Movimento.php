@@ -7,6 +7,7 @@ use App\Models\Empresa;
 use App\Models\User;
 use App\Models\XML;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
@@ -14,9 +15,13 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Mary\Traits\Toast;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Movimento extends Component
 {
+    use Toast;
+
     public User|Authenticatable $usuario;
 
     public ?Collection $empresasContador = null;
@@ -29,7 +34,7 @@ class Movimento extends Component
 
     public ?array $consulta = [
         'empresa_id' => 3,
-        'data_inicio_fim' => '2025-04-01 00:00 até 2025-04-30 00:00',
+        'data_inicio_fim' => '2025-10-01 00:00 até 2025-10-31 00:00',
         'data_inicio' => null,
         'data_fim' => null,
         'modelo' => 'TODAS',
@@ -111,8 +116,8 @@ class Movimento extends Component
                             'numeronf' => $dado->numeronf,
                             'data_emissao' => Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y'),
                             'destinatario' => $dado->modelo == 55
-                              ? (string) ($xml->dest[0]->xNome[0] ?? '---')
-                              : 'CONSUMIDOR FINAL',
+                                ? (string) ($xml->dest[0]->xNome[0] ?? '---')
+                                : 'CONSUMIDOR FINAL',
                             'vrdesp' => (float) ($totais->vOutro ?? 0),
                             'vrfrete' => (float) ($totais->vFrete ?? 0),
                             'vrprod' => (float) ($totais->vProd ?? 0),
@@ -141,8 +146,8 @@ class Movimento extends Component
                             'numeronf' => $dado->numeronf,
                             'data_emissao' => Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y'),
                             'destinatario' => $dado->modelo == 55
-                              ? (string) ($xml->dest[0]->xNome[0] ?? '---')
-                              : 'CONSUMIDOR FINAL',
+                                ? (string) ($xml->dest[0]->xNome[0] ?? '---')
+                                : 'CONSUMIDOR FINAL',
                             'vrdesp' => (float) ($totais->vOutro ?? 0),
                             'vrfrete' => (float) ($totais->vFrete ?? 0),
                             'vrprod' => (float) ($totais->vProd ?? 0),
@@ -159,7 +164,7 @@ class Movimento extends Component
                         $xmlModel = DadosXML::query()
                             ->where('empresa_id', $dado->empresa_id)
                             ->where('numeronf', $dado->numeronf)
-                            ->where('status', 'AUTORIZADO')
+                            ->where('status', 'INUTILIZADO')
                             ->first();
 
                         $xmlRaw = $xmlModel?->xml ?? null;
@@ -192,8 +197,8 @@ class Movimento extends Component
                             'numeronf' => $dado->numeronf,
                             'data_emissao' => Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y'),
                             'destinatario' => $dado->modelo == 55
-                              ? (string) ($xml->dest[0]->xNome[0] ?? '---')
-                              : 'CONSUMIDOR FINAL',
+                                ? (string) ($xml->dest[0]->xNome[0] ?? '---')
+                                : 'CONSUMIDOR FINAL',
                             'vrdesp' => (float) ($totais->vOutro ?? 0),
                             'vrfrete' => (float) ($totais->vFrete ?? 0),
                             'vrprod' => (float) ($totais->vProd ?? 0),
@@ -209,6 +214,20 @@ class Movimento extends Component
                     }
                 })->filter(); // remove possíveis nulls
             });
+    }
+
+    public function exportarPDF(): StreamedResponse
+    {
+        $pdf = Pdf::loadView('components.relatorios.faturamento.movimento-pdf', [
+            'dadosXML' => $this->dadosXML,
+            'nome_fantasia' => Empresa::query()->find($this->consulta['empresa_id'])->getAttribute('fantasia'),
+            'data_inicio' => $this->consulta['data_inicio'],
+            'data_fim' => $this->consulta['data_fim'],
+        ])->setPaper('a4');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->stream();
+        }, 'movimento_' . date('Y-m-d h:i:s') . '.pdf');
     }
 
     private function zeraInformacoesRelatorios(): void
