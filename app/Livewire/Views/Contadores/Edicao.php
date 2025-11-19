@@ -33,11 +33,11 @@ class Edicao extends Component
         int $contador_id
     ): void {
         $this->usuarioAutenticado = Auth::user();
-        if ($this->usuarioAutenticado->cannot('update', \App\Models\Contador::class)) {
+        $this->contadorAtual = Contador::find($contador_id);
+        if ($this->usuarioAutenticado->cannot('update', $this->contadorAtual)) {
             abort('401', 'Você não tem permissão para acessar essa página');
         }
         $this->contabilidades = Contabilidade::all();
-        $this->contadorAtual = Contador::find($contador_id);
         $this->contador->contabilidade_id = $this->contadorAtual->contabilidade_id;
     }
 

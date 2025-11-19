@@ -34,7 +34,7 @@ class Edicao extends Component
         $this->clienteAtual = Cliente::find($cliente_id);
         $this->cliente->empresa_id = $this->clienteAtual->empresa->empresa_id;
         $this->usuarioAutenticado = Auth::user();
-        if ($this->usuarioAutenticado->cannot('update', \App\Models\Cliente::class)) {
+        if ($this->usuarioAutenticado->cannot('update', $this->clienteAtual)) {
             abort('401', 'Você não tem permissão para acessar essa página');
         }
     }

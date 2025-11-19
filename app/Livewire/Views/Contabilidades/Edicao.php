@@ -40,10 +40,10 @@ class Edicao extends Component
         int $contabilidade_id,
     ): void {
         $this->usuario = Auth::user();
-        if ($this->usuario->cannot('update', \App\Models\Contabilidade::class)) {
+        $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
+        if ($this->usuario->cannot('update', $this->contabilidadeAtual)) {
             abort('401', 'Você não tem permissão para acessar essa página');
         }
-        $this->contabilidadeAtual = Contabilidade::find($contabilidade_id);
         $this->enderecoAtual = Endereco::find($this->contabilidadeAtual->endereco_id);
         $this->search();
         foreach ($this->contabilidadeAtual->empresas()->get() as $empresa) {

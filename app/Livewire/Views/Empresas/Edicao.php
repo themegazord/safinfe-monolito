@@ -38,7 +38,7 @@ class Edicao extends Component
         $this->endereco->estado = $this->enderecoAtual->estado;
 
         $this->usuario = Auth::user();
-        if ($this->usuario->cannot('update', \App\Models\Empresa::class)) {
+        if ($this->usuario->cannot('update', $this->empresaAtual)) {
             abort('401', 'Você não tem permissão para acessar essa página');
         }
     }

@@ -26,10 +26,10 @@ class Edicao extends Component
         int $administrador_id
     ): void {
         $this->usuario = Auth::user();
-        if ($this->usuario->cannot('update', \App\Models\User::class)) {
+        $this->administradorAtual = User::find($administrador_id);
+        if ($this->usuario->cannot('update', $this->administradorAtual)) {
             abort('401', 'Você não tem permissão para acessar essa página');
         }
-        $this->administradorAtual = User::find($administrador_id);
     }
 
     #[Title('SAFI NFE - Edição de Administradores')]
