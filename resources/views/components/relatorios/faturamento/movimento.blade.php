@@ -51,28 +51,28 @@
                 @endforeach
                 <tr class="bg-gray-50">
                     <td colspan="100%" class="px-2 py-1 text-left font-bold text-lg text-black">
-                        <div class="grid grid-cols-5 gap-4">
-                            <div class="flex flex-col justify-center col-span-1">
+                        <div class="flex gap-4">
+                            <div class="flex flex-col flex-1">
                                 <p class="font-bold text-base">
                                     Total da data: {{ date('d/m/Y', strtotime($data)) }}
                                 </p>
                             </div>
-                            <div class="flex flex-col col-span-1">
+                            <div class="flex flex-col flex-1">
                                 <p class="font-bold text-base">Vr. Produtos: R$ {{ number_format($dados->sum('vrprod'), 2, ',', '.') }}</p>
                                 <p class="font-bold text-base">Vr. Base ICMS: R$ {{ number_format($dados->sum('vrbcicms'), 2, ',', '.') }}</p>
                                 <p class="font-bold text-base">Vr. Base ICMS ST: R$ {{ number_format($dados->sum('vrbcst'), 2, ',', '.') }}</p>
                                 <p class="font-bold text-base">Vr. FCP: R$ {{ number_format($dados->sum('vrfcp'), 2, ',', '.') }}</p>
                             </div>
-                            <div class="flex flex-col col-span-1">
+                            <div class="flex flex-col flex-1">
                                 <p class="font-bold text-base">Vr. Despesas: R$ {{ number_format($dados->sum('vrdesp'), 2, ',', '.') }}</p>
                                 <p class="font-bold text-base">Vr. ICMS: R$ {{ number_format($dados->sum('vricms'), 2, ',', '.') }}</p>
                                 <p class="font-bold text-base">Vr. ICMS ST: R$ {{ number_format($dados->sum('vrst'), 2, ',', '.') }}</p>
                                 <p class="font-bold text-base">Vr. IPI: R$ {{ number_format($dados->sum('vripi'), 2, ',', '.') }}</p>
                             </div>
-                            <div class="flex flex-col  justify-center col-span-1">
+                            <div class="flex flex-col flex-1">
                                 <p class="font-bold text-base">Vr. Frete: R$ {{ number_format($dados->sum('vrfrete'), 2, ',', '.') }}</p>
                             </div>
-                            <div class="flex flex-col  justify-center col-span-1">
+                            <div class="flex flex-col flex-1">
                                 <p class="font-bold text-base">Vr. Total</p>
                                 <p class="font-bold text-base p-2 border">R$ {{ number_format($dados->sum('vrtotal'), 2, ',', '.') }}</p>
                             </div>
