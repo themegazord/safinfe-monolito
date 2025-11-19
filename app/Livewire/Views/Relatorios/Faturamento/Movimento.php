@@ -87,7 +87,7 @@ class Movimento extends Component
 
     public function consultar(DadosXMLRepository $dadosXMLRepository): void
     {
-        $this->zeraInformacoesRelatorios();
+        $this->dadosXML = null;
 
         $this->consulta['data_inicio'] = date('Y/m/d', strtotime(explode(' até ', $this->consulta['data_inicio_fim'])[0]));
         $this->consulta['data_fim'] = date('Y/m/d', strtotime(explode(' até ', $this->consulta['data_inicio_fim'])[1]));
@@ -96,7 +96,6 @@ class Movimento extends Component
 
         if ($this->dadosXML->isEmpty()) {
             $this->warning(title: 'Não foi encontrado notas nesse periodo');
-
             return;
         }
 
