@@ -7,7 +7,7 @@
       <x-input label="Insira a razão social da empresa" placeholder="Insira a razão social da empresa..." wire:model="empresa.social" />
       <div class="flex flex-col md:grid md:grid-cols-2 gap-4">
         <div class="col-span-1">
-          <x-input label="Insira o CNPJ da empresa" placeholder="Insira o CNPJ da empresa..." wire:model="empresa.cnpj" />
+          <x-input label="Insira o CNPJ da empresa" placeholder="Insira o CNPJ da empresa..." wire:model="empresa.cnpj" x-mask="99.999.999/9999-99"/>
         </div>
         <div class="col-span-1">
           <x-input label="Insira a IE da empresa" placeholder="Insira a IE da empresa..." wire:model="empresa.ie" />
@@ -36,7 +36,7 @@
       </div>
       <div class="flex flex-col md:grid md:grid-cols-2 gap-4">
         <div class="col-span-1">
-          <x-input label="Insira o CEP" placeholder="Insira o CEP..." wire:model="endereco.cep" />
+          <x-input label="Insira o CEP" placeholder="Insira o CEP..." wire:model="endereco.cep" x-mask="99999-999"/>
         </div>
         <div class="col-span-1">
           <x-input label="Insira o bairro" placeholder="Insira o bairro..." wire:model="endereco.bairro" />

@@ -6,7 +6,7 @@
     <x-input label="Insira o email do contador" placeholder="Insira o email do contador..." wire:model="contador.email" inline />
     <div class="flex flex-col md:grid md:grid-cols-2 gap-4">
       <div class="col-span-1">
-        <x-input label="Insira o CPF do contador" placeholder="Insira o CPF do contador..." wire:model="contador.cpf" inline />
+        <x-input label="Insira o CPF do contador" placeholder="Insira o CPF do contador..." wire:model="contador.cpf" x-mask="999.999.999-99" inline />
       </div>
       <div class="col-span-1">
         <x-password label="Insira a senha do contador" placeholder="Insira o senha do contador..." wire:model="usuario.password" clearable inline />

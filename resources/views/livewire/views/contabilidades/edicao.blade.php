@@ -5,7 +5,9 @@
       <h5 class="font-bold text-xl">Dados da contabilidade:</h5>
       <div class="flex flex-col md:grid md:grid-cols-2 gap-4">
         <x-input label="Insira a razão social da contabilidade" placeholder="Insira a razão social da contabilidade..." value="{{ $contabilidadeAtual->social }}" wire:model.fill="contabilidade.social" inline />
-        <x-input label="Insira o documento da contabilidade" placeholder="Insira o documento da contabilidade..." value="{{ $contabilidadeAtual->cnpj }}" wire:model.fill="contabilidade.documento" inline />
+        <x-input label="Insira o documento da contabilidade" placeholder="Insira o documento da contabilidade..." value="{{ $contabilidadeAtual->cnpj }}" wire:model.fill="contabilidade.documento" x-mask:dynamic="
+            $input.replace(/[^\d]/g, '').length <= 11 ? '999.999.999-99' : '99.999.999/9999-99'
+        " inline />
       </div>
       <div class="flex flex-col md:grid md:grid-cols-2 gap-4">
         <x-input label="Insira o telefone corporativo da contabilidade" placeholder="Insira o telefone corporativo da contabilidade..." value="{{ $contabilidadeAtual->telefone_corporativo }}" wire:model.fill="contabilidade.telefone_corporativo" inline />
@@ -41,7 +43,7 @@
         </div>
       </div>
       <div class="flex flex-col md:grid md:grid-cols-2 gap-4">
-        <x-input label="Insira o CEP" placeholder="Insira o CEP..." value="{{ $enderecoAtual->cep }}" wire:model.fill="endereco.cep" inline />
+        <x-input label="Insira o CEP" placeholder="Insira o CEP..." value="{{ $enderecoAtual->cep }}" wire:model.fill="endereco.cep" x-mask="99999-999" inline />
         <x-input label="Insira o bairro" placeholder="Insira o bairro..." value="{{ $enderecoAtual->bairro }}" wire:model.fill="endereco.bairro" inline />
       </div>
       <x-textarea rows="3" label="Insira o complemento" placeholder="Insira o complemento..." inline />
