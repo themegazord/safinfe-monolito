@@ -1,5 +1,6 @@
 <?php
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 
@@ -45,7 +46,9 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('relatorios')->group(function () {
         Route::prefix('faturamento')->group(function () {
-            Route::get('movimento', \App\Livewire\Views\Relatorios\Faturamento\Movimento::class)->name('relatorios.faturamento.movimento');
+            Route::prefix('movimento')->group(function () {
+                Route::get('/', \App\Livewire\Views\Relatorios\Faturamento\Movimento::class)->name('relatorios.faturamento.movimento');
+            });
         });
     });
     Route::prefix('versionamento')->group(function () {

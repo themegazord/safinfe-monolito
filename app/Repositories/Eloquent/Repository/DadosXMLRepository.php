@@ -91,7 +91,7 @@ class DadosXMLRepository implements IDadosXML
             $dados_xml = $dados_xml->where('numeronf', '<=', $dadosCliente['numeroFinal']);
         }
 
-        return $dados_xml;
+        return $dados_xml->orderBy('dh_emissao_evento', 'asc');
     }
 
     public function consultaPorChave(string $chave): ?DadosXML
