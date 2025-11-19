@@ -98,9 +98,9 @@
             </x-slot:label>
         </x-button>
         <x-button
-            wire:click="exportar('xlsx')"
+            wire:click="exportarXLSX"
             class="btn-info"
-            spinner="exportar"
+            spinner="exportarXLSX"
             wire:loading.attr="disabled"
             :disabled="empty($dadosXML)">
             <x-slot:label>

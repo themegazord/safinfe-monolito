@@ -16,6 +16,9 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Mary\Traits\Toast;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Movimento extends Component
@@ -228,6 +231,85 @@ class Movimento extends Component
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->stream();
         }, 'movimento_' . date('Y-m-d h:i:s') . '.pdf');
+    }
+
+    public function exportarXLSX()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->mergeCells('A1:P1')->setCellValue('A1', 'Relatório de Movimento de Notas Fiscais');
+        $sheet->mergeCells('A2:P2')->setCellValue('A2', 'Empresa: ' . Empresa::query()->find($this->consulta['empresa_id'])->getAttribute('fantasia'));
+        $sheet->mergeCells('A3:P3')->setCellValue('A3', 'Periodo: ' . date('d/m/Y', strtotime($this->consulta['data_inicio'])) . ' - ' . date('d/m/Y', strtotime($this->consulta['data_fim'])));
+        $sheet->setCellValue('A4', 'Modelo');
+        $sheet->setCellValue('B4', 'Série');
+        $sheet->setCellValue('C4', 'Número');
+        $sheet->setCellValue('D4', 'Data de Emissão');
+        $sheet->setCellValue('E4', 'Nome do Cadastro');
+        $sheet->setCellValue('F4', 'Valor de IPI');
+        $sheet->setCellValue('G4', 'Valor da Base de ICMS');
+        $sheet->setCellValue('H4', 'Valor do ICMS');
+        $sheet->setCellValue('I4', 'Valor do FCP');
+        $sheet->setCellValue('J4', 'Valor da Base de ICMS ST');
+        $sheet->setCellValue('K4', 'Valor do ICMS ST');
+        $sheet->setCellValue('L4', 'Valor de outras despesas');
+        $sheet->setCellValue('M4', 'Valor do frete');
+        $sheet->setCellValue('N4', 'Valor total dos produtos');
+        $sheet->setCellValue('O4', 'Valor total');
+        $sheet->setCellValue('P4', 'Situação da NFe');
+
+        $sheet->getStyle('A1:P4')->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'CCCCCC']
+            ]
+        ]);
+
+        $sheet->getStyle('A4:P4')->applyFromArray([
+            'borders' => [
+                'top' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+                'bottom' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ],
+            ],
+        ]);
+
+        $row = 5;
+
+        foreach ($this->dadosXML as $data => $dadosDia) {
+            foreach ($dadosDia as $dado) {
+                $sheet->setCellValue("A{$row}", $dado['modelo']);
+                $sheet->setCellValue("B{$row}", $dado['serie']);
+                $sheet->setCellValue("C{$row}", $dado['numeronf']);
+                $sheet->setCellValue("D{$row}", date('d/m/Y', strtotime($dado['data_emissao'])));
+                $sheet->setCellValue("E{$row}", $dado['destinatario']);
+                $sheet->setCellValue("F{$row}", $dado['vripi']);
+                $sheet->setCellValue("G{$row}", $dado['vrbcicms']);
+                $sheet->setCellValue("H{$row}", $dado['vricms']);
+                $sheet->setCellValue("I{$row}", $dado['vrfcp']);
+                $sheet->setCellValue("J{$row}", $dado['vrbcst']);
+                $sheet->setCellValue("K{$row}", $dado['vrst']);
+                $sheet->setCellValue("L{$row}", $dado['vrdesp']);
+                $sheet->setCellValue("M{$row}", $dado['vrfrete']);
+                $sheet->setCellValue("N{$row}", $dado['vrprod']);
+                $sheet->setCellValue("O{$row}", $dado['vrtotal']);
+                $sheet->setCellValue("P{$row}", $dado['situacao']);
+                $row++;
+            }
+        }
+
+        foreach (range('A', 'P') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, 'movimento_' . date('Y-m-d') . '.xlsx');
     }
 
     private function zeraInformacoesRelatorios(): void
