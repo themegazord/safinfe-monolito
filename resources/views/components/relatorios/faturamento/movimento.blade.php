@@ -1,7 +1,7 @@
 <div class="mt-4 w-full overflow-x-scroll">
     <table class="w-full table table-auto border-collapse text-xs">
         <thead>
-            <tr class="bg-gray-100 text-gray-700">
+            <tr class="bg-gray-100 text-black">
                 <th class="border px-1 py-0.5" rowspan="2">Mod.</th>
                 <th class="border px-1 py-0.5" rowspan="2">Sér</th>
                 <th class="border px-1 py-0.5" rowspan="2">Número</th>
@@ -14,7 +14,7 @@
                 <th class="border px-1 py-0.5" rowspan="2">Valor Total</th>
                 <th class="border px-1 py-0.5" rowspan="2">Situação NFe</th>
             </tr>
-            <tr class="bg-gray-50 text-gray-600">
+            <tr class="bg-gray-50 text-black/90">
                 <th class="border px-1 py-0.5">Vr. IP</th>
                 <th class="border px-1 py-0.5">Vr. Base ICMS</th>
                 <th class="border px-1 py-0.5">Vr. ICMS</th>
@@ -26,7 +26,7 @@
         <tbody>
             @forelse ($dadosXML as $data => $dados)
                 @foreach ($dados as $dado)
-                    <tr class="bg-gray-50 text-gray-800">
+                    <tr class="bg-gray-50 text-black">
                         <td class="border px-1 py-0.5">{{ $dado['modelo'] }}</td>
                         <td class="border px-1 py-0.5">{{ $dado['serie'] }}</td>
                         <td class="border px-1 py-0.5">{{ $dado['numeronf'] }}</td>
@@ -50,7 +50,7 @@
                     </tr>
                 @endforeach
                 <tr class="bg-gray-200">
-                    <td colspan="100%" class="px-2 py-1 text-left font-bold text-lg text-gray-700">
+                    <td colspan="100%" class="px-2 py-1 text-left font-bold text-lg text-black">
                         <div class="grid grid-cols-5 gap-4">
                             <div class="flex flex-col justify-center">
                                 <p class="font-bold text-base">
