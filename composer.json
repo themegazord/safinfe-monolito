@@ -16,6 +16,8 @@
         "livewire/livewire": "^3.5",
         "phpoffice/phpspreadsheet": "^3.3",
         "robsontenorio/mary": "^2.0",
+        "setasign/fpdf": "^1.8",
+        "setasign/fpdi": "^2.6",
         "spatie/laravel-backup": "^9.3"
     },
     "require-dev": {

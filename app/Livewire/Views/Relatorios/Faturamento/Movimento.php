@@ -9,9 +9,11 @@ use App\Models\XML;
 use App\Repositories\Eloquent\Repository\DadosXMLRepository;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -19,6 +21,7 @@ use Mary\Traits\Toast;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use setasign\Fpdi\Fpdi;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Movimento extends Component
@@ -221,16 +224,83 @@ class Movimento extends Component
 
     public function exportarPDF(): StreamedResponse
     {
-        $pdf = Pdf::loadView('components.relatorios.faturamento.movimento-pdf', [
-            'dadosXML' => $this->dadosXML,
-            'nome_fantasia' => Empresa::query()->find($this->consulta['empresa_id'])->getAttribute('fantasia'),
-            'data_inicio' => $this->consulta['data_inicio'],
-            'data_fim' => $this->consulta['data_fim'],
-        ])->setPaper('a4');
+        try {
+            // Agrupa por data
+            $dadosPorData = $this->dadosXML;
 
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->stream();
-        }, 'movimento_' . date('Y-m-d h:i:s') . '.pdf');
+            $pdfsParciais = [];
+            $tempDir = storage_path('app/temp/pdfs');
+
+            // Cria diretório temporário
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Gera um PDF para cada data
+            foreach ($dadosPorData as $data => $dados) {
+                $dadosAgrupados = [
+                    [
+                        'data' => $data,
+                        'dados' => $dados->values()->toArray(),
+                        'totais' => [
+                            'vrprod' => $dados->sum('vrprod'),
+                            'vrbcicms' => $dados->sum('vrbcicms'),
+                            'vrbcst' => $dados->sum('vrbcst'),
+                            'vrfcp' => $dados->sum('vrfcp'),
+                            'vrdesp' => $dados->sum('vrdesp'),
+                            'vricms' => $dados->sum('vricms'),
+                            'vrst' => $dados->sum('vrst'),
+                            'vripi' => $dados->sum('vripi'),
+                            'vrfrete' => $dados->sum('vrfrete'),
+                            'vrtotal' => $dados->sum('vrtotal'),
+                        ]
+                    ]
+                ];
+
+                // Gera PDF da data
+                $pdfParcial = Pdf::loadView('components.relatorios.faturamento.movimento-pdf-parcial', [
+                    'dadosAgrupados' => $dadosAgrupados,
+                    'nome_fantasia' => Empresa::find($this->consulta['empresa_id'])->fantasia,
+                    'data_inicio' => $this->consulta['data_inicio'],
+                    'data_fim' => $this->consulta['data_fim'],
+                ])->setPaper('a4', 'landscape');
+
+                // Salva temporariamente
+                $filename = $tempDir . '/pdf_' . $data . '_' . uniqid() . '.pdf';
+                $pdfParcial->save($filename);
+                $pdfsParciais[] = $filename;
+
+                // Libera memória após cada PDF
+                unset($pdfParcial, $dadosAgrupados, $dados);
+                gc_collect_cycles();
+
+                Log::channel('memory')->info("PDF criado para data: {$data}", [
+                    'memoria' => memory_get_usage(true) / 1024 / 1024 . 'MB'
+                ]);
+            }
+
+            // Merge dos PDFs
+            $pdfFinal = $this->mergePDFs($pdfsParciais);
+
+            // Limpa arquivos temporários
+            foreach ($pdfsParciais as $file) {
+                if (file_exists($file)) {
+                    unlink($file);
+                }
+            }
+
+            return response()->streamDownload(function () use ($pdfFinal) {
+                echo $pdfFinal;
+            }, 'movimento_' . date('Y-m-d_H-i-s') . '.pdf');
+        } catch (Exception $e) {
+            Log::channel('memory')->error('Erro ao gerar PDF', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            abort(500, 'Erro ao gerar PDF: ' . $e->getMessage());
+        }
     }
 
     public function exportarXLSX()
@@ -317,5 +387,28 @@ class Movimento extends Component
         foreach (['informacoesTotaisNotas', 'totalNotasPorDiaMes', 'topProdutosVendidos'] as $propriedade) {
             $this->{$propriedade} = null;
         }
+    }
+
+    private function mergePDFs(array $pdfFiles): string
+    {
+        $fpdi = new Fpdi();
+
+        foreach ($pdfFiles as $file) {
+            $pageCount = $fpdi->setSourceFile($file);
+
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                $templateId = $fpdi->importPage($pageNo);
+                $size = $fpdi->getTemplateSize($templateId);
+
+                $fpdi->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                $fpdi->useTemplate($templateId);
+            }
+
+            // Libera memória
+            unset($pageCount, $templateId, $size);
+            gc_collect_cycles();
+        }
+
+        return $fpdi->Output('S'); // Retorna string do PDF
     }
 }

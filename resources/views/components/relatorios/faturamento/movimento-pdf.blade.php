@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Relatório do Movimento do faturamento</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <style>
         * {
             margin: 0;
@@ -23,7 +24,8 @@
             margin-bottom: 10px;
         }
 
-        th, td {
+        th,
+        td {
             border: 1px solid #ccc;
             padding: 3px 5px;
             text-align: left;
@@ -74,6 +76,7 @@
         }
     </style>
 </head>
+
 <body style="padding-left: 32px; padding-right: 32px;">
     <h2 style="margin-bottom: 15px;">Relatório de Movimento de Notas Fiscais</h2>
     <h3 style="margin-bottom: 15px;">Empresa: {{ $nome_fantasia }}</h3>
@@ -105,66 +108,71 @@
         </thead>
         <tbody>
             @forelse ($dadosXML as $data => $dados)
-                @foreach ($dados as $dado)
-                    <tr>
-                        <td>{{ $dado['modelo'] }}</td>
-                        <td>{{ $dado['serie'] }}</td>
-                        <td>{{ $dado['numeronf'] }}</td>
-                        <td>{{ $dado['data_emissao'] }}</td>
-                        <td>{{ $dado['destinatario'] }}</td>
-                        <td class="text-right">{{ number_format($dado['vripi'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vrbcicms'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vricms'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vrfcp'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vrbcst'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vrst'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vrdesp'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vrfrete'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vrprod'], 2, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($dado['vrtotal'], 2, ',', '.') }}</td>
-                        <td>{{ $dado['situacao'] }}</td>
-                    </tr>
-                @endforeach
+            @php
+            $dadosCollection = collect($dados); // Converte para Collection
+            @endphp
 
-                {{-- Totais da Data --}}
-                <tr>
-                    <td colspan="16" style="padding: 0;">
-                        <div class="totais">
-                            <div class="totais-titulo">
-                                Total da data: {{ date('d/m/Y', strtotime($data)) }}
-                            </div>
+            @foreach ($dadosCollection as $dado)
+            <tr>
+                <td>{{ $dado['modelo'] }}</td>
+                <td>{{ $dado['serie'] }}</td>
+                <td>{{ $dado['numeronf'] }}</td>
+                <td>{{ $dado['data_emissao'] }}</td>
+                <td>{{ $dado['destinatario'] }}</td>
+                <td class="text-right">{{ number_format($dado['vripi'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vrbcicms'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vricms'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vrfcp'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vrbcst'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vrst'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vrdesp'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vrfrete'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vrprod'], 2, ',', '.') }}</td>
+                <td class="text-right">{{ number_format($dado['vrtotal'], 2, ',', '.') }}</td>
+                <td>{{ $dado['situacao'] }}</td>
+            </tr>
+            @endforeach
 
-                            <table style="border: none; margin-top: 5px;">
-                                <tr>
-                                    <td style="border: none; width: 33%;">
-                                        <div class="totais-item">Vr. Produtos: R$ {{ number_format($dados->sum('vrprod'), 2, ',', '.') }}</div>
-                                        <div class="totais-item">Vr. Base ICMS: R$ {{ number_format($dados->sum('vrbcicms'), 2, ',', '.') }}</div>
-                                        <div class="totais-item">Vr. Base ST: R$ {{ number_format($dados->sum('vrbcst'), 2, ',', '.') }}</div>
-                                        <div class="totais-item">Vr. FCP: R$ {{ number_format($dados->sum('vrfcp'), 2, ',', '.') }}</div>
-                                    </td>
-                                    <td style="border: none; width: 33%;">
-                                        <div class="totais-item">Vr. Despesas: R$ {{ number_format($dados->sum('vrdesp'), 2, ',', '.') }}</div>
-                                        <div class="totais-item">Vr. ICMS: R$ {{ number_format($dados->sum('vricms'), 2, ',', '.') }}</div>
-                                        <div class="totais-item">Vr. ICMS ST: R$ {{ number_format($dados->sum('vrst'), 2, ',', '.') }}</div>
-                                        <div class="totais-item">Vr. IPI: R$ {{ number_format($dados->sum('vripi'), 2, ',', '.') }}</div>
-                                    </td>
-                                    <td style="border: none; width: 33%;">
-                                        <div class="totais-item">Vr. Frete: R$ {{ number_format($dados->sum('vrfrete'), 2, ',', '.') }}</div>
-                                        <div class="totais-destaque">Vr. Total: R$ {{ number_format($dados->sum('vrtotal'), 2, ',', '.') }}</div>
-                                    </td>
-                                </tr>
-                            </table>
+            {{-- Totais da Data --}}
+            <tr>
+                <td colspan="16" style="padding: 0;">
+                    <div class="totais">
+                        <div class="totais-titulo">
+                            Total da data: {{ date('d/m/Y', strtotime($data)) }}
                         </div>
-                    </td>
-                </tr>
+
+                        <table style="border: none; margin-top: 5px;">
+                            <tr>
+                                <td style="border: none; width: 33%;">
+                                    <div class="totais-item">Vr. Produtos: R$ {{ number_format($dadosCollection->sum('vrprod'), 2, ',', '.') }}</div>
+                                    <div class="totais-item">Vr. Base ICMS: R$ {{ number_format($dadosCollection->sum('vrbcicms'), 2, ',', '.') }}</div>
+                                    <div class="totais-item">Vr. Base ST: R$ {{ number_format($dadosCollection->sum('vrbcst'), 2, ',', '.') }}</div>
+                                    <div class="totais-item">Vr. FCP: R$ {{ number_format($dadosCollection->sum('vrfcp'), 2, ',', '.') }}</div>
+                                </td>
+                                <td style="border: none; width: 33%;">
+                                    <div class="totais-item">Vr. Despesas: R$ {{ number_format($dadosCollection->sum('vrdesp'), 2, ',', '.') }}</div>
+                                    <div class="totais-item">Vr. ICMS: R$ {{ number_format($dadosCollection->sum('vricms'), 2, ',', '.') }}</div>
+                                    <div class="totais-item">Vr. ICMS ST: R$ {{ number_format($dadosCollection->sum('vrst'), 2, ',', '.') }}</div>
+                                    <div class="totais-item">Vr. IPI: R$ {{ number_format($dadosCollection->sum('vripi'), 2, ',', '.') }}</div>
+                                </td>
+                                <td style="border: none; width: 33%;">
+                                    <div class="totais-item">Vr. Frete: R$ {{ number_format($dadosCollection->sum('vrfrete'), 2, ',', '.') }}</div>
+                                    <div class="totais-destaque">Vr. Total: R$ {{ number_format($dadosCollection->sum('vrtotal'), 2, ',', '.') }}</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
             @empty
-                <tr>
-                    <td colspan="16" style="text-align: center; padding: 20px;">
-                        Nenhum registro encontrado
-                    </td>
-                </tr>
+            <tr>
+                <td colspan="16" style="text-align: center; padding: 20px;">
+                    Nenhum registro encontrado
+                </td>
+            </tr>
             @endforelse
         </tbody>
     </table>
 </body>
+
 </html>

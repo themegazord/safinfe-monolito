@@ -133,6 +133,12 @@ return [
             'level' => 'debug',
         ],
 
+        'memory' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/memory.log'),
+            'level' => 'debug',
+        ],
+
     ],
 
 ];
