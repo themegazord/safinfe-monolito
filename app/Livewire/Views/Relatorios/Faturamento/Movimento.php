@@ -22,6 +22,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use setasign\Fpdi\Fpdi;
+use SimpleXMLElement;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Movimento extends Component
@@ -39,8 +40,8 @@ class Movimento extends Component
     public ?Collection $XMLs = null;
 
     public ?array $consulta = [
-        'empresa_id' => 3,
-        'data_inicio_fim' => '2025-10-01 00:00 até 2025-10-31 00:00',
+        'empresa_id' => 21,
+        'data_inicio_fim' => '2025-08-01 00:00 até 2025-08-31 00:00',
         'data_inicio' => null,
         'data_fim' => null,
         'modelo' => 'TODAS',
@@ -108,114 +109,55 @@ class Movimento extends Component
                     if ($dado->status === 'AUTORIZADO') {
                         $xmlRaw = XML::query()->find($dado->xml_id)?->xml;
 
-                        if (! $xmlRaw) {
-                            return null; // ou log de erro, se necessário
+                        if (!$xmlRaw) {
+                            return $this->retornoDadosVazios($dado, 'XML NÃO ENCONTRADO');
                         }
 
-                        $xml = simplexml_load_string($xmlRaw)->NFe[0]->infNFe[0];
-                        $totais = $xml->total[0]->ICMSTot[0];
+                        $xml = $this->processarXML($xmlRaw);
 
-                        return [
-                            'modelo' => $dado->modelo,
-                            'serie' => $dado->serie,
-                            'numeronf' => $dado->numeronf,
-                            'data_emissao' => Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y'),
-                            'destinatario' => $dado->modelo == 55
-                                ? (string) ($xml->dest[0]->xNome[0] ?? '---')
-                                : 'CONSUMIDOR FINAL',
-                            'vrdesp' => (float) ($totais->vOutro ?? 0),
-                            'vrfrete' => (float) ($totais->vFrete ?? 0),
-                            'vrprod' => (float) ($totais->vProd ?? 0),
-                            'vrtotal' => (float) ($totais->vNF ?? 0),
-                            'situacao' => ucfirst(strtolower($dado->status)),
-                            'vripi' => (float) ($totais->vIPI ?? 0),
-                            'vrbcicms' => (float) ($totais->vBC ?? 0),
-                            'vricms' => (float) ($totais->vICMS ?? 0),
-                            'vrfcp' => (float) ($totais->vFCP ?? 0),
-                            'vrbcst' => (float) ($totais->vBCST ?? 0),
-                            'vrst' => (float) ($totais->vST ?? 0),
-                        ];
+                        if (!$xml) {
+                            return $this->retornoDadosVazios($dado, 'ERRO AO PROCESSAR XML');
+                        }
+
+                        $infNFe = $xml->NFe[0]->infNFe[0] ?? null;
+
+                        if (!$infNFe) {
+                            return $this->retornoDadosVazios($dado, 'XML INVÁLIDO');
+                        }
+
+                        $totais = $infNFe->total[0]->ICMSTot[0] ?? null;
+
+                        return $this->formatarDadosNota($dado, $infNFe, $totais);
                     } elseif ($dado->status === 'CANCELADO') {
-                        $xmlRaw = DadosXML::query()->where('empresa_id', $dado->empresa_id)->where('numeronf', $dado->numeronf)->where('status', 'AUTORIZADO')->first()->xml->xml;
-
-                        if (! $xmlRaw) {
-                            return null; // ou log de erro, se necessário
-                        }
-
-                        $xml = simplexml_load_string($xmlRaw)->NFe[0]->infNFe[0];
-                        $totais = $xml->total[0]->ICMSTot[0];
-
-                        return [
-                            'modelo' => $dado->modelo,
-                            'serie' => $dado->serie,
-                            'numeronf' => $dado->numeronf,
-                            'data_emissao' => Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y'),
-                            'destinatario' => $dado->modelo == 55
-                                ? (string) ($xml->dest[0]->xNome[0] ?? '---')
-                                : 'CONSUMIDOR FINAL',
-                            'vrdesp' => (float) ($totais->vOutro ?? 0),
-                            'vrfrete' => (float) ($totais->vFrete ?? 0),
-                            'vrprod' => (float) ($totais->vProd ?? 0),
-                            'vrtotal' => (float) ($totais->vNF ?? 0),
-                            'situacao' => ucfirst(strtolower($dado->status)),
-                            'vripi' => (float) ($totais->vIPI ?? 0),
-                            'vrbcicms' => (float) ($totais->vBC ?? 0),
-                            'vricms' => (float) ($totais->vICMS ?? 0),
-                            'vrfcp' => (float) ($totais->vFCP ?? 0),
-                            'vrbcst' => (float) ($totais->vBCST ?? 0),
-                            'vrst' => (float) ($totais->vST ?? 0),
-                        ];
-                    } else {
                         $xmlModel = DadosXML::query()
                             ->where('empresa_id', $dado->empresa_id)
                             ->where('numeronf', $dado->numeronf)
-                            ->where('status', 'INUTILIZADO')
+                            ->where('status', 'AUTORIZADO')
                             ->first();
 
-                        $xmlRaw = $xmlModel?->xml ?? null;
+                        $xmlRaw = $xmlModel?->xml?->xml ?? null;
 
-                        if (! $xmlRaw) {
-                            return [
-                                'modelo' => $dado->modelo,
-                                'serie' => $dado->serie,
-                                'numeronf' => $dado->numeronf,
-                                'data_emissao' => Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y'),
-                                'destinatario' => 'NOTA INUTILIZADA',
-                                'vrprod' => (float) ($totais->vProd ?? 0),
-                                'vrtotal' => (float) ($totais->vNF ?? 0),
-                                'situacao' => ucfirst(strtolower($dado->status)),
-                                'vripi' => (float) ($totais->vIPI ?? 0),
-                                'vrbcicms' => (float) ($totais->vBC ?? 0),
-                                'vricms' => (float) ($totais->vICMS ?? 0),
-                                'vrfcp' => (float) ($totais->vFCP ?? 0),
-                                'vrbcst' => (float) ($totais->vBCST ?? 0),
-                                'vrst' => (float) ($totais->vST ?? 0),
-                            ];
+                        if (!$xmlRaw) {
+                            return $this->retornoDadosVazios($dado, 'XML DA NOTA ORIGINAL NÃO ENCONTRADO');
                         }
 
-                        $xml = simplexml_load_string($xmlRaw)->NFe[0]->infNFe[0];
-                        $totais = $xml->total[0]->ICMSTot[0];
+                        $xml = $this->processarXML($xmlRaw);
 
-                        return [
-                            'modelo' => $dado->modelo,
-                            'serie' => $dado->serie,
-                            'numeronf' => $dado->numeronf,
-                            'data_emissao' => Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y'),
-                            'destinatario' => $dado->modelo == 55
-                                ? (string) ($xml->dest[0]->xNome[0] ?? '---')
-                                : 'CONSUMIDOR FINAL',
-                            'vrdesp' => (float) ($totais->vOutro ?? 0),
-                            'vrfrete' => (float) ($totais->vFrete ?? 0),
-                            'vrprod' => (float) ($totais->vProd ?? 0),
-                            'vrtotal' => (float) ($totais->vNF ?? 0),
-                            'situacao' => ucfirst(strtolower($dado->status)),
-                            'vripi' => (float) ($totais->vIPI ?? 0),
-                            'vrbcicms' => (float) ($totais->vBC ?? 0),
-                            'vricms' => (float) ($totais->vICMS ?? 0),
-                            'vrfcp' => (float) ($totais->vFCP ?? 0),
-                            'vrbcst' => (float) ($totais->vBCST ?? 0),
-                            'vrst' => (float) ($totais->vST ?? 0),
-                        ];
+                        if (!$xml) {
+                            return $this->retornoDadosVazios($dado, 'ERRO AO PROCESSAR XML');
+                        }
+
+                        $infNFe = $xml->NFe[0]->infNFe[0] ?? null;
+
+                        if (!$infNFe) {
+                            return $this->retornoDadosVazios($dado, 'XML INVÁLIDO');
+                        }
+
+                        $totais = $infNFe->total[0]->ICMSTot[0] ?? null;
+
+                        return $this->formatarDadosNota($dado, $infNFe, $totais);
+                    } else { // INUTILIZADO ou outros status
+                        return $this->retornoDadosVazios($dado, 'NOTA INUTILIZADA');
                     }
                 })->filter(); // remove possíveis nulls
             });
@@ -409,5 +351,85 @@ class Movimento extends Component
         }
 
         return $fpdi->Output('S'); // Retorna string do PDF
+    }
+
+    private function processarXML(?string $xmlRaw): ?SimpleXMLElement
+    {
+        if (!$xmlRaw) {
+            return null;
+        }
+
+        // Decodifica HTML entities
+        $xmlRaw = html_entity_decode($xmlRaw, ENT_QUOTES | ENT_XML1, 'UTF-8');
+
+        // Remove BOM e whitespace
+        $xmlRaw = trim($xmlRaw);
+        $xmlRaw = preg_replace('/^[\x00-\x1F\x80-\xFF]{3}/', '', $xmlRaw);
+
+        // Desabilita erros do libxml
+        libxml_use_internal_errors(true);
+
+        // Tenta carregar o XML
+        $xml = @simplexml_load_string($xmlRaw);
+
+        if ($xml === false) {
+            Log::channel('memory')->error('Erro ao processar XML', [
+                'xml_preview' => substr($xmlRaw, 0, 200),
+                'errors' => libxml_get_errors()
+            ]);
+
+            libxml_clear_errors();
+            return null;
+        }
+
+        return $xml;
+    }
+
+    private function retornoDadosVazios($dado, string $destinatario = 'SEM DADOS'): array
+    {
+        return [
+            'modelo' => $dado->modelo ?? '---',
+            'serie' => $dado->serie ?? '---',
+            'numeronf' => $dado->numeronf ?? '---',
+            'data_emissao' => $dado->dh_emissao_evento
+                ? Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y')
+                : '---',
+            'destinatario' => $destinatario,
+            'vrprod' => 0.00,
+            'vrtotal' => 0.00,
+            'situacao' => $dado->status ? ucfirst(strtolower($dado->status)) : '---',
+            'vripi' => 0.00,
+            'vrbcicms' => 0.00,
+            'vricms' => 0.00,
+            'vrfcp' => 0.00,
+            'vrbcst' => 0.00,
+            'vrst' => 0.00,
+            'vrdesp' => 0.00,
+            'vrfrete' => 0.00,
+        ];
+    }
+
+    private function formatarDadosNota($dado, $infNFe, $totais): array
+    {
+        return [
+            'modelo' => $dado->modelo,
+            'serie' => $dado->serie,
+            'numeronf' => $dado->numeronf,
+            'data_emissao' => Carbon::parse($dado->dh_emissao_evento)->format('d/m/Y'),
+            'destinatario' => $dado->modelo == 55
+                ? (string) ($infNFe->dest[0]->xNome[0] ?? '---')
+                : 'CONSUMIDOR FINAL',
+            'vrdesp' => (float) ($totais->vOutro ?? 0),
+            'vrfrete' => (float) ($totais->vFrete ?? 0),
+            'vrprod' => (float) ($totais->vProd ?? 0),
+            'vrtotal' => (float) ($totais->vNF ?? 0),
+            'situacao' => ucfirst(strtolower($dado->status)),
+            'vripi' => (float) ($totais->vIPI ?? 0),
+            'vrbcicms' => (float) ($totais->vBC ?? 0),
+            'vricms' => (float) ($totais->vICMS ?? 0),
+            'vrfcp' => (float) ($totais->vFCP ?? 0),
+            'vrbcst' => (float) ($totais->vBCST ?? 0),
+            'vrst' => (float) ($totais->vST ?? 0),
+        ];
     }
 }
