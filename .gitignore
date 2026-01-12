@@ -4,6 +4,7 @@
 /public/hot
 /public/storage
 /storage/app/Laravel
+/storage/app/temp
 /storage/*.key
 /vendor
 .env

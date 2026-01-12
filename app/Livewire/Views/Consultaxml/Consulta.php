@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
@@ -115,11 +116,18 @@ class Consulta extends Component
             return;
         }
 
-        $tempZipPath = tempnam(sys_get_temp_dir(), 'zip_');
+        $tempFileName = 'temp_zip_'.uniqid().'.zip';
+        $tempZipPath = storage_path('app/temp/'.$tempFileName);
+
+        // Garante que o diretório temp existe
+        if (! is_dir(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
+
         $zip = new ZipArchive;
 
         if ($zip->open($tempZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            $this->warning('Não foi possível criar o ZIP em memória.');
+            $this->warning('Não foi possível criar o ZIP.');
 
             return;
         }
@@ -133,6 +141,8 @@ class Consulta extends Component
             } catch (\Exception $e) {
                 $this->warning("Erro ao processar o XML ID: {$dado->xml_id}");
                 Log::error("Erro ao processar o XML ID: {$dado->xml_id}, Erro: ".$e->getMessage());
+                $zip->close();
+                @unlink($tempZipPath);
 
                 return;
             }
@@ -142,7 +152,7 @@ class Consulta extends Component
 
         return response()->streamDownload(function () use ($tempZipPath) {
             readfile($tempZipPath);
-            unlink($tempZipPath); // limpa após envio
+            unlink($tempZipPath);
         }, 'XMLArquivos.zip', [
             'Content-Type' => 'application/zip',
         ]);
