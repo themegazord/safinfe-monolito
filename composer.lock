@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7ff953436e274ceb34cccc7bbd1cf567",
+    "content-hash": "9e651400bdbe9ad59d1976288e9305c1",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -2882,16 +2882,16 @@
         },
         {
             "name": "livewire/livewire",
-            "version": "v3.6.2",
+            "version": "v3.7.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/livewire.git",
-                "reference": "8f8914731f5eb43b6bb145d87c8d5a9edfc89313"
+                "reference": "5a8dffd4c0ab357ff7ed5b39e7c2453d962a68e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/livewire/zipball/8f8914731f5eb43b6bb145d87c8d5a9edfc89313",
-                "reference": "8f8914731f5eb43b6bb145d87c8d5a9edfc89313",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/5a8dffd4c0ab357ff7ed5b39e7c2453d962a68e0",
+                "reference": "5a8dffd4c0ab357ff7ed5b39e7c2453d962a68e0",
                 "shasum": ""
             },
             "require": {
@@ -2946,7 +2946,7 @@
             "description": "A front-end framework for Laravel.",
             "support": {
                 "issues": "https://github.com/livewire/livewire/issues",
-                "source": "https://github.com/livewire/livewire/tree/v3.6.2"
+                "source": "https://github.com/livewire/livewire/tree/v3.7.4"
             },
             "funding": [
                 {
@@ -2954,7 +2954,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-12T20:24:15+00:00"
+            "time": "2026-01-13T09:37:21+00:00"
         },
         {
             "name": "maennchen/zipstream-php",
@@ -10473,13 +10473,13 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2",
         "ext-zip": "*"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }

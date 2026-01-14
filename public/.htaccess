@@ -19,3 +19,20 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+
+
+# Bloquear atacantes
+
+<RequireAll>
+
+    Require all granted
+
+    Require not ip 156.239.14.36
+
+    Require not ip 38.54.57.70
+
+    Require not ip 182.6.0.0/16
+
+</RequireAll>
+
