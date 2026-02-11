@@ -52,10 +52,10 @@ class Edicao extends Component
 
     public function editar(EmpresaRepository $empresaRepository, EnderecoRepository $enderecoRepository)
     {
-        $this->empresa->validate();
         $this->empresa->tratarCamposSujos();
-        $this->endereco->validate();
         $this->endereco->tratarCamposSujos();
+        $this->empresa->validate();
+        $this->endereco->validate();
 
         if (! is_null(DB::table('empresas')->where('cnpj', $this->empresa->cnpj)->whereNot('empresa_id', $this->empresaAtual->getAttribute('empresa_id'))->first())) {
             return $this->addError('empresa.cnpj', 'CNPJ já existente.');
