@@ -438,6 +438,7 @@ class Consulta extends Component
                                 $subSubQuery->select(DB::raw(1))
                                     ->from('dados_xml as dx2')
                                     ->whereRaw('dx2.numeronf = dx1.numeronf')
+                                    ->whereRaw('dx2.empresa_id = dx1.empresa_id')
                                     ->whereIn('dx2.status', ['cancelado', 'denegado', 'inutilizado']);
                             });
                     });
@@ -463,12 +464,12 @@ class Consulta extends Component
             })
 
           // status
-            ->when($dadosXML['status'] !== 'TODAS', function ($query) use ($dadosXML) {
+            ->when(! is_null($dadosXML['status']) && $dadosXML['status'] !== 'TODAS', function ($query) use ($dadosXML) {
                 $query->where('dx1.status', $dadosXML['status']);
             })
 
           // modelo
-            ->when($dadosXML['modelo'] !== 'TODAS', function ($query) use ($dadosXML) {
+            ->when(! is_null($dadosXML['modelo']) && $dadosXML['modelo'] !== 'TODAS', function ($query) use ($dadosXML) {
                 $query->where('dx1.modelo', $dadosXML['modelo']);
             })
 
