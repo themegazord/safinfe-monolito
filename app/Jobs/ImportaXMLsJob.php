@@ -11,12 +11,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Mary\Traits\Toast;
 use ZipArchive;
 
 class ImportaXMLsJob implements ShouldQueue
 {
-    use Queueable, Toast;
+    use Queueable;
 
     protected ?int $usuario_id = null;
 
@@ -61,7 +60,9 @@ class ImportaXMLsJob implements ShouldQueue
                 } catch (\Throwable $e) {
                     DB::rollBack();
                     Log::warning("{$e->getMessage()} => XML com erro: $this->xmlNomeAtual");
-                    $this->warning("{$e->getMessage()} => XML com erro: $this->xmlNomeAtual", redirectTo: route('importacao'));
+                    $erros = Cache::get("importacao_erros_{$this->usuario_id}", []);
+                    $erros[] = "{$e->getMessage()} => XML com erro: $this->xmlNomeAtual";
+                    Cache::put("importacao_erros_{$this->usuario_id}", $erros, now()->addMinutes(30));
                 } finally {
                 }
             }
