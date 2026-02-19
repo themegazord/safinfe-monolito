@@ -47,14 +47,14 @@ class ImportaXMLsJob implements ShouldQueue
             $zip->extractTo($pathXMLUsuario);
             $zip->close();
 
-            $arquivos = array_filter(scandir($pathXMLUsuario), fn ($f) => $f !== '.' && $f !== '..');
+            $arquivos = File::allFiles($pathXMLUsuario);
 
             DB::beginTransaction();
 
             foreach ($arquivos as $arquivo) {
                 try {
-                    $this->xmlNomeAtual = $arquivo;
-                    $path = "{$pathXMLUsuario}/{$arquivo}";
+                    $this->xmlNomeAtual = $arquivo->getFilename();
+                    $path = $arquivo->getPathname();
                     $this->defineGravaXML($path, $xmlService, $dadosXMLService);
                     DB::commit();
                 } catch (\Throwable $e) {
