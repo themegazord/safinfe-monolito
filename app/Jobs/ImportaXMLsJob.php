@@ -49,9 +49,8 @@ class ImportaXMLsJob implements ShouldQueue
 
             $arquivos = File::allFiles($pathXMLUsuario);
 
-            DB::beginTransaction();
-
             foreach ($arquivos as $arquivo) {
+                DB::beginTransaction();
                 try {
                     $this->xmlNomeAtual = $arquivo->getFilename();
                     $path = $arquivo->getPathname();
@@ -63,7 +62,6 @@ class ImportaXMLsJob implements ShouldQueue
                     $erros = Cache::get("importacao_erros_{$this->usuario_id}", []);
                     $erros[] = "{$e->getMessage()} => XML com erro: $this->xmlNomeAtual";
                     Cache::put("importacao_erros_{$this->usuario_id}", $erros, now()->addMinutes(30));
-                } finally {
                 }
             }
 

@@ -31,7 +31,7 @@ class DadosXMLRepository implements IDadosXML
     {
         return DadosXML::query()
             ->where('chave', $chave)
-            ->where('status', 'AUTORIZADA')
+            ->where('status', 'AUTORIZADO')
             ->first();
     }
 
@@ -46,6 +46,9 @@ class DadosXMLRepository implements IDadosXML
                                 $subSubQuery->select(DB::raw(1))
                                     ->from('dados_xml as dx2')
                                     ->whereRaw('dx2.numeronf = dx1.numeronf')
+                                    ->whereRaw('dx2.empresa_id = dx1.empresa_id')
+                                    ->whereRaw('dx2.modelo = dx1.modelo')
+                                    ->whereRaw('dx2.serie = dx1.serie')
                                     ->whereIn('dx2.status', ['cancelado', 'denegado', 'inutilizado']);
                             });
                     });
@@ -119,7 +122,7 @@ class DadosXMLRepository implements IDadosXML
     public function consultaVariosXML($xmls)
     {
         return DadosXML::query()
-            ->where('status', 'AUTORIZADA')
+            ->where('status', 'AUTORIZADO')
             ->whereIn('chave', $xmls)
             ->get();
     }
