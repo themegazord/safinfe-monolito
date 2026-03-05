@@ -16,10 +16,10 @@ trait EnviaEmailResetSenhaTrait
         if ($usuario !== null) {
             $token = Str::uuid();
 
-            DB::table('password_reset_tokens')->insert([
-                'token' => $token,
-                'email' => $email,
-            ]);
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $email],
+                ['token' => $token],
+            );
 
             $usuario->notify(new SolicitacaoResetSenhaNotification($token, $email));
         }
