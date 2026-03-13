@@ -3,10 +3,10 @@
 namespace App\Livewire\Views\Consultaxml;
 
 use App\Actions\TrataDadosGeraisNotaFiscal;
+use App\Jobs\GeraZIPDownloadJob;
 use App\Models\DadosXML;
 use App\Models\Empresa;
 use App\Models\User;
-use App\Models\XML;
 use App\Trait\AnaliseXML\InformacaoAdicional\AnalisaInfAdicionalTrait;
 use App\Trait\AnaliseXML\Pagamento\AnalisaPagamentosTrait;
 use App\Trait\AnaliseXML\Tributacao\AnalisaCOFINSSTXMLTrait;
@@ -21,18 +21,18 @@ use App\Trait\AnaliseXML\Tributacao\AnalisaPISXMLTrait;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Polling;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Mary\Traits\Toast;
 use SimpleXMLElement;
-use ZipArchive;
 
 class Consulta extends Component
 {
@@ -70,6 +70,14 @@ class Consulta extends Component
 
     public array $expanded = [];
 
+    public array $sortBy = ['column' => 'dh_emissao_evento', 'direction' => 'desc'];
+
+    public string $downloadStatus = ''; // '', 'aguardando', 'pronto', 'erro'
+
+    public string $downloadChave = '';
+
+    public string $downloadUrl = '';
+
     public function mount(): void
     {
         $this->usuario = Auth::user();
@@ -106,56 +114,58 @@ class Consulta extends Component
     }
 
     #[On('download-direto')]
-    public function downloadDireto(array $params)
+    public function downloadDireto(array $params): void
     {
-        $dados_xml = $this->consultaDadosDownload($params);
+        if ($this->downloadStatus === 'aguardando') {
+            $this->warning('Já existe um download em andamento, aguarde.');
 
-        if ($dados_xml->isEmpty()) {
+            return;
+        }
+
+        if (! $this->consultaDadosDownload($params)->exists()) {
             $this->warning('Nenhuma nota fiscal encontrada.');
 
             return;
         }
 
-        $tempFileName = 'temp_zip_'.uniqid().'.zip';
-        $tempZipPath = storage_path('app/temp/'.$tempFileName);
+        $this->downloadChave = 'zip_download_'.md5($this->usuario->id.'_'.uniqid());
+        $this->downloadStatus = 'aguardando';
+        $this->downloadUrl = '';
 
-        // Garante que o diretório temp existe
-        if (! is_dir(storage_path('app/temp'))) {
-            mkdir(storage_path('app/temp'), 0755, true);
-        }
+        Cache::put($this->downloadChave, ['status' => 'processando'], now()->addMinutes(30));
 
-        $zip = new ZipArchive;
+        GeraZIPDownloadJob::dispatch($this->usuario->id, $params, $this->downloadChave);
+    }
 
-        if ($zip->open($tempZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            $this->warning('Não foi possível criar o ZIP.');
-
+    public function verificaDownload(): void
+    {
+        if ($this->downloadStatus !== 'aguardando' || empty($this->downloadChave)) {
             return;
         }
 
-        foreach ($dados_xml as $dado) {
-            try {
-                $conteudoXML = XML::find($dado->xml_id)?->getAttribute('xml');
-                if ($conteudoXML) {
-                    $zip->addFromString($dado->chave.'.xml', $conteudoXML);
-                }
-            } catch (\Exception $e) {
-                $this->warning("Erro ao processar o XML ID: {$dado->xml_id}");
-                Log::error("Erro ao processar o XML ID: {$dado->xml_id}, Erro: ".$e->getMessage());
-                $zip->close();
-                @unlink($tempZipPath);
+        $dados = Cache::get($this->downloadChave);
 
-                return;
-            }
+        if (! $dados) {
+            return;
         }
 
-        $zip->close();
+        if ($dados['status'] === 'pronto') {
+            $this->downloadStatus = 'pronto';
+            $this->downloadUrl = route('download.zip', ['chave' => $this->downloadChave]);
+        } elseif ($dados['status'] === 'erro') {
+            $this->downloadStatus = 'erro';
+            $this->warning($dados['mensagem'] ?? 'Erro ao gerar o arquivo ZIP.');
+        }
+    }
 
-        return response()->streamDownload(function () use ($tempZipPath) {
-            readfile($tempZipPath);
-            unlink($tempZipPath);
-        }, 'XMLArquivos.zip', [
-            'Content-Type' => 'application/zip',
-        ]);
+    public function resetDownload(): void
+    {
+        if ($this->downloadChave) {
+            Cache::forget($this->downloadChave);
+        }
+        $this->downloadStatus = '';
+        $this->downloadChave = '';
+        $this->downloadUrl = '';
     }
 
     public function downloadXMLUnico(int $dado_id)
@@ -427,9 +437,11 @@ class Consulta extends Component
         });
     }
 
-    private function consultaDadosDownload(array $dadosXML): Collection
+    private function consultaDadosDownload(array $dadosXML)
     {
-        $dados_xml = DB::table('dados_xml as dx1')
+        return DB::table('dados_xml as dx1')
+            ->join('xmls', 'xmls.xml_id', '=', 'dx1.xml_id')
+            ->select('dx1.chave', 'xmls.xml')
             ->where(function ($query) {
                 $query->whereIn('dx1.status', ['cancelado', 'denegado', 'inutilizado'])
                     ->orWhere(function ($subQuery) {
@@ -488,7 +500,5 @@ class Consulta extends Component
             ->when(is_null($dadosXML['numeroInicial']) && ! is_null($dadosXML['numeroFinal']), function ($query) use ($dadosXML) {
                 $query->where('numeronf', '<=', $dadosXML['numeroFinal']);
             });
-
-        return $dados_xml->get();
     }
 }

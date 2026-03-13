@@ -24,10 +24,18 @@ class ProcessarXMLJob implements ShouldQueue
         $this->xmlDecoded = $xmlDecoded;
         $this->status = strtoupper($status);
         $this->empresa = $empresa;
+        $this->onQueue('alta');
     }
 
     public function handle(XMLService $xmlService, DadosXMLService $dadosXMLService): void
     {
+        $chave = $xmlService->getChaveNotaFiscal($this->xmlDecoded, $this->status);
+        $existente = $dadosXMLService->consultaDadosXMLPorChave($chave);
+
+        if (! is_null($existente) && $existente->getAttribute('status') === $this->status) {
+            return;
+        }
+
         $xml = $xmlService->cadastroteste($this->xmlDecoded);
 
         match ($this->status) {
@@ -37,7 +45,7 @@ class ProcessarXMLJob implements ShouldQueue
                 $this->xmlDecoded,
                 $xml->getAttribute('xml_id'),
                 $this->empresa,
-                $xmlService->getChaveNotaFiscal($this->xmlDecoded, $this->status, $this->empresa)
+                $chave
             ),
             default => throw new \InvalidArgumentException("Status inválido: {$this->status}"),
         };

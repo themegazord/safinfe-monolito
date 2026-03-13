@@ -27,14 +27,18 @@
 
   @php
     $headers = [
-      ['key' => 'dados_id', 'label' => 'ID'],
-      ['key' => 'modelo', 'label' => 'Modelo'],
-      ['key' => 'serie', 'label' => 'Série'],
-      ['key' => 'numeronf', 'label' => 'Número NF'],
+      ['key' => 'dados_id', 'label' => 'ID', 'sortable' => true],
+      ['key' => 'modelo', 'label' => 'Modelo', 'sortable' => true],
+      ['key' => 'serie', 'label' => 'Série', 'sortable' => true],
+      ['key' => 'numeronf', 'label' => 'Número NF', 'sortable' => true],
       ['key' => 'numeronf_final', 'label' => 'Número NF Final'],
-      ['key' => 'status', 'label' => 'Status'],
-      ['key' => 'dh_emissao_evento', 'label' => 'Data do evento'],
+      ['key' => 'status', 'label' => 'Status', 'sortable' => true],
+      ['key' => 'dh_emissao_evento', 'label' => 'Data do evento', 'sortable' => true],
     ];
+
+    $sortableColumns = ['dados_id', 'modelo', 'serie', 'numeronf', 'status', 'dh_emissao_evento'];
+    $sortColumn = in_array($sortBy['column'], $sortableColumns) ? $sortBy['column'] : 'dh_emissao_evento';
+    $sortDirection = $sortBy['direction'] === 'asc' ? 'asc' : 'desc';
 
     $dados_xml = DB::table('dados_xml as dx1')
       ->where(function ($query) {
@@ -96,13 +100,14 @@
         $query->where('numeronf', '<=', $dadosXML['numeroFinal']);
       });
 
-    $dados_xml = $dados_xml->orderBy('dx1.dados_id')->paginate($this->porPagina);
+    $dados_xml = $dados_xml->orderBy('dx1.'.$sortColumn, $sortDirection)->paginate($this->porPagina);
   @endphp
 
 
       <x-table
         :headers="$headers"
         :rows="$dados_xml"
+        :sort-by="$sortBy"
         striped
         with-pagination
         show-empty-text
@@ -298,4 +303,26 @@
         </x-tabs>
         @endif
       </x-modal>
+
+    {{-- Polling para verificar quando o ZIP estiver pronto --}}
+    @if($downloadStatus === 'aguardando')
+        <div wire:poll.2s="verificaDownload" class="fixed bottom-6 right-6 z-50">
+            <div class="alert alert-info shadow-lg max-w-sm">
+                <span class="loading loading-spinner loading-sm"></span>
+                <span>Gerando arquivo ZIP, aguarde...</span>
+            </div>
+        </div>
+    @endif
+
+    @if($downloadStatus === 'pronto')
+        <div class="fixed bottom-6 right-6 z-50">
+            <div class="alert alert-success shadow-lg max-w-sm">
+                <x-icon name="o-check-circle" class="w-5 h-5" />
+                <span>ZIP pronto!</span>
+                <a href="{{ $downloadUrl }}" wire:click="resetDownload" class="btn btn-sm btn-success">
+                    Baixar
+                </a>
+            </div>
+        </div>
+    @endif
 </div>

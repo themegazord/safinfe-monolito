@@ -59,4 +59,5 @@ Route::middleware('auth')->group(function () {
         Route::get('/', \App\Livewire\Views\Consultaxml\Consulta::class)->name('consultaxml');
         Route::get('/{hash}', \App\Livewire\Views\Consultaxml\Listagem::class);
     });
+    Route::get('/download/zip/{chave}', [\App\Http\Controllers\DownloadZIPController::class, 'download'])->name('download.zip');
 });

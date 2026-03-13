@@ -70,7 +70,7 @@
         ],
         "dev-wsl": [
           "Composer\\Config::disableProcessTimeout",
-          "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74,#e5a78d\" \"php artisan serve --host=0.0.0.0 --port=8000\" \"php artisan queue:listen --tries=1\" \"php artisan schedule:work\" \"npm run dev -- --host=0.0.0.0 --port=5173\" --names=server,queue,schedule,vite"
+          "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74,#e5a78d,#a3d8a1\" \"php artisan serve --host=0.0.0.0 --port=8000\" \"php artisan queue:work redis --queue=alta,default --memory=128 --tries=3 --sleep=3\" \"php artisan queue:work redis --queue=downloads --memory=128 --tries=1 --sleep=3\" \"npm run dev -- --host=0.0.0.0 --port=5173\" --names=server,worker-alta,worker-downloads,vite"
         ],
         "dev": [
           "Composer\\Config::disableProcessTimeout",

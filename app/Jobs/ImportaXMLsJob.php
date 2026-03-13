@@ -27,6 +27,7 @@ class ImportaXMLsJob implements ShouldQueue
     public function __construct(protected string $pathArquivo, protected string $cnpj)
     {
         $this->usuario_id = Auth::user()->id;
+        $this->onQueue('default');
     }
 
     /**

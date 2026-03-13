@@ -139,6 +139,13 @@ return [
             'level' => 'debug',
         ],
 
+        'envio_xml' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/envio_xml/envio.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
     ],
 
 ];

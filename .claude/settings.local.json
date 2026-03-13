@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh issue create:*)"
+      "Bash(gh issue create:*)",
+      "Bash(php artisan tinker --execute=\":*)",
+      "Bash(redis-cli llen:*)",
+      "Bash(ls /home/megadev/safinfe/*.md /home/megadev/safinfe/*.txt /home/megadev/safinfe/docs/)"
     ],
     "deny": [],
     "ask": []
