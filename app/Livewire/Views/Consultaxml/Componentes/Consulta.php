@@ -93,9 +93,7 @@ class Consulta extends Component
     public function enviaConsulta(): void
     {
         $this->{$this->modelPrefix}->validate();
-        $splitData = explode(' até ', $this->{$this->modelPrefix}->data_inicio_fim);
-        $this->{$this->modelPrefix}->data_inicio = $splitData[0];
-        $this->{$this->modelPrefix}->data_fim = $splitData[1];
+        $this->preencheDataInicioFim();
         $this->dispatch('envia-consulta', [
             'tipo' => $this->modelPrefix,
             ...match ($this->modelPrefix) {
@@ -109,9 +107,7 @@ class Consulta extends Component
     public function solicitaDownload(): void
     {
         $this->{$this->modelPrefix}->validate();
-        $splitData = explode(' até ', $this->{$this->modelPrefix}->data_inicio_fim);
-        $this->{$this->modelPrefix}->data_inicio = $splitData[0];
-        $this->{$this->modelPrefix}->data_fim = $splitData[1];
+        $this->preencheDataInicioFim();
         $this->dispatch('download-direto', [
             'tipo' => $this->modelPrefix,
             ...match ($this->modelPrefix) {
@@ -120,5 +116,12 @@ class Consulta extends Component
                 'consultaContador' => $this->consultaContador->toArray(),
             },
         ]);
+    }
+
+    private function preencheDataInicioFim(): void
+    {
+        $splitData = explode(' até ', $this->{$this->modelPrefix}->data_inicio_fim);
+        $this->{$this->modelPrefix}->data_inicio = $splitData[0];
+        $this->{$this->modelPrefix}->data_fim = $splitData[1] ?? $splitData[0];
     }
 }
